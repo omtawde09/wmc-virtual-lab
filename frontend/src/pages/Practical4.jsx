@@ -27,14 +27,20 @@ function pct(rssi) {
   return Math.max(0, Math.min(100, Math.round(((rssi + 100) / 70) * 100)))
 }
 
-/* Log-distance path-loss model: estimate distance (m) from RSSI.
-   d = 10^((RSSI@1m − RSSI) / (10·n)).  RSSI@1m ≈ −40 dBm, n ≈ 2.7 (typical indoor). */
-const RSSI_AT_1M = -40
+/* Log-distance path-loss model:  RSSI = RSSI@1m − 10·n·log10(d)
+   → d = 10^((RSSI@1m − RSSI) / (10·n)).
+   RSSI@1m is device/environment specific and is the biggest source of error, so
+   it can be CALIBRATED from one known point:  RSSI@1m = RSSI + 10·n·log10(d). */
+const DEFAULT_RSSI_AT_1M = -45
 const PATH_LOSS_N = 2.7
-function estimateDistance(rssi) {
+function estimateDistance(rssi, rssiAt1m = DEFAULT_RSSI_AT_1M) {
   if (rssi == null) return null
-  const d = Math.pow(10, (RSSI_AT_1M - rssi) / (10 * PATH_LOSS_N))
+  const d = Math.pow(10, (rssiAt1m - rssi) / (10 * PATH_LOSS_N))
   return Math.max(0.1, Math.round(d * 10) / 10)
+}
+function calibrateRef(rssi, knownDistance) {
+  // Back out the RSSI@1m reference from a measured (distance, RSSI) point.
+  return +(rssi + 10 * PATH_LOSS_N * Math.log10(Math.max(0.1, knownDistance))).toFixed(1)
 }
 
 /* ── Custom Tooltip ── */
@@ -62,6 +68,11 @@ export default function Practical4() {
   const [loading, setLoading]     = useState(false)
   const [recording, setRecording] = useState(false)
   const [lastAdded, setLastAdded] = useState(null)
+  // Calibrated RSSI@1m reference (persisted); null → using generic default.
+  const [rssiRef, setRssiRef] = useState(() => {
+    const s = typeof localStorage !== 'undefined' && localStorage.getItem('mdm_rssiAt1m')
+    return s ? parseFloat(s) : null
+  })
   const [updateMs, setUpdateMs]   = useState(null)   // gap between live frames
 
   const lastFrameAt = useRef(0)
@@ -118,6 +129,19 @@ export default function Practical4() {
       if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) ws.close()
     }
   }, [fetchReadings])
+
+  /* ── Calibrate the path-loss model to the user's setup ── */
+  function handleCalibrate() {
+    const known = parseFloat(distance)
+    if (!liveWifi || isNaN(known) || known <= 0) return
+    const ref = calibrateRef(liveWifi.rssi, known)
+    setRssiRef(ref)
+    try { localStorage.setItem('mdm_rssiAt1m', String(ref)) } catch {}
+  }
+  function handleResetCalibration() {
+    setRssiRef(null)
+    try { localStorage.removeItem('mdm_rssiAt1m') } catch {}
+  }
 
   /* ── Record a reading ── */
   async function handleRecord() {
@@ -279,24 +303,41 @@ export default function Practical4() {
               </button>
             </div>
 
-            {/* Optional: prefill an estimate from the live signal (path-loss model) */}
-            <button
-              id="estimate-btn"
-              className="btn btn-outline btn-sm"
-              onClick={() => liveWifi && setDistance(String(estimateDistance(liveWifi.rssi)))}
-              disabled={!liveWifi}
-              style={{ marginTop: '12px' }}
-            >
-              📐 Estimate from signal
-              {liveWifi && <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
-                &nbsp;≈ {estimateDistance(liveWifi.rssi)} m
-              </span>}
-            </button>
+            {/* Optional: estimate distance from the live signal (path-loss model) */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+              <button
+                id="estimate-btn"
+                className="btn btn-outline btn-sm"
+                onClick={() => liveWifi && setDistance(String(estimateDistance(liveWifi.rssi, rssiRef ?? undefined)))}
+                disabled={!liveWifi}
+              >
+                📐 Estimate from signal
+                {liveWifi && <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>
+                  &nbsp;≈ {estimateDistance(liveWifi.rssi, rssiRef ?? undefined)} m
+                </span>}
+              </button>
+              <button
+                id="calibrate-btn"
+                className="btn btn-outline btn-sm"
+                onClick={handleCalibrate}
+                disabled={!liveWifi || !distance}
+                title="Type your real current distance, then calibrate so estimates match your setup"
+                style={{ borderColor: 'rgba(16,185,129,0.4)', color: 'var(--green)' }}
+              >
+                🎯 Calibrate to {distance ? `${distance} m` : '…'}
+              </button>
+            </div>
 
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '10px', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '12px', marginTop: '10px' }}>
+              {rssiRef != null
+                ? <span style={{ color: 'var(--green)' }}>✓ Calibrated to your setup (RSSI@1m = {rssiRef} dBm). <button onClick={handleResetCalibration} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline', fontSize: '12px', padding: 0 }}>reset</button></span>
+                : <span style={{ color: 'var(--amber)' }}>⚠ Using a generic model — estimates can be off by several metres. To fix: type your real distance and press Calibrate.</span>}
+            </div>
+
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: 1.6 }}>
               Stand at the stated distance, then click Record — RSSI is auto-read from your Wi-Fi adapter.
-              The estimate is derived from signal strength via a path-loss model; for accurate results,
-              measure the real distance and override it.
+              Note: distance-from-signal is inherently approximate (walls, orientation and near-router
+              saturation all distort it), so always measure the real distance for graded readings.
             </div>
           </div>
 
