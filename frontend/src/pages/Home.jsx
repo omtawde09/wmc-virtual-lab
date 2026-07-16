@@ -68,6 +68,42 @@ export default function Home() {
               </div>
               <span className="card-cta violet">Launch Experiment →</span>
             </Link>
+
+            {/* Practical 6 */}
+            <Link to="/practical6" className="practical-card amber">
+              <div className="card-icon-wrap amber" style={{ background: 'var(--amber-dim)', boxShadow: '0 0 20px var(--amber)' }}>🌊</div>
+              <div className="card-label amber" style={{ color: 'var(--amber)' }}>Practical 6 · MDL501.5</div>
+              <h2 className="card-title">Multipath Effects Analysis</h2>
+              <p className="card-desc">
+                Observe live Wi-Fi signal amplitude fluctuations (fading) caused by multi-path propagation. Test different environmental scenarios and compare against Rayleigh fading model curves.
+              </p>
+              <div className="card-tags">
+                <span className="tag">Fast Fading</span>
+                <span className="tag">Rayleigh Model</span>
+                <span className="tag">Std Dev (σ)</span>
+                <span className="tag">Crossing Rate</span>
+                <span className="tag">Coherence Time</span>
+              </div>
+              <span className="card-cta amber" style={{ color: 'var(--amber)' }}>Launch Experiment →</span>
+            </Link>
+
+            {/* Practical 7 */}
+            <Link to="/practical7" className="practical-card green">
+              <div className="card-icon-wrap green" style={{ background: 'var(--green-dim)', boxShadow: '0 0 20px var(--green)' }}>📻</div>
+              <div className="card-label green" style={{ color: 'var(--green)' }}>Practical 7 · MDL501.6</div>
+              <h2 className="card-title">Noise &amp; Interference Analysis</h2>
+              <p className="card-desc">
+                Scan visible access points to analyze channel congestion. Quantify link Signal-to-Noise (SNR) and Signal-to-Interference (SIR) ratios, and compute theoretical Shannon capacity.
+              </p>
+              <div className="card-tags">
+                <span className="tag">Noise Floor</span>
+                <span className="tag">Co-channel Overlap</span>
+                <span className="tag">SNR / SIR / SINR</span>
+                <span className="tag">Shannon Capacity</span>
+                <span className="tag">Channel Spectrum</span>
+              </div>
+              <span className="card-cta green" style={{ color: 'var(--green)' }}>Launch Experiment →</span>
+            </Link>
           </div>
 
           {/* Info Row */}
