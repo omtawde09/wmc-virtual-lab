@@ -787,6 +787,76 @@ body::before {
 .hop-row { animation: fadeInRow 0.3s ease both; }
 @keyframes fadeInRow { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
+/* --- Speedtest GO button --- */
+.go-btn {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  filter: drop-shadow(0 0 22px rgba(34, 211, 238, 0.30));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+.go-btn:hover  { transform: scale(1.04); filter: drop-shadow(0 0 40px rgba(34, 211, 238, 0.60)); }
+.go-btn:active { transform: scale(0.98); }
+
+.go-ring-pulse {
+  transform-origin: 150px 150px;
+  animation: goPulse 2.6s ease-in-out infinite;
+}
+@keyframes goPulse {
+  0%, 100% { transform: scale(1);    opacity: 0.45; }
+  50%      { transform: scale(1.06); opacity: 0.08; }
+}
+
+/* --- Speedtest result panel (speedtest.net style) --- */
+.result-panel {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  padding: 12px 4px 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.result-go { flex: 0 0 auto; width: 120px; height: 120px; }
+.result-metrics { flex: 1; min-width: 280px; }
+
+.result-speeds { display: flex; gap: 56px; justify-content: center; flex-wrap: wrap; }
+.result-speed { text-align: center; }
+.result-cap {
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  color: var(--text-secondary); text-transform: uppercase; margin-bottom: 2px;
+}
+.result-cap em { font-style: normal; font-weight: 500; color: var(--text-muted); font-size: 11px; }
+.result-num {
+  font-size: 58px; font-weight: 300; line-height: 1.05;
+  font-family: var(--font-mono); color: var(--text-primary); letter-spacing: -1.5px;
+}
+.result-latency {
+  display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+  margin: 22px 0; font-size: 14px; color: var(--text-secondary);
+}
+.result-latency strong { color: var(--text-primary); font-family: var(--font-mono); margin: 0 2px; }
+
+.result-quality {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  border-top: 1px solid var(--border); padding-top: 20px;
+}
+.quality-item { text-align: center; width: 74px; }
+.quality-icon { font-size: 22px; margin-bottom: 7px; }
+.quality-dots { display: flex; gap: 3px; justify-content: center; margin-bottom: 7px; }
+.quality-dots span { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.13); }
+.quality-dots span.on { background: var(--cyan); box-shadow: 0 0 5px var(--cyan-glow); }
+.quality-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+@media (max-width: 600px) {
+  .result-panel { gap: 20px; }
+  .result-num { font-size: 44px; }
+  .result-speeds { gap: 32px; }
+  .result-go { width: 96px; height: 96px; }
+}
+
 /* --- Footer --- */
 .footer {
   border-top: 1px solid var(--border);
