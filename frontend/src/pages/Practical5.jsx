@@ -229,6 +229,32 @@ function SpeedGauge({ value, phase }) {
   )
 }
 
+/* ── One throughput mini-chart (download OR upload) ── */
+function MiniChart({ title, unitLabel, data, color, gradId }) {
+  return (
+    <div>
+      <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'left', marginBottom: '6px', fontWeight: 700, letterSpacing: '0.5px' }}>
+        <span style={{ color }}>{title}</span> <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>{unitLabel}</span>
+      </div>
+      <ResponsiveContainer width="100%" height={160}>
+        <AreaChart data={data} margin={{ top: 6, right: 12, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.35} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+          <XAxis dataKey="t" tick={{ fill: '#94a3b8', fontSize: 10 }} stroke="#334155" unit="s" />
+          <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} stroke="#334155" unit=" Mbps" width={56} domain={[0, 'auto']} />
+          <Tooltip contentStyle={{ background: 'rgba(8,13,32,0.95)', border: `1px solid ${color}66`, borderRadius: '10px', fontSize: '13px' }} labelStyle={{ color: '#94a3b8' }} />
+          <Area type="monotone" dataKey="v" name="Mbps" stroke={color} strokeWidth={2} fill={`url(#${gradId})`} isAnimationActive={false} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 /* Connection-quality ratings (0-5 dots) for common use cases */
 const barsFor = (score, thresholds) => thresholds.reduce((n, t) => n + (score >= t ? 1 : 0), 0)
 const pingBars = (p) => (p <= 20 ? 5 : p <= 35 ? 4 : p <= 60 ? 3 : p <= 100 ? 2 : 1)
@@ -432,34 +458,30 @@ export default function Practical5() {
 
           {error && <div className="alert alert-error" style={{ marginTop: '16px', textAlign: 'left' }}>❌ {error}</div>}
 
-          {/* Live throughput graph (during test and after) */}
-          {samples.length > 1 && (
-            <div style={{ marginTop: '24px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'left', marginBottom: '4px', fontWeight: 600, letterSpacing: '0.5px' }}>
-                THROUGHPUT OVER TIME
+          {/* Throughput graphs — separate download & upload (during test and after) */}
+          {samples.length > 1 && (() => {
+            const rebase = (arr, key) => {
+              const pts = arr.filter(s => s[key] != null)
+              if (!pts.length) return []
+              const t0 = pts[0].t
+              return pts.map(s => ({ t: +(s.t - t0).toFixed(1), v: s[key] }))
+            }
+            const dlData = rebase(samples, 'dl')
+            const ulData = rebase(samples, 'ul')
+            return (
+              <div style={{ marginTop: '24px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'left', marginBottom: '10px', fontWeight: 600, letterSpacing: '0.5px' }}>
+                  THROUGHPUT OVER TIME
+                </div>
+                <div className="two-col">
+                  {dlData.length > 0 &&
+                    <MiniChart title="↓ DOWNLOAD" unitLabel="Mbps" data={dlData} color="#00d4ff" gradId="dlGrad" />}
+                  {ulData.length > 0 &&
+                    <MiniChart title="↑ UPLOAD" unitLabel="Mbps" data={ulData} color="#7c3aed" gradId="ulGrad" />}
+                </div>
               </div>
-              <ResponsiveContainer width="100%" height={170}>
-                <AreaChart data={samples} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="dlGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="ulGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-                  <XAxis dataKey="t" tick={{ fill: '#94a3b8', fontSize: 11 }} stroke="#334155" unit="s" />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} stroke="#334155" unit=" Mbps" width={64} />
-                  <Tooltip contentStyle={{ background: 'rgba(8,13,32,0.95)', border: '1px solid rgba(0,212,255,0.3)', borderRadius: '10px', fontSize: '13px' }} labelStyle={{ color: '#94a3b8' }} />
-                  <Area type="monotone" dataKey="dl" name="Download" stroke="#00d4ff" strokeWidth={2} fill="url(#dlGrad)" connectNulls isAnimationActive={false} />
-                  <Area type="monotone" dataKey="ul" name="Upload" stroke="#7c3aed" strokeWidth={2} fill="url(#ulGrad)" connectNulls isAnimationActive={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+            )
+          })()}
         </div>
 
         {/* ── ADVANCED · TRACEROUTE (optional) ── */}
