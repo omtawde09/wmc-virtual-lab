@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import axios from 'axios'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -153,41 +153,18 @@ function GoButton({ onGo }) {
   )
 }
 
-/* ── Animated speed gauge — 60fps needle + arc via requestAnimationFrame ── */
+/* ── Animated speed gauge — React-state driven with CSS transitions ──
+   The needle (transform) and arc (stroke-dashoffset) ease between the ~8/sec
+   data updates via CSS, so motion is smooth without a rAF loop (which browsers
+   pause in background tabs). The value is always correct even if throttled. */
 function SpeedGauge({ value, phase }) {
   const { cx, cy, r } = GAUGE
   const color = PHASE_COLOR[phase] || '#00d4ff'
-  const needleRef = useRef(null)
-  const arcRef    = useRef(null)
-  const textRef   = useRef(null)
-  const targetRef = useRef(0)
-  const phaseRef  = useRef(phase)
-  const dispRef   = useRef(0)
-
-  useEffect(() => { targetRef.current = value ?? 0 }, [value])
-  useEffect(() => { phaseRef.current = phase }, [phase])
-
-  // Single rAF loop eases the displayed value toward the latest measurement and
-  // writes to the DOM imperatively — decoupled from the ~8/sec data updates, so
-  // the needle glides at 60fps instead of jumping.
-  useEffect(() => {
-    let raf
-    const tick = () => {
-      const t = targetRef.current
-      dispRef.current += (t - dispRef.current) * 0.15
-      if (Math.abs(t - dispRef.current) < 0.03) dispRef.current = t
-      const v = dispRef.current
-      const f = fracFor(v, phaseRef.current)
-      if (needleRef.current) needleRef.current.setAttribute('transform', `rotate(${(135 + f * 270).toFixed(2)} ${cx} ${cy})`)
-      if (arcRef.current)    arcRef.current.style.strokeDashoffset = (ARC_LEN * (1 - f)).toFixed(1)
-      if (textRef.current)   textRef.current.textContent = fmtVal(v, phaseRef.current)
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [cx, cy])
-
+  const f = fracFor(value, phase)
+  const rot = 135 + f * 270
+  const dashoff = ARC_LEN * (1 - f)
   const showScale = phase !== 'ping'
+  const ease = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
   return (
     <div style={{ width: 300, maxWidth: '100%', margin: '0 auto', aspectRatio: '1 / 1' }}>
@@ -208,8 +185,8 @@ function SpeedGauge({ value, phase }) {
 
         {/* Ticks (major every 5th) */}
         {Array.from({ length: 41 }).map((_, i) => {
-          const f = i / 40, major = i % 5 === 0
-          const inn = polar(f, r - (major ? 21 : 14)), out = polar(f, r - 7)
+          const tf = i / 40, major = i % 5 === 0
+          const inn = polar(tf, r - (major ? 21 : 14)), out = polar(tf, r - 7)
           return <line key={i} x1={inn.x} y1={inn.y} x2={out.x} y2={out.y}
             stroke={major ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.14)'} strokeWidth={major ? 2 : 1} strokeLinecap="round" />
         })}
@@ -220,20 +197,23 @@ function SpeedGauge({ value, phase }) {
           return <text key={s} x={p.x} y={p.y + 4} textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="600" fontFamily="var(--font-mono)">{s}</text>
         })}
 
-        {/* Progress arc — animated via strokeDashoffset (initially hidden) */}
-        <path ref={arcRef} d={arcPath(0, 1)} fill="none" stroke="url(#gauge-grad)" strokeWidth="14" strokeLinecap="round"
-          pathLength={ARC_LEN} strokeDasharray={ARC_LEN} style={{ strokeDashoffset: ARC_LEN, filter: `drop-shadow(0 0 8px ${color}99)` }} />
+        {/* Progress arc — eased via stroke-dashoffset */}
+        <path d={arcPath(0, 1)} fill="none" stroke="url(#gauge-grad)" strokeWidth="14" strokeLinecap="round"
+          pathLength={ARC_LEN} strokeDasharray={ARC_LEN}
+          style={{ strokeDashoffset: dashoff, transition: `stroke-dashoffset 0.2s ${ease}`, filter: `drop-shadow(0 0 8px ${color}99)` }} />
 
-        {/* Tapered silver needle (initial position f=0) */}
-        <g ref={needleRef} transform={`rotate(135 ${cx} ${cy})`}>
+        {/* Tapered silver needle — eased via rotate transform */}
+        <g style={{ transform: `rotate(${rot}deg)`, transformOrigin: '150px 150px', transformBox: 'view-box', transition: `transform 0.2s ${ease}` }}>
           <polygon points={`${cx + 14},${cy - 6} ${cx + r - 34},${cy} ${cx + 14},${cy + 6}`} fill="url(#needle-grad)"
             style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
         </g>
         <circle cx={cx} cy={cy} r="12" fill="#0b1120" stroke={color} strokeWidth="3" />
         <circle cx={cx} cy={cy} r="4" fill={color} />
 
-        {/* Center readout (textContent driven by rAF) */}
-        <text ref={textRef} x={cx} y={cy + 66} textAnchor="middle" fill="#f1f5f9" fontSize="46" fontWeight="800" fontFamily="var(--font-mono)">0</text>
+        {/* Center readout */}
+        <text x={cx} y={cy + 66} textAnchor="middle" fill="#f1f5f9" fontSize="46" fontWeight="800" fontFamily="var(--font-mono)">
+          {fmtVal(value || 0, phase)}
+        </text>
         <text x={cx} y={cy + 90} textAnchor="middle" fill={color} fontSize="13" fontWeight="600" letterSpacing="1" fontFamily="var(--font-main)">
           {phase === 'ping' ? 'ms' : (phase === 'upload' ? '↑ Mbps' : '↓ Mbps')}
         </text>
