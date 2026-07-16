@@ -217,11 +217,11 @@ function SpeedGauge({ value, phase }) {
         <circle cx={cx} cy={cy} r="12" fill="#0b1120" stroke={color} strokeWidth="3" />
         <circle cx={cx} cy={cy} r="4" fill={color} />
 
-        {/* Center readout */}
-        <text x={cx} y={cy + 66} textAnchor="middle" fill="#f1f5f9" fontSize="46" fontWeight="800" fontFamily="var(--font-mono)">
+        {/* Center readout — sized/placed to stay clear of the 0…1000 scale labels */}
+        <text x={cx} y={cy + 42} textAnchor="middle" fill="#f1f5f9" fontSize="32" fontWeight="800" fontFamily="var(--font-mono)">
           {fmtVal(value || 0, phase)}
         </text>
-        <text x={cx} y={cy + 90} textAnchor="middle" fill={color} fontSize="13" fontWeight="600" letterSpacing="1" fontFamily="var(--font-main)">
+        <text x={cx} y={cy + 64} textAnchor="middle" fill={color} fontSize="12" fontWeight="600" letterSpacing="1" fontFamily="var(--font-main)">
           {phase === 'ping' ? 'ms' : (phase === 'upload' ? '↑ Mbps' : '↓ Mbps')}
         </text>
       </svg>
