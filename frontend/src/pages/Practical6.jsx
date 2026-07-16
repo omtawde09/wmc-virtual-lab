@@ -27,7 +27,11 @@ export default function Practical6() {
   const [recording, setRecording] = useState(false)
   const [countdown, setCountdown] = useState(30)
   const [scenario, setScenario] = useState('Stationary')
-  const [sessionSamples, setSessionSamples] = useState([])
+  
+  const recordingRef = useRef(false)
+  const sessionSamplesRef = useRef([])
+  const scenarioRef = useRef(scenario)
+  const updateMsRef = useRef(updateMs)
   
   // Analysis results
   const [sessions, setSessions] = useState([])
@@ -42,6 +46,19 @@ export default function Practical6() {
   const wsRef = useRef(null)
   const lastFrameAt = useRef(0)
   const timerRef = useRef(null)
+
+  // Keep refs in sync with state to prevent stale closures in intervals/listeners
+  useEffect(() => {
+    recordingRef.current = recording
+  }, [recording])
+
+  useEffect(() => {
+    scenarioRef.current = scenario
+  }, [scenario])
+
+  useEffect(() => {
+    updateMsRef.current = updateMs
+  }, [updateMs])
   
   // Fetch session history
   const fetchSessions = useCallback(async () => {
@@ -85,13 +102,10 @@ export default function Practical6() {
           return next
         })
         
-        // If recording a session, capture sample
-        setRecording(isRec => {
-          if (isRec) {
-            setSessionSamples(prevSamples => [...prevSamples, data.rssi])
-          }
-          return isRec
-        })
+        // If recording a session, capture sample in ref
+        if (recordingRef.current) {
+          sessionSamplesRef.current.push(data.rssi)
+        }
       }
       
       ws.onclose = () => {
@@ -112,61 +126,63 @@ export default function Practical6() {
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [fetchSessions])
-  
-  // Start session recording
-  const startSession = () => {
-    if (!liveWifi) return
-    setRecording(true)
-    setCountdown(30)
-    setSessionSamples([])
-    
-    timerRef.current = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current)
-          stopAndAnalyze()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
-  
+
   // Stop recording and send data to backend for analysis
-  const stopAndAnalyze = async () => {
+  const stopAndAnalyze = useCallback(async () => {
     setRecording(false)
     if (timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
     }
     
-    // We need samples to analyze
-    setSessionSamples(async (samplesToUse) => {
-      if (samplesToUse.length === 0) return samplesToUse
+    const samplesToUse = [...sessionSamplesRef.current]
+    if (samplesToUse.length === 0) {
+      console.warn("No samples collected during session.")
+      return
+    }
+    
+    try {
+      const res = await axios.post(`${API_MULTIPATH}/analyze`, {
+        scenario: scenarioRef.current,
+        samples: samplesToUse,
+        sample_rate_ms: updateMsRef.current || 250.0
+      })
+      setLatestSession(res.data)
+      await fetchSessions()
       
-      try {
-        const res = await axios.post(`${API_MULTIPATH}/analyze`, {
-          scenario: scenario,
-          samples: samplesToUse,
-          sample_rate_ms: updateMs || 250.0
-        })
-        setLatestSession(res.data)
-        await fetchSessions()
-        
-        // Also fetch a synthetic Rayleigh comparison trace for the session mean RSSI
-        const rayleighRes = await axios.get(`${API_MULTIPATH}/rayleigh`, {
-          params: {
-            mean_dbm: res.data.mean_rssi,
-            samples: samplesToUse.length
-          }
-        })
-        setRayleighTrace(rayleighRes.data.trace)
-        setActiveTab('rayleigh')
-      } catch (err) {
-        console.error("Analysis failed", err)
-      }
-      return []
-    })
+      // Also fetch a synthetic Rayleigh comparison trace for the session mean RSSI
+      const rayleighRes = await axios.get(`${API_MULTIPATH}/rayleigh`, {
+        params: {
+          mean_dbm: res.data.mean_rssi,
+          samples: samplesToUse.length
+        }
+      })
+      setRayleighTrace(rayleighRes.data.trace)
+      setActiveTab('rayleigh')
+    } catch (err) {
+      console.error("Analysis failed", err)
+    }
+  }, [fetchSessions])
+  
+  // Start session recording
+  const startSession = () => {
+    if (!liveWifi) return
+    sessionSamplesRef.current = [] // reset samples buffer
+    setRecording(true)
+    setCountdown(30)
+    
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current)
+          timerRef.current = null
+          stopAndAnalyze()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
   }
   
   // Clear saved session logs
