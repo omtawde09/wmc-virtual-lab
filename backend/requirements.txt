@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+pydantic
+requests
+speedtest-cli
+python-multipart
