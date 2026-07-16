@@ -222,6 +222,70 @@ function SpeedGauge({ value, phase }) {
   )
 }
 
+/* Connection-quality ratings (0-5 dots) for common use cases */
+const barsFor = (score, thresholds) => thresholds.reduce((n, t) => n + (score >= t ? 1 : 0), 0)
+const pingBars = (p) => (p <= 20 ? 5 : p <= 35 ? 4 : p <= 60 ? 3 : p <= 100 ? 2 : 1)
+function qualityFor(r) {
+  const dl = r.download_mbps, ul = r.upload_mbps
+  return [
+    { icon: '🌐', label: 'Browsing',   bars: barsFor(dl, [1, 3, 8, 20, 40]) },
+    { icon: '🎮', label: 'Gaming',     bars: pingBars(r.ping_ms) },
+    { icon: '📺', label: 'Streaming',  bars: barsFor(dl, [3, 8, 15, 30, 60]) },
+    { icon: '📹', label: 'Video Call', bars: barsFor(Math.min(dl, ul), [1, 3, 6, 12, 25]) },
+  ]
+}
+
+/* ── Result view (speedtest.net-style) — GO to retest + big download/upload ── */
+function ResultPanel({ result, onRetest }) {
+  return (
+    <div className="result-panel">
+      <button className="go-btn result-go" onClick={onRetest} aria-label="Test again">
+        <svg viewBox="0 0 120 120" style={{ width: '100%', height: '100%', display: 'block' }}>
+          <defs>
+            <linearGradient id="go-ring-sm" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22d3ee" /><stop offset="100%" stopColor="#2563eb" />
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="url(#go-ring-sm)" strokeWidth="2.5" />
+          <circle cx="60" cy="60" r="43" fill="none" stroke="url(#go-ring-sm)" strokeWidth="1.5" opacity="0.55" />
+          <text x="60" y="68" textAnchor="middle" fontSize="22" fontWeight="700" fill="#fff" letterSpacing="2" fontFamily="var(--font-main)">GO</text>
+        </svg>
+      </button>
+
+      <div className="result-metrics">
+        <div className="result-speeds">
+          <div className="result-speed">
+            <div className="result-cap"><span style={{ color: 'var(--cyan)' }}>↓</span> DOWNLOAD <em>Mbps</em></div>
+            <div className="result-num">{result.download_mbps}</div>
+          </div>
+          <div className="result-speed">
+            <div className="result-cap"><span style={{ color: '#a78bfa' }}>↑</span> UPLOAD <em>Mbps</em></div>
+            <div className="result-num">{result.upload_mbps}</div>
+          </div>
+        </div>
+
+        <div className="result-latency">
+          <span><span style={{ color: 'var(--green)' }}>◍</span> Ping <strong>{result.ping_ms}</strong> ms</span>
+          <span><span style={{ color: 'var(--amber)' }}>↕</span> Jitter <strong>{result.jitter_ms}</strong> ms</span>
+          <span>🌍 {result.server_name}{result.server_country ? `, ${result.server_country}` : ''}</span>
+        </div>
+
+        <div className="result-quality">
+          {qualityFor(result).map(item => (
+            <div key={item.label} className="quality-item">
+              <div className="quality-icon">{item.icon}</div>
+              <div className="quality-dots">
+                {[0, 1, 2, 3, 4].map(i => <span key={i} className={i < item.bars ? 'on' : ''} />)}
+              </div>
+              <div className="quality-label">{item.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Practical5() {
   /* Unified speed test */
   const [testing,  setTesting]  = useState(false)
@@ -294,7 +358,6 @@ export default function Practical5() {
   }
 
   const gaugeValue = phase === 'done' ? (result?.download_mbps ?? 0) : liveVal
-  const showGauge = testing || phase === 'done'
 
   return (
     <main className="practical-page">
@@ -322,55 +385,53 @@ export default function Practical5() {
             </span>
           </div>
 
-          {showGauge
-            ? <SpeedGauge value={gaugeValue} phase={phase} />
-            : <GoButton onGo={runFullTest} />}
-
-          {/* Live mini-stats (fill in as each phase finishes) */}
-          <div className="four-col" style={{ marginTop: '8px', marginBottom: '4px' }}>
-            <div className="stat-pill">
-              <div className="stat-value" style={{ color: 'var(--cyan)' }}>
-                {result?.download_mbps ?? dlPart ?? (phase === 'download' ? liveVal.toFixed(1) : '—')}
+          {phase === 'done' && result ? (
+            <ResultPanel result={result} onRetest={runFullTest} />
+          ) : testing ? (
+            <>
+              <SpeedGauge value={gaugeValue} phase={phase} />
+              {/* Live mini-stats (fill in as each phase finishes) */}
+              <div className="four-col" style={{ marginTop: '16px', marginBottom: '4px' }}>
+                <div className="stat-pill">
+                  <div className="stat-value" style={{ color: 'var(--cyan)' }}>
+                    {dlPart ?? (phase === 'download' ? liveVal.toFixed(1) : '—')}
+                  </div>
+                  <div className="stat-label">↓ Download (Mbps)</div>
+                </div>
+                <div className="stat-pill">
+                  <div className="stat-value" style={{ color: '#a78bfa' }}>
+                    {ulPart ?? (phase === 'upload' ? liveVal.toFixed(1) : '—')}
+                  </div>
+                  <div className="stat-label">↑ Upload (Mbps)</div>
+                </div>
+                <div className="stat-pill">
+                  <div className="stat-value" style={{ color: 'var(--green)' }}>{pingPart?.ping ?? '—'}</div>
+                  <div className="stat-label">Ping (ms)</div>
+                </div>
+                <div className="stat-pill">
+                  <div className="stat-value" style={{ color: 'var(--amber)' }}>{pingPart?.jitter ?? '—'}</div>
+                  <div className="stat-label">Jitter (ms)</div>
+                </div>
               </div>
-              <div className="stat-label">↓ Download (Mbps)</div>
-            </div>
-            <div className="stat-pill">
-              <div className="stat-value" style={{ color: '#a78bfa' }}>
-                {result?.upload_mbps ?? ulPart ?? (phase === 'upload' ? liveVal.toFixed(1) : '—')}
+            </>
+          ) : (
+            <>
+              <GoButton onGo={runFullTest} />
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '10px' }}>
+                Tap <strong style={{ color: 'var(--cyan)' }}>GO</strong> to run a full ping · download · upload test
               </div>
-              <div className="stat-label">↑ Upload (Mbps)</div>
-            </div>
-            <div className="stat-pill">
-              <div className="stat-value" style={{ color: 'var(--green)' }}>
-                {result?.ping_ms ?? pingPart?.ping ?? '—'}
-              </div>
-              <div className="stat-label">Ping (ms)</div>
-            </div>
-            <div className="stat-pill">
-              <div className="stat-value" style={{ color: 'var(--amber)' }}>
-                {result?.jitter_ms ?? pingPart?.jitter ?? '—'}
-              </div>
-              <div className="stat-label">Jitter (ms)</div>
-            </div>
-          </div>
-
-          {!testing && !result && (
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '10px' }}>
-              Tap <strong style={{ color: 'var(--cyan)' }}>GO</strong> to run a full ping · download · upload test
-            </div>
-          )}
-          {!testing && result && (
-            <button className="btn btn-primary btn-lg" onClick={runFullTest} style={{ marginTop: '14px' }}>
-              🔄 Test Again
-            </button>
+            </>
           )}
 
           {error && <div className="alert alert-error" style={{ marginTop: '16px', textAlign: 'left' }}>❌ {error}</div>}
 
-          {/* Live throughput graph */}
+          {/* Live throughput graph (during test and after) */}
           {samples.length > 1 && (
-            <div style={{ marginTop: '20px' }}>
-              <ResponsiveContainer width="100%" height={180}>
+            <div style={{ marginTop: '24px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'left', marginBottom: '4px', fontWeight: 600, letterSpacing: '0.5px' }}>
+                THROUGHPUT OVER TIME
+              </div>
+              <ResponsiveContainer width="100%" height={170}>
                 <AreaChart data={samples} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="dlGrad" x1="0" y1="0" x2="0" y2="1">
@@ -391,22 +452,6 @@ export default function Practical5() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          )}
-
-          {/* Result summary */}
-          {result && (
-            <>
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '16px' }}>
-                🌍 Test server: <strong style={{ color: 'var(--text-primary)' }}>{result.server_name}</strong>
-                {result.server_country && `, ${result.server_country}`}
-                &nbsp;·&nbsp; {new Date(result.timestamp).toLocaleTimeString()}
-              </div>
-              <div className="alert alert-success" style={{ marginTop: '14px', textAlign: 'left' }}>
-                ✅ <strong>Result:</strong> {result.download_mbps} Mbps down / {result.upload_mbps} Mbps up,
-                ping {result.ping_ms} ms ({latencyLabel(result.ping_ms).text}).
-                {result.download_mbps >= 25 ? ' Network supports HD streaming and general use.' : ' Below typical broadband standards.'}
-              </div>
-            </>
           )}
         </div>
 
