@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -19,14 +19,6 @@ function latencyLabel(ms) {
   if (ms <= 60)  return { text: 'Good',      cls: 'badge-cyan'  }
   if (ms <= 120) return { text: 'Fair',      cls: 'badge-amber' }
   return               { text: 'Poor',       cls: 'badge-red'   }
-}
-
-// Round the gauge's max up to a "nice" ceiling so the needle stays meaningful
-// across a slow phone and a gigabit link alike.
-function niceMax(v) {
-  const steps = [10, 25, 50, 100, 250, 500, 1000, 2000]
-  for (const s of steps) if (v <= s * 0.92) return s
-  return 5000
 }
 
 const PHASE_COLOR = { ping: '#10b981', download: '#00d4ff', upload: '#a78bfa', done: '#00d4ff', idle: '#00d4ff' }
@@ -115,7 +107,8 @@ async function fetchServer() {
 }
 
 /* ── Gauge geometry: 270° arc opening at the bottom, bottom-left → bottom-right ── */
-const GAUGE = { cx: 150, cy: 150, r: 116 }
+const GAUGE = { cx: 150, cy: 150, r: 118 }
+const ARC_LEN = 1000   // normalized pathLength for smooth dashoffset animation
 function polar(f, radius = GAUGE.r) {
   const a = (135 + f * 270) * Math.PI / 180   // f=0 → bottom-left, f=1 → bottom-right
   return { x: GAUGE.cx + radius * Math.cos(a), y: GAUGE.cy + radius * Math.sin(a) }
@@ -126,71 +119,125 @@ function arcPath(f0, f1, radius = GAUGE.r) {
   return `M ${s.x.toFixed(2)} ${s.y.toFixed(2)} A ${radius} ${radius} 0 ${large} 1 ${e.x.toFixed(2)} ${e.y.toFixed(2)}`
 }
 
-/* ── Speedtest-style circular gauge (arc + needle share one angle function) ── */
-function SpeedGauge({ value, max, unit, phase, testing, onGo }) {
+/* speedtest.net-style non-linear scale — low speeds get more of the dial */
+const SCALE = [0, 5, 10, 50, 100, 250, 500, 750, 1000]
+function valueToFrac(v) {
+  if (v <= 0) return 0
+  for (let i = 0; i < SCALE.length - 1; i++) {
+    if (v <= SCALE[i + 1]) return (i + (v - SCALE[i]) / (SCALE[i + 1] - SCALE[i])) / (SCALE.length - 1)
+  }
+  return 1
+}
+const fracFor = (v, phase) => (phase === 'ping' ? Math.min((v || 0) / 150, 1) : valueToFrac(v || 0))
+const fmtVal  = (v, phase) => (phase === 'ping' ? (v < 100 ? v.toFixed(1) : v.toFixed(0)) : (v < 100 ? v.toFixed(1) : v.toFixed(0)))
+
+/* ── Idle GO button — clean concentric rings (speedtest.net style) ── */
+function GoButton({ onGo }) {
+  return (
+    <div style={{ width: 300, maxWidth: '100%', margin: '0 auto', aspectRatio: '1 / 1', display: 'grid', placeItems: 'center' }}>
+      <button id="speedtest-go" className="go-btn" onClick={onGo} aria-label="Start speed test">
+        <svg viewBox="0 0 300 300" style={{ width: '100%', height: '100%', display: 'block' }}>
+          <defs>
+            <linearGradient id="go-ring" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22d3ee" />
+              <stop offset="100%" stopColor="#2563eb" />
+            </linearGradient>
+          </defs>
+          <circle className="go-ring-pulse" cx="150" cy="150" r="132" fill="none" stroke="url(#go-ring)" strokeWidth="1.5" />
+          <circle cx="150" cy="150" r="118" fill="none" stroke="url(#go-ring)" strokeWidth="2.5" />
+          <circle cx="150" cy="150" r="101" fill="none" stroke="url(#go-ring)" strokeWidth="2" opacity="0.7" />
+          <text x="150" y="165" textAnchor="middle" fontSize="44" fontWeight="700" fill="#fff" letterSpacing="5" fontFamily="var(--font-main)">GO</text>
+        </svg>
+      </button>
+    </div>
+  )
+}
+
+/* ── Animated speed gauge — 60fps needle + arc via requestAnimationFrame ── */
+function SpeedGauge({ value, phase }) {
   const { cx, cy, r } = GAUGE
-  const frac = Math.max(0, Math.min((value || 0) / max, 1))
   const color = PHASE_COLOR[phase] || '#00d4ff'
-  const tip = polar(frac, r - 30)                       // needle tip aligns with the arc
-  const shown = value != null ? value.toFixed(value < 100 ? 1 : 0) : '0'
+  const needleRef = useRef(null)
+  const arcRef    = useRef(null)
+  const textRef   = useRef(null)
+  const targetRef = useRef(0)
+  const phaseRef  = useRef(phase)
+  const dispRef   = useRef(0)
+
+  useEffect(() => { targetRef.current = value ?? 0 }, [value])
+  useEffect(() => { phaseRef.current = phase }, [phase])
+
+  // Single rAF loop eases the displayed value toward the latest measurement and
+  // writes to the DOM imperatively — decoupled from the ~8/sec data updates, so
+  // the needle glides at 60fps instead of jumping.
+  useEffect(() => {
+    let raf
+    const tick = () => {
+      const t = targetRef.current
+      dispRef.current += (t - dispRef.current) * 0.15
+      if (Math.abs(t - dispRef.current) < 0.03) dispRef.current = t
+      const v = dispRef.current
+      const f = fracFor(v, phaseRef.current)
+      if (needleRef.current) needleRef.current.setAttribute('transform', `rotate(${(135 + f * 270).toFixed(2)} ${cx} ${cy})`)
+      if (arcRef.current)    arcRef.current.style.strokeDashoffset = (ARC_LEN * (1 - f)).toFixed(1)
+      if (textRef.current)   textRef.current.textContent = fmtVal(v, phaseRef.current)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [cx, cy])
+
+  const showScale = phase !== 'ping'
 
   return (
-    <div style={{ position: 'relative', width: 300, maxWidth: '100%', margin: '0 auto' }}>
-      <svg viewBox="0 0 300 300" style={{ width: '100%', height: 'auto', maxWidth: 300, display: 'block' }}>
+    <div style={{ width: 300, maxWidth: '100%', margin: '0 auto', aspectRatio: '1 / 1' }}>
+      <svg viewBox="0 0 300 300" style={{ width: '100%', height: '100%', display: 'block' }}>
         <defs>
-          <linearGradient id="gauge-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.45" />
+          <linearGradient id="gauge-grad" x1="0" y1="0" x2="1" y2="0.35">
+            <stop offset="0%" stopColor={color} stopOpacity="0.5" />
             <stop offset="100%" stopColor={color} />
+          </linearGradient>
+          <linearGradient id="needle-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#f1f5f9" />
+            <stop offset="100%" stopColor="#64748b" />
           </linearGradient>
         </defs>
 
         {/* Track */}
-        <path d={arcPath(0, 1)} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="16" strokeLinecap="round" />
-        {/* Progress */}
-        {frac > 0.004 && (
-          <path d={arcPath(0, frac)} fill="none" stroke="url(#gauge-grad)" strokeWidth="16" strokeLinecap="round"
-            style={{ filter: `drop-shadow(0 0 9px ${color}aa)` }} />
-        )}
-        {/* Tick marks */}
-        {Array.from({ length: 11 }).map((_, i) => {
-          const inn = polar(i / 10, r - 26), out = polar(i / 10, r - 17)
+        <path d={arcPath(0, 1)} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="14" strokeLinecap="round" />
+
+        {/* Ticks (major every 5th) */}
+        {Array.from({ length: 41 }).map((_, i) => {
+          const f = i / 40, major = i % 5 === 0
+          const inn = polar(f, r - (major ? 21 : 14)), out = polar(f, r - 7)
           return <line key={i} x1={inn.x} y1={inn.y} x2={out.x} y2={out.y}
-            stroke="rgba(255,255,255,0.22)" strokeWidth="2" strokeLinecap="round" />
+            stroke={major ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.14)'} strokeWidth={major ? 2 : 1} strokeLinecap="round" />
         })}
-        {/* Scale end labels */}
-        <text {...(() => { const p = polar(0, r - 40); return { x: p.x, y: p.y } })()} textAnchor="middle" fill="#475569" fontSize="11" fontFamily="JetBrains Mono">0</text>
-        <text {...(() => { const p = polar(1, r - 40); return { x: p.x, y: p.y } })()} textAnchor="middle" fill="#475569" fontSize="11" fontFamily="JetBrains Mono">{max}</text>
 
-        {/* Needle */}
-        <line x1={cx} y1={cy} x2={tip.x} y2={tip.y} stroke={color} strokeWidth="3.5" strokeLinecap="round"
-          style={{ filter: `drop-shadow(0 0 6px ${color})` }} />
-        <circle cx={cx} cy={cy} r="9" fill="#0b1120" stroke={color} strokeWidth="3" />
+        {/* Scale labels (speed phases only) */}
+        {showScale && SCALE.map((s, i) => {
+          const p = polar(i / (SCALE.length - 1), r - 40)
+          return <text key={s} x={p.x} y={p.y + 4} textAnchor="middle" fill="#64748b" fontSize="12" fontWeight="600" fontFamily="var(--font-mono)">{s}</text>
+        })}
 
-        {/* Center readout */}
-        <text x={cx} y={cy + 64} textAnchor="middle" fill="#f1f5f9" fontSize="46" fontWeight="800" fontFamily="JetBrains Mono">{shown}</text>
-        <text x={cx} y={cy + 88} textAnchor="middle" fill="#94a3b8" fontSize="13" fontFamily="Inter" letterSpacing="1">{unit}</text>
+        {/* Progress arc — animated via strokeDashoffset (initially hidden) */}
+        <path ref={arcRef} d={arcPath(0, 1)} fill="none" stroke="url(#gauge-grad)" strokeWidth="14" strokeLinecap="round"
+          pathLength={ARC_LEN} strokeDasharray={ARC_LEN} style={{ strokeDashoffset: ARC_LEN, filter: `drop-shadow(0 0 8px ${color}99)` }} />
+
+        {/* Tapered silver needle (initial position f=0) */}
+        <g ref={needleRef} transform={`rotate(135 ${cx} ${cy})`}>
+          <polygon points={`${cx + 14},${cy - 6} ${cx + r - 34},${cy} ${cx + 14},${cy + 6}`} fill="url(#needle-grad)"
+            style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
+        </g>
+        <circle cx={cx} cy={cy} r="12" fill="#0b1120" stroke={color} strokeWidth="3" />
+        <circle cx={cx} cy={cy} r="4" fill={color} />
+
+        {/* Center readout (textContent driven by rAF) */}
+        <text ref={textRef} x={cx} y={cy + 66} textAnchor="middle" fill="#f1f5f9" fontSize="46" fontWeight="800" fontFamily="var(--font-mono)">0</text>
+        <text x={cx} y={cy + 90} textAnchor="middle" fill={color} fontSize="13" fontWeight="600" letterSpacing="1" fontFamily="var(--font-main)">
+          {phase === 'ping' ? 'ms' : (phase === 'upload' ? '↑ Mbps' : '↓ Mbps')}
+        </text>
       </svg>
-
-      {/* GO button overlays the gauge centre when idle */}
-      {!testing && (
-        <button
-          id="speedtest-go"
-          onClick={onGo}
-          aria-label="Start speed test"
-          style={{
-            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-            width: 104, height: 104, borderRadius: '50%', border: '2px solid rgba(0,212,255,0.55)',
-            background: 'radial-gradient(circle at 32% 28%, rgba(0,212,255,0.30), rgba(124,58,237,0.14))',
-            color: '#fff', fontSize: 24, fontWeight: 800, letterSpacing: '2px', cursor: 'pointer',
-            fontFamily: 'var(--font-main)', boxShadow: '0 0 34px rgba(0,212,255,0.35)',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-50%,-50%) scale(1.07)'; e.currentTarget.style.boxShadow = '0 0 48px rgba(0,212,255,0.55)' }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translate(-50%,-50%) scale(1)'; e.currentTarget.style.boxShadow = '0 0 34px rgba(0,212,255,0.35)' }}
-        >
-          GO
-        </button>
-      )}
     </div>
   )
 }
@@ -200,51 +247,43 @@ export default function Practical5() {
   const [testing,  setTesting]  = useState(false)
   const [phase,    setPhase]    = useState('idle')
   const [liveVal,  setLiveVal]  = useState(0)
-  const [gaugeMax, setGaugeMax] = useState(100)
   const [samples,  setSamples]  = useState([])
   const [result,   setResult]   = useState(null)
   const [pingPart, setPingPart] = useState(null)
   const [dlPart,   setDlPart]   = useState(null)
   const [ulPart,   setUlPart]   = useState(null)
   const [error,    setError]    = useState('')
-  const peakRef = useRef(0)
 
   /* Traceroute (advanced, optional) */
   const [traceHost,   setTraceHost]   = useState('8.8.8.8')
   const [tracing,     setTracing]     = useState(false)
   const [traceResult, setTraceResult] = useState(null)
 
-  const setGauge = useCallback((v) => {
-    setLiveVal(v)
-    if (v > peakRef.current) { peakRef.current = v; setGaugeMax(niceMax(v)) }
-  }, [])
-
   async function runFullTest() {
     setTesting(true); setResult(null); setError(''); setSamples([])
     setPingPart(null); setDlPart(null); setUlPart(null)
-    peakRef.current = 0; setGaugeMax(100)
     const t0 = performance.now()
     try {
       // 1) Ping
-      setPhase('ping'); setLiveVal(0); peakRef.current = 0; setGaugeMax(100)
-      const p = await measurePing(6, (ms) => setGauge(ms))
-      setPingPart(p)
+      setPhase('ping'); setLiveVal(0)
+      const p = await measurePing(6, (ms) => setLiveVal(ms))
+      setPingPart(p); setLiveVal(p.ping)
 
       // 2) Download
-      setPhase('download'); setLiveVal(0); peakRef.current = 0; setGaugeMax(100)
-      const dl = await measureDownload((inst, secs) => {
-        setGauge(inst)
+      setPhase('download'); setLiveVal(0)
+      const dl = await measureDownload((inst) => {
+        setLiveVal(inst)
         setSamples(s => [...s, { t: +(( performance.now() - t0) / 1000).toFixed(1), dl: +inst.toFixed(1), ul: null }])
       })
-      setDlPart(dl)
+      setDlPart(dl); setLiveVal(dl)
 
       // 3) Upload
-      setPhase('upload'); setLiveVal(0); peakRef.current = 0; setGaugeMax(100)
+      setPhase('upload'); setLiveVal(0)
       const ul = await measureUpload((inst) => {
-        setGauge(inst)
+        setLiveVal(inst)
         setSamples(s => [...s, { t: +(( performance.now() - t0) / 1000).toFixed(1), dl: null, ul: +inst.toFixed(1) }])
       })
-      setUlPart(ul)
+      setUlPart(ul); setLiveVal(ul)
 
       // 4) Server + done
       const srv = await fetchServer()
@@ -253,7 +292,7 @@ export default function Practical5() {
         server_name: `Cloudflare ${srv.colo}`.trim(), server_country: srv.loc,
         timestamp: new Date().toISOString(),
       }
-      setResult(res); setPhase('done'); setLiveVal(dl); setGaugeMax(niceMax(Math.max(dl, ul)))
+      setResult(res); setPhase('done'); setLiveVal(dl)
       // Best-effort: record to backend history (ignore failure)
       axios.post(`${API}/speedtest/record`, res).catch(() => {})
     } catch (e) {
@@ -274,8 +313,8 @@ export default function Practical5() {
     setTracing(false)
   }
 
-  const gaugeUnit = phase === 'ping' ? 'ms' : 'Mbps'
   const gaugeValue = phase === 'done' ? (result?.download_mbps ?? 0) : liveVal
+  const showGauge = testing || phase === 'done'
 
   return (
     <main className="practical-page">
@@ -303,7 +342,9 @@ export default function Practical5() {
             </span>
           </div>
 
-          <SpeedGauge value={gaugeValue} max={gaugeMax} unit={gaugeUnit} phase={phase} testing={testing} onGo={runFullTest} />
+          {showGauge
+            ? <SpeedGauge value={gaugeValue} phase={phase} />
+            : <GoButton onGo={runFullTest} />}
 
           {/* Live mini-stats (fill in as each phase finishes) */}
           <div className="four-col" style={{ marginTop: '8px', marginBottom: '4px' }}>
