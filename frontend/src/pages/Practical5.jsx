@@ -42,9 +42,13 @@ async function measurePing(samples, onSample) {
   return { ping: +ping.toFixed(1), jitter: +jitter.toFixed(1) }
 }
 
+// EMA smoothing factor: lower = smoother/steadier needle (0.28 ≈ ~1.3s rev-up)
+const SMOOTH_ALPHA = 0.28
+const WINDOW_MS = 200   // measurement window per sample (bigger = less noise)
+
 async function measureDownload(onProgress, maxSecs = 10) {
   const start = performance.now()
-  let loaded = 0, lastT = start, lastLoaded = 0
+  let loaded = 0, lastT = start, lastLoaded = 0, ema = 0
   const resp = await fetch(`${CF}/__down?bytes=300000000`, { cache: 'no-store' })
   const reader = resp.body.getReader()
   for (;;) {
@@ -52,13 +56,16 @@ async function measureDownload(onProgress, maxSecs = 10) {
     if (done) break
     loaded += value.length
     const now = performance.now()
-    if (now - lastT >= 120) {
+    if (now - lastT >= WINDOW_MS) {
       const inst = (loaded - lastLoaded) * 8 / ((now - lastT) / 1000) / 1e6
+      // Start EMA from 0 so the needle sweeps up smoothly instead of snapping.
+      ema = ema + (inst - ema) * SMOOTH_ALPHA
       lastT = now; lastLoaded = loaded
-      onProgress(inst, (now - start) / 1000)
+      onProgress(ema, (now - start) / 1000)
     }
     if ((now - start) / 1000 >= maxSecs) { reader.cancel(); break }
   }
+  // Report the overall average throughput — robust to momentary dips/spikes.
   const secs = (performance.now() - start) / 1000
   return +((loaded * 8) / secs / 1e6).toFixed(2)
 }
@@ -68,7 +75,7 @@ function measureUpload(onProgress, maxSecs = 10) {
     const start = performance.now()
     const CHUNK = 8_000_000
     const blob = new Uint8Array(CHUNK)
-    let sent = 0, lastT = start, lastSent = 0
+    let sent = 0, lastT = start, lastSent = 0, ema = 0
     function post() {
       const xhr = new XMLHttpRequest()
       xhr.open('POST', `${CF}/__up`, true)
@@ -76,10 +83,11 @@ function measureUpload(onProgress, maxSecs = 10) {
       xhr.upload.onprogress = (e) => {
         const now = performance.now()
         const total = base + e.loaded
-        if (now - lastT >= 120) {
+        if (now - lastT >= WINDOW_MS) {
           const inst = (total - lastSent) * 8 / ((now - lastT) / 1000) / 1e6
+          ema = ema + (inst - ema) * SMOOTH_ALPHA
           lastT = now; lastSent = total
-          onProgress(inst, (now - start) / 1000)
+          onProgress(ema, (now - start) / 1000)
         }
       }
       xhr.onload = () => {
@@ -87,10 +95,7 @@ function measureUpload(onProgress, maxSecs = 10) {
         if ((performance.now() - start) / 1000 < maxSecs) post()
         else resolve(+((sent * 8) / ((performance.now() - start) / 1000) / 1e6).toFixed(2))
       }
-      xhr.onerror = () => {
-        const secs = (performance.now() - start) / 1000
-        resolve(sent > 0 ? +((sent * 8) / secs / 1e6).toFixed(2) : 0)
-      }
+      xhr.onerror = () => resolve(sent > 0 ? +((sent * 8) / ((performance.now() - start) / 1000) / 1e6).toFixed(2) : 0)
       xhr.send(blob)
     }
     post()
@@ -164,7 +169,9 @@ function SpeedGauge({ value, phase }) {
   const rot = 135 + f * 270
   const dashoff = ARC_LEN * (1 - f)
   const showScale = phase !== 'ping'
-  const ease = 'cubic-bezier(0.22, 1, 0.36, 1)'
+  // Slightly longer, gentle ease so the needle glides between updates (0.35s
+  // bridges the 200ms sample gaps into one continuous professional sweep).
+  const ease = '0.35s cubic-bezier(0.33, 1, 0.68, 1)'
 
   return (
     <div style={{ width: 300, maxWidth: '100%', margin: '0 auto', aspectRatio: '1 / 1' }}>
@@ -200,10 +207,10 @@ function SpeedGauge({ value, phase }) {
         {/* Progress arc — eased via stroke-dashoffset */}
         <path d={arcPath(0, 1)} fill="none" stroke="url(#gauge-grad)" strokeWidth="14" strokeLinecap="round"
           pathLength={ARC_LEN} strokeDasharray={ARC_LEN}
-          style={{ strokeDashoffset: dashoff, transition: `stroke-dashoffset 0.2s ${ease}`, filter: `drop-shadow(0 0 8px ${color}99)` }} />
+          style={{ strokeDashoffset: dashoff, transition: `stroke-dashoffset ${ease}`, filter: `drop-shadow(0 0 8px ${color}99)` }} />
 
         {/* Tapered silver needle — eased via rotate transform */}
-        <g style={{ transform: `rotate(${rot}deg)`, transformOrigin: '150px 150px', transformBox: 'view-box', transition: `transform 0.2s ${ease}` }}>
+        <g style={{ transform: `rotate(${rot}deg)`, transformOrigin: '150px 150px', transformBox: 'view-box', transition: `transform ${ease}` }}>
           <polygon points={`${cx + 14},${cy - 6} ${cx + r - 34},${cy} ${cx + 14},${cy + 6}`} fill="url(#needle-grad)"
             style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} />
         </g>
