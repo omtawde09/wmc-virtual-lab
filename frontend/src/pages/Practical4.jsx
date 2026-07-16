@@ -64,7 +64,6 @@ export default function Practical4() {
   const [lastAdded, setLastAdded] = useState(null)
   const [updateMs, setUpdateMs]   = useState(null)   // gap between live frames
 
-  const wsRef       = useRef(null)
   const lastFrameAt = useRef(0)
 
   /* ── Fetch stored readings ── */
@@ -79,13 +78,16 @@ export default function Practical4() {
   useEffect(() => {
     fetchReadings()
     let stopped = false
-    let retry = null
+    let ws = null
+    let reconnectTimer = null
+    let backoff = 1000
 
-    function connect() {
+    const open = () => {
+      if (stopped) return
       const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-      const ws = new WebSocket(`${proto}://${window.location.host}/api/wifi/ws`)
-      wsRef.current = ws
+      ws = new WebSocket(`${proto}://${window.location.host}/api/wifi/ws`)
 
+      ws.onopen = () => { backoff = 1000 }
       ws.onmessage = (ev) => {
         const data = JSON.parse(ev.data)
         const now = performance.now()
@@ -95,16 +97,25 @@ export default function Practical4() {
         setLiveErr(false)
       }
       ws.onclose = () => {
-        if (!stopped) retry = setTimeout(connect, 1000)   // auto-reconnect
+        if (stopped) return
+        setLiveErr(true)
+        reconnectTimer = setTimeout(open, backoff)      // reconnect with backoff
+        backoff = Math.min(backoff * 2, 10000)          // 1s → 2s → … → 10s cap
       }
-      ws.onerror = () => { setLiveErr(true); ws.close() }
+      // onclose fires after onerror, so let it handle reconnection.
+      ws.onerror = () => {}
     }
 
-    connect()
+    // Delay the first connection slightly. React StrictMode mounts effects
+    // twice in dev (mount → unmount → remount); this timer is cancelled by the
+    // throwaway unmount, so only the real mount ever opens a socket — no churn.
+    const startTimer = setTimeout(open, 150)
+
     return () => {
       stopped = true
-      if (retry) clearTimeout(retry)
-      if (wsRef.current) wsRef.current.close()
+      clearTimeout(startTimer)
+      clearTimeout(reconnectTimer)
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) ws.close()
     }
   }, [fetchReadings])
 
