@@ -89,18 +89,18 @@ export default function Home() {
 
             {/* Practical 7 */}
             <Link to="/practical7" className="practical-card green">
-              <div className="card-icon-wrap green" style={{ background: 'var(--green-dim)', boxShadow: '0 0 20px var(--green)' }}>📻</div>
-              <div className="card-label green" style={{ color: 'var(--green)' }}>Practical 7 · MDL501.6</div>
-              <h2 className="card-title">Noise &amp; Interference Analysis</h2>
+              <div className="card-icon-wrap green" style={{ background: 'var(--green-dim)', boxShadow: '0 0 20px var(--green)' }}>📡</div>
+              <div className="card-label green" style={{ color: 'var(--green)' }}>Practical 7 · MDL501.5</div>
+              <h2 className="card-title">Path Loss in Indoor Environment</h2>
               <p className="card-desc">
-                Scan visible access points to analyze channel congestion. Quantify link Signal-to-Noise (SNR) and Signal-to-Interference (SIR) ratios, and compute theoretical Shannon capacity.
+                Measure how RSSI decays with distance and obstacles. Capture the real signal at each point, then fit the log-distance path-loss exponent (n) and the attenuation per wall.
               </p>
               <div className="card-tags">
-                <span className="tag">Noise Floor</span>
-                <span className="tag">Co-channel Overlap</span>
-                <span className="tag">SNR / SIR / SINR</span>
-                <span className="tag">Shannon Capacity</span>
-                <span className="tag">Channel Spectrum</span>
+                <span className="tag">RSSI vs Distance</span>
+                <span className="tag">Path-Loss Exponent</span>
+                <span className="tag">RSSI vs Obstacles</span>
+                <span className="tag">Log-Distance Model</span>
+                <span className="tag">Regression Fit</span>
               </div>
               <span className="card-cta green" style={{ color: 'var(--green)' }}>Launch Experiment →</span>
             </Link>

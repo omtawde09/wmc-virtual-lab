@@ -36,7 +36,7 @@ export default function Navbar() {
           <li>
             <NavLink to="/practical7" className={({ isActive }) => isActive ? 'active' : ''}>
               <span className="nav-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)' }}>P7</span>
-              <span className="nav-text">Noise &amp; Interf.</span>
+              <span className="nav-text">Path Loss</span>
             </NavLink>
           </li>
         </ul>
