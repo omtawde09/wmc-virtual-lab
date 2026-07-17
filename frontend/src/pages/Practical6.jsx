@@ -77,13 +77,17 @@ export default function Practical6() {
   useEffect(() => {
     fetchSessions()
     let stopped = false
+    let ws = null
     let retry = null
-    
-    function connect() {
+    let backoff = 1000
+
+    const connect = () => {
+      if (stopped) return
       const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-      const ws = new WebSocket(`${proto}://${window.location.host}${WSWIFI_URL}`)
+      ws = new WebSocket(`${proto}://${window.location.host}${WSWIFI_URL}`)
       wsRef.current = ws
-      
+
+      ws.onopen = () => { backoff = 1000 }
       ws.onmessage = (ev) => {
         const data = JSON.parse(ev.data)
         const now = performance.now()
@@ -91,7 +95,7 @@ export default function Practical6() {
         lastFrameAt.current = now
         setLiveWifi(data)
         setLiveErr(false)
-        
+
         // Add to rolling chart (keep last 50 points)
         setRollingTrace(prev => {
           const next = [...prev, {
@@ -101,28 +105,33 @@ export default function Practical6() {
           if (next.length > 50) next.shift()
           return next
         })
-        
+
         // If recording a session, capture sample in ref
         if (recordingRef.current) {
           sessionSamplesRef.current.push(data.rssi)
         }
       }
-      
+
       ws.onclose = () => {
-        if (!stopped) retry = setTimeout(connect, 1000)
-      }
-      
-      ws.onerror = () => {
+        if (stopped) return
         setLiveErr(true)
-        ws.close()
+        retry = setTimeout(connect, backoff)         // reconnect with backoff
+        backoff = Math.min(backoff * 2, 10000)       // 1s → 2s → … → 10s cap
       }
+      // onclose fires after onerror, so let it handle reconnection.
+      ws.onerror = () => {}
     }
-    
-    connect()
+
+    // Delay the first connection slightly. React StrictMode mounts effects
+    // twice in dev (mount → unmount → remount); this timer is cancelled by the
+    // throwaway unmount, so only the real mount ever opens a socket — no churn.
+    const startTimer = setTimeout(connect, 150)
+
     return () => {
       stopped = true
-      if (retry) clearTimeout(retry)
-      if (wsRef.current) wsRef.current.close()
+      clearTimeout(startTimer)
+      clearTimeout(retry)
+      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) ws.close()
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [fetchSessions])
