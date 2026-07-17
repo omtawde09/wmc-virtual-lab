@@ -213,7 +213,14 @@ export default function Practical4() {
             <div className="four-col">
               {/* SSID */}
               <div className="stat-pill">
-                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--cyan)', marginBottom: '4px', fontFamily: 'var(--font-mono)' }}>
+                <div
+                  title={liveWifi.ssid}
+                  style={{
+                    fontSize: '22px', fontWeight: '800', color: 'var(--cyan)', marginBottom: '4px',
+                    fontFamily: 'var(--font-mono)', letterSpacing: '-0.5px',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}
+                >
                   {liveWifi.ssid}
                 </div>
                 <div className="stat-label">Network SSID</div>
