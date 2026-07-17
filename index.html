@@ -53,39 +53,7 @@
 
           <!-- Scene 3: Shock and Fall -->
           <div id="scene-3" class="scene">
-            <div class="steps-container">
-              <div class="floating-step" id="step-1">
-                <div class="step-face step-top"></div>
-                <div class="step-face step-front"></div>
-                <div class="step-face step-left"></div>
-                <div class="step-face step-right"></div>
-              </div>
-              <div class="floating-step" id="step-2">
-                <div class="step-face step-top"></div>
-                <div class="step-face step-front"></div>
-                <div class="step-face step-left"></div>
-                <div class="step-face step-right"></div>
-              </div>
-              <div class="floating-step" id="step-3">
-                <div class="step-face step-top"></div>
-                <div class="step-face step-front"></div>
-                <div class="step-face step-left"></div>
-                <div class="step-face step-right"></div>
-              </div>
-              <div class="floating-step" id="step-4">
-                <div class="step-face step-top"></div>
-                <div class="step-face step-front"></div>
-                <div class="step-face step-left"></div>
-                <div class="step-face step-right"></div>
-              </div>
-              <div class="floating-step" id="step-5">
-                <div class="step-face step-top"></div>
-                <div class="step-face step-front"></div>
-                <div class="step-face step-left"></div>
-                <div class="step-face step-right"></div>
-              </div>
-              <div class="dramatic-text" id="shock-text">Why so shocked?</div>
-            </div>
+            <div class="crash-container"></div>
           </div>
 
           <!-- Global 3D Phone Mockup: Shared across Scene 2 & Scene 3 -->
@@ -99,35 +67,71 @@
                     <div class="camera-lens-dot"></div>
                   </div>
                   <div class="phone-screen" id="phone-screen-container">
-                    <!-- Chat View (Scene 2) -->
-                    <div class="chat-view">
-                      <div class="chat-header">
-                        <div class="chat-avatar">📡</div>
-                        <div class="chat-info">
-                          <span class="chat-title">MDM Lab - Sec A</span>
-                          <span class="chat-status">online</span>
+                    <!-- WhatsApp Dark Theme Chat (Scene 2) -->
+                    <div class="wa-chat">
+                      <!-- Status Bar -->
+                      <div class="wa-statusbar">
+                        <span class="wa-time">6:45</span>
+                        <div class="wa-statusbar-right">
+                          <span class="wa-signal">●●●●○</span>
+                          <span class="wa-wifi">⬨</span>
+                          <span class="wa-battery">71%</span>
                         </div>
                       </div>
-                      <div class="chat-body">
-                        <div class="chat-bubble received" id="msg-1">
-                          <span class="sender">Prof. Sen</span>
-                          <p>Reminder: The Wireless & Mobile Communication practicals begin tomorrow morning at 9 AM.</p>
-                          <span class="timestamp">18:42</span>
+                      <!-- Chat Header -->
+                      <div class="wa-header">
+                        <span class="wa-back">‹</span>
+                        <div class="wa-avatar">
+                          <span>📡</span>
                         </div>
-                        <div class="chat-bubble sent" id="msg-2">
-                          <span class="sender">You</span>
+                        <div class="wa-header-info">
+                          <span class="wa-header-name">MDM Lab - Sec A</span>
+                          <span class="wa-header-status">online</span>
+                        </div>
+                        <div class="wa-header-icons">
+                          <span>📹</span>
+                          <span>📞</span>
+                          <span>⋮</span>
+                        </div>
+                      </div>
+                      <!-- Chat Body -->
+                      <div class="wa-body">
+                        <div class="wa-date-pill">Today</div>
+                        <!-- Message 1: Received -->
+                        <div class="wa-msg wa-msg-received" id="msg-1">
+                          <span class="wa-sender">Prof. Sen</span>
+                          <p>Reminder: The Wireless &amp; Mobile Communication practicals begin tomorow morning at 9 AM.</p>
+                          <span class="wa-ts">6:42 PM</span>
+                        </div>
+                        <!-- Message 2: Sent -->
+                        <div class="wa-msg wa-msg-sent" id="msg-2">
                           <p>Sir, do we have access to the hardware signal kits and base station setups? The equipment room was locked.</p>
-                          <span class="timestamp">18:43</span>
+                          <span class="wa-ts">6:43 PM <span class="wa-check">✓✓</span></span>
                         </div>
-                        <div class="chat-bubble received error-msg" id="msg-3">
-                          <span class="sender">Prof. Sen</span>
+                        <!-- Message 3: Received (devastating) -->
+                        <div class="wa-msg wa-msg-received wa-msg-final" id="msg-3">
+                          <span class="wa-sender">Prof. Sen</span>
                           <p>No. Practical equipment is unavailable this semester. We will study the configurations purely on paper.</p>
-                          <span class="timestamp">18:45</span>
+                          <span class="wa-ts">6:45 PM</span>
                         </div>
+                      </div>
+                      <!-- Input Bar -->
+                      <div class="wa-inputbar">
+                        <div class="wa-input-left">
+                          <span class="wa-emoji">😊</span>
+                          <span class="wa-input-text">Message</span>
+                        </div>
+                        <div class="wa-input-icons">
+                          <span>📎</span>
+                          <span>📷</span>
+                        </div>
+                        <div class="wa-mic">🎤</div>
                       </div>
                     </div>
                     <!-- Cracked screen overlay (triggered in Scene 3) -->
                     <div class="phone-screen-cracks" id="phone-cracks"></div>
+                    <!-- Shock text shown on cracked screen -->
+                    <div class="phone-shock-text" id="shock-text">Why so shocked?</div>
                   </div>
                 </div>
               </div>
@@ -192,15 +196,29 @@
                     <p class="card-content">Deconstruct packet headers, trace RF frames, and inspect network signalling transactions from MAC to Physical layers.</p>
                   </div>
                 </div>
+                <div class="deck-card" id="card-5">
+                  <div class="card-inner">
+                    <div class="card-icon">🌊</div>
+                    <h3 class="card-title">Channel Emulation</h3>
+                    <p class="card-content">Simulate Rayleigh/Rician fading profiles, Doppler shifts, atmospheric noise models, and path attenuation dynamically.</p>
+                  </div>
+                </div>
+                <div class="deck-card" id="card-6">
+                  <div class="card-inner">
+                    <div class="card-icon">📈</div>
+                    <h3 class="card-title">Spectrum Analytics</h3>
+                    <p class="card-content">Inspect waterfall spectrograms, QPSK/QAM constellation diagrams, and Error Vector Magnitude (EVM) metrics in real time.</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Scene 5: Final CTA Frame -->
           <div id="scene-5" class="scene">
-            <!-- Fade back to classroom skeleton in Scene 5 -->
+            <!-- Looping classroom background in Scene 5 -->
             <div class="classroom-container-scene5">
-              <img class="classroom-foreground" src="/resources/girl_in_classroom_skeleton_transparent_windows.png" alt="Classroom Foreground">
+              <video class="classroom-foreground" src="/resources/girl_sitting_in_classroom_hero_1st_section_new_final.mp4" autoplay loop muted playsinline preload="auto"></video>
               <div class="classroom-vignette"></div>
             </div>
             

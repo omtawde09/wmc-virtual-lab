@@ -46,13 +46,13 @@ html, body {
 }
 
 .viewport {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: var(--color-bg-twilight);
+  background-color: #000000;
   z-index: 1;
 }
 
@@ -207,17 +207,18 @@ html, body {
   50% { transform: translateY(10px); opacity: 0.85; }
 }
 
-
 /* ---------------- GLOBAL 3D PHONE MOCKUP (SCENE 2 & 3) ---------------- */
 
 .phone-3d-wrapper {
   position: absolute;
   z-index: 100;
-  width: 320px;
-  height: 640px;
+  width: 380px;
+  height: 760px;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.1);
+  margin-left: -190px;
+  margin-top: -380px;
+  transform: scale(1.0);
   transform-origin: center center;
   opacity: 0;
   pointer-events: none;
@@ -426,126 +427,198 @@ html, body {
   box-shadow: 1px 0 2px rgba(0,0,0,0.3);
 }
 
-/* Chat Interface (Scene 2) */
-.chat-view {
+/* ---- WhatsApp Dark Theme Chat (Scene 2) ---- */
+.wa-chat {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #0b090f;
+  background-color: #0b141a;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
 }
 
-.chat-header {
-  padding: 48px 16px 14px; /* Increased padding top to clear the Dynamic Island notch */
-  background: #14111c;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+/* Status Bar */
+.wa-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px 2px;
+  font-size: 0.55rem;
+  color: #e9edef;
+  background: #0b141a;
+}
+.wa-statusbar-right {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 0.5rem;
+}
+.wa-signal, .wa-wifi, .wa-battery { opacity: 0.8; }
+
+/* Chat Header */
+.wa-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #1f2c34;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
-
-.chat-avatar {
-  width: 40px;
-  height: 40px;
+.wa-back {
+  color: #00a884;
+  font-size: 1.2rem;
+  font-weight: 300;
+  cursor: pointer;
+}
+.wa-avatar {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(135deg, #0d47a1, #7c4dff);
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 1.25rem;
+  justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
 }
-
-.chat-info {
+.wa-header-info {
   display: flex;
   flex-direction: column;
-}
-
-.chat-title {
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.chat-status {
-  color: var(--color-primary);
-  font-size: 0.72rem;
-  font-family: var(--font-mono);
-}
-
-.chat-body {
   flex: 1;
-  padding: 16px;
+  min-width: 0;
+}
+.wa-header-name {
+  color: #e9edef;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wa-header-status {
+  color: #00a884;
+  font-size: 0.55rem;
+}
+.wa-header-icons {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-  justify-content: flex-end;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: #aebac1;
+  flex-shrink: 0;
 }
 
-.chat-bubble {
-  max-width: 85%;
-  padding: 10px 14px;
-  border-radius: 18px;
-  font-size: 0.82rem;
-  line-height: 1.4;
+/* Chat Body */
+.wa-body {
+  flex: 1;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  /* WhatsApp dark doodle pattern background */
+  background-color: #0b141a;
+  background-image: 
+    radial-gradient(ellipse at 20% 50%, rgba(0,168,132,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgba(0,168,132,0.02) 0%, transparent 50%);
+}
+.wa-date-pill {
+  align-self: center;
+  background: #182229;
+  color: #8696a0;
+  font-size: 0.52rem;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+/* Messages */
+.wa-msg {
+  max-width: 82%;
+  padding: 5px 7px 3px;
+  border-radius: 7px;
+  font-size: 0.62rem;
+  line-height: 1.35;
   position: relative;
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(15px);
 }
-
-.chat-bubble.received {
-  background: #1b1924;
-  color: #e2e1e7;
+.wa-msg p {
+  margin: 0;
+  color: #e9edef;
+}
+.wa-msg-received {
+  background: #1d2a30;
   align-self: flex-start;
-  border-bottom-left-radius: 4px;
+  border-top-left-radius: 0;
 }
-
-.chat-bubble.sent {
-  background: var(--color-primary);
-  color: #05040a;
+.wa-msg-sent {
+  background: #005c4b;
   align-self: flex-end;
-  border-bottom-right-radius: 4px;
+  border-top-right-radius: 0;
 }
-
-.chat-bubble .sender {
+.wa-sender {
   display: block;
-  font-weight: 700;
-  font-size: 0.72rem;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.chat-bubble.received .sender {
-  color: var(--color-accent);
-}
-
-.chat-bubble.sent .sender {
-  color: rgba(5, 4, 10, 0.6);
-}
-
-.chat-bubble.error-msg {
-  background: rgba(255, 0, 127, 0.15);
-  border: 1px solid rgba(255, 0, 127, 0.45);
-  box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
-}
-
-.chat-bubble.error-msg .sender {
-  color: var(--color-accent);
-}
-
-.chat-bubble.error-msg p {
-  color: #ffc9e3;
   font-weight: 600;
+  font-size: 0.55rem;
+  margin-bottom: 2px;
+  color: #e91e90;
+}
+.wa-ts {
+  display: block;
+  font-size: 0.45rem;
+  text-align: right;
+  margin-top: 2px;
+  color: rgba(233,237,239,0.5);
+}
+.wa-check {
+  color: #53bdeb;
+  font-size: 0.5rem;
+}
+.wa-msg-final {
+  /* The devastating final message */
 }
 
-.chat-bubble .timestamp {
-  display: block;
-  font-size: 0.65rem;
-  text-align: right;
-  margin-top: 4px;
-  opacity: 0.6;
-  font-family: var(--font-mono);
+/* Input Bar */
+.wa-inputbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  background: #1f2c34;
+}
+.wa-input-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #2a3942;
+  border-radius: 18px;
+  padding: 5px 10px;
+}
+.wa-emoji { font-size: 0.7rem; }
+.wa-input-text {
+  color: #8696a0;
+  font-size: 0.6rem;
+}
+.wa-input-icons {
+  display: flex;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #8696a0;
+  position: absolute;
+  right: 50px;
+}
+.wa-mic {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #00a884;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
 }
 
 /* Phone Screen Cracks Overlay (Scene 3) */
@@ -613,97 +686,42 @@ html, body {
 
 #scene-3 {
   z-index: 20;
+  background-color: #000000;
 }
-.steps-container {
+
+.crash-container {
   position: absolute;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
-  perspective: 1800px;
-  transform-style: preserve-3d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
 
-.floating-step {
+/* Text shown on the cracked phone screen */
+.phone-shock-text {
   position: absolute;
-  width: 240px;
-  height: 35px;
-  transform-style: preserve-3d;
-  opacity: 0;
-}
-
-.step-face {
-  position: absolute;
-  box-sizing: border-box;
-  background: rgba(255, 105, 180, 0.04);
-  border: 1.5px solid rgba(255, 182, 193, 0.35);
-  box-shadow: 0 0 15px rgba(255, 20, 147, 0.1);
-}
-
-.step-top {
-  width: 240px;
-  height: 110px;
-  transform: rotateX(-90deg);
-  transform-origin: top center;
-  background: rgba(255, 240, 245, 0.08);
-  border-bottom: 2.5px solid rgba(255, 255, 255, 0.85); /* white top highlight */
-  background-image: 
-    linear-gradient(rgba(255, 192, 203, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 192, 203, 0.2) 1px, transparent 1px);
-  background-size: 24px 24px;
-  box-shadow: 
-    inset 0 0 20px rgba(255, 182, 193, 0.3), 
-    0 0 25px rgba(255, 20, 147, 0.25),
-    0 0 50px rgba(255, 255, 255, 0.1);
-}
-
-.step-front {
-  width: 240px;
-  height: 35px;
-  transform: translateZ(110px);
-  background: rgba(255, 192, 203, 0.05);
-  border: 1.5px solid rgba(255, 105, 180, 0.4);
-  box-shadow: inset 0 0 12px rgba(255, 20, 147, 0.15);
-}
-
-.step-left {
-  width: 110px;
-  height: 35px;
-  transform: rotateY(-90deg);
-  transform-origin: left center;
-  background: rgba(255, 192, 203, 0.07);
-  border: 1.5px solid rgba(255, 105, 180, 0.35);
-}
-
-.step-right {
-  width: 110px;
-  height: 35px;
-  transform: rotateY(90deg);
-  transform-origin: right center;
-  right: 0;
-  background: rgba(255, 192, 203, 0.07);
-  border: 1.5px solid rgba(255, 105, 180, 0.35);
-}
-
-#step-1 { left: 74%; top: 12%; transform: rotateX(65deg) rotateY(-12deg) rotateZ(-10deg) scale(0.55); }
-#step-2 { left: 58%; top: 28%; transform: rotateX(65deg) rotateY(-10deg) rotateZ(-15deg) scale(0.68); }
-#step-3 { left: 42%; top: 48%; transform: rotateX(65deg) rotateY(-8deg) rotateZ(-20deg) scale(0.80); }
-#step-4 { left: 26%; top: 68%; transform: rotateX(65deg) rotateY(-6deg) rotateZ(-25deg) scale(0.95); }
-#step-5 { left: 10%; top: 88%; transform: rotateX(65deg) rotateY(-4deg) rotateZ(-30deg) scale(1.15); }
-
-.dramatic-text {
-  position: absolute;
-  top: 15%;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%) translateY(-20px);
-  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  transform: translate(-50%, -50%) scale(0.8);
+  font-size: clamp(1rem, 2.5vw, 1.6rem);
   font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--color-accent);
-  text-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+  font-family: var(--font-sans);
+  color: #ffffff;
+  text-shadow: 
+    0 0 10px rgba(255, 0, 127, 0.8),
+    0 0 20px rgba(255, 0, 127, 0.5),
+    0 0 40px rgba(0, 243, 255, 0.4);
+  letter-spacing: 0.05em;
   opacity: 0;
-  z-index: 100;
+  visibility: hidden;
+  text-align: center;
+  width: 80%;
+  z-index: 20;
+  line-height: 1.4;
 }
 
 
@@ -711,8 +729,7 @@ html, body {
 
 #scene-4 {
   z-index: 30;
-  background-color: var(--color-bg-light);
-  color: var(--color-text-dark);
+  background-color: #0c0a15; /* Sleek deep twilight/violet color matching cinematic theme */
 }
 
 .mesh-bg {
@@ -721,29 +738,28 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: 
-    radial-gradient(at 10% 20%, rgba(200, 215, 255, 0.3) 0px, transparent 50%),
-    radial-gradient(at 90% 80%, rgba(255, 200, 230, 0.25) 0px, transparent 50%),
-    linear-gradient(rgba(18, 16, 23, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 16, 23, 0.03) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-  opacity: 0.9;
+  background-image: 
+    radial-gradient(rgba(255, 0, 127, 0.03) 1px, transparent 1px),
+    radial-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+  opacity: 0.6;
   z-index: 1;
 }
 
 .sunlight-beam {
   position: absolute;
-  top: -150px;
+  top: 0;
   left: 50%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, #ffffff 0%, rgba(255,255,255,0.9) 40%, rgba(255,255,255,0) 100%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(0, 243, 255, 0.12) 40%, rgba(12, 10, 21, 0) 70%);
   transform: translate(-50%, -50%) scale(0);
   transform-origin: center center;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 2;
-  filter: blur(8px);
+  z-index: 1;
+  filter: blur(35px);
 }
 
 .solution-container {
@@ -757,7 +773,7 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 3rem;
+  gap: 2.5rem;
 }
 
 .solution-header {
@@ -769,50 +785,59 @@ html, body {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--color-text-dark);
+  background: linear-gradient(135deg, #ffc2e0, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
 }
 
 .solution-tagline {
   font-size: clamp(0.95rem, 2.5vw, 1.3rem);
-  color: #555261;
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
 }
 
 .cards-wrapper {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 20px;
   position: relative;
-  height: 380px;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  margin-top: 15px;
 }
 
 .deck-card {
-  height: 340px;
+  height: 250px;
   width: 100%;
   border-radius: 24px;
-  background: var(--color-glass-light);
-  border: 1px solid var(--color-border-light);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
   padding: 24px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.04);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
   transform-style: preserve-3d;
-  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease;
   cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .deck-card:hover {
-  transform: translateY(-8px) scale(1.02) !important;
-  box-shadow: 0 25px 45px rgba(0,0,0,0.08);
+  border-color: rgba(255, 0, 127, 0.6);
+  box-shadow: 0 20px 40px rgba(255, 0, 127, 0.15), 0 0 20px rgba(0, 243, 255, 0.1);
 }
 
 .card-inner {
   display: flex;
   flex-direction: column;
   height: 100%;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-style: preserve-3d;
+}
+
+.deck-card:hover .card-inner {
+  transform: translateY(-8px) scale(1.02) rotateX(2deg) rotateY(-2deg);
 }
 
 .card-icon {
@@ -824,14 +849,16 @@ html, body {
 .card-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-text-dark);
+  background: linear-gradient(135deg, #ffb6c1, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 12px;
 }
 
 .card-content {
   font-size: 0.88rem;
   line-height: 1.6;
-  color: #5c5966;
+  color: rgba(255, 255, 255, 0.65);
   opacity: 0; /* Animated dynamically by GSAP */
 }
 
