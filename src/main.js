@@ -76,28 +76,16 @@ window.addEventListener('load', () => {
 
   // Camera Zoom Video Setup
   const zoomVideo = document.getElementById('zoom-video');
-  
-  // Virtual scrub progress lerp variables to eliminate scrolling stutter
-  let targetTime = 0;
   let duration = 6.4;
-  
-  function smoothVideoScrub() {
-    if (zoomVideo && zoomVideo.readyState >= 1) {
-      const diff = targetTime - zoomVideo.currentTime;
-      if (Math.abs(diff) > 0.002) {
-        // Smoothly glide to the target time (8% catch-up rate per tick)
-        zoomVideo.currentTime = Math.max(0, Math.min(duration, zoomVideo.currentTime + diff * 0.08));
-      }
-    }
-    requestAnimationFrame(smoothVideoScrub);
+  if (zoomVideo) {
+    zoomVideo.addEventListener('loadedmetadata', () => {
+      duration = zoomVideo.duration || 6.4;
+    });
   }
-  requestAnimationFrame(smoothVideoScrub);
   
   const initTimeline = () => {
-    duration = zoomVideo.duration || 6.4;
-    console.log("Scrubbing zoom video duration:", duration);
-    
-    const videoProgressObj = { progress: 0 };
+    duration = (zoomVideo && zoomVideo.duration) ? zoomVideo.duration : 6.4;
+    console.log("Zoom video duration:", duration);
     
     // Master Cinematic Scroll Timeline
     const masterTL = gsap.timeline({
@@ -140,34 +128,15 @@ window.addEventListener('load', () => {
         autoAlpha: 1, 
         duration: 0.1 
       }, "-=0.8")
-      // Play / scrub the camera zoom video using virtual progress lerp
-      .to(videoProgressObj, {
-        progress: 1,
-        ease: "none",
-        duration: 3,
-        onUpdate: () => {
-          targetTime = videoProgressObj.progress * duration;
-        }
-      }, "-=0.8")
-      // Seamlessly transition from video phone to CSS 3D phone model
-      .to("#phone-wrapper", { 
-        opacity: 1, 
-        scale: 1, 
-        y: 0, 
-        duration: 1, 
-        ease: "power2.out" 
-      }, "-=0.8")
-      .to(".zoom-video-container", { 
-        opacity: 0, 
-        duration: 0.8 
-      }, "-=0.6")
-      // Staggered reveal of chat messages
+      // Blank spacer representing the scroll space allocated to the video zoom
+      .to({}, { duration: 3.5 })
+      // Staggered reveal of chat messages (triggered after the video space)
       .to("#msg-1", { 
         opacity: 1, 
         y: 0, 
         duration: 0.8, 
         ease: "power1.out" 
-      }, "-=0.2")
+      })
       .to("#msg-2", { 
         opacity: 1, 
         y: 0, 
@@ -180,6 +149,84 @@ window.addEventListener('load', () => {
         duration: 1, 
         ease: "power1.out" 
       }, "+=0.3")
+
+    // ScrollTrigger to trigger video playback at normal speed (non-scrubbed) based on direction
+    let currentDirection = 0; // 0 = idle, 1 = forward, -1 = backward
+
+    ScrollTrigger.create({
+      trigger: "#scene-2",
+      start: "top center",
+      end: "bottom center",
+      onUpdate: (self) => {
+        if (!self.isActive) return;
+        
+        if (self.direction === 1 && currentDirection !== 1) {
+          currentDirection = 1;
+          console.log("Scroll direction changed: playing forward...");
+          if (zoomVideo) {
+            gsap.killTweensOf(zoomVideo);
+            gsap.killTweensOf("#phone-wrapper");
+            gsap.killTweensOf(".zoom-video-container");
+            
+            zoomVideo.play();
+            
+            const remaining = Math.max(0, duration - zoomVideo.currentTime);
+            gsap.to("#phone-wrapper", {
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              duration: 0.6,
+              delay: Math.max(0, remaining - 0.6),
+              ease: "power2.inOut",
+              overwrite: "auto"
+            });
+            gsap.to(".zoom-video-container", {
+              opacity: 0,
+              duration: 0.5,
+              delay: Math.max(0, remaining - 0.4),
+              overwrite: "auto"
+            });
+          }
+        } else if (self.direction === -1 && currentDirection !== -1) {
+          currentDirection = -1;
+          console.log("Scroll direction changed: playing backward...");
+          if (zoomVideo) {
+            zoomVideo.pause();
+            gsap.killTweensOf(zoomVideo);
+            gsap.killTweensOf("#phone-wrapper");
+            gsap.killTweensOf(".zoom-video-container");
+            
+            gsap.to("#phone-wrapper", {
+              opacity: 0,
+              scale: 0.1,
+              y: 200,
+              duration: 0.4,
+              ease: "power2.inOut",
+              overwrite: "auto"
+            });
+            gsap.to(".zoom-video-container", {
+              opacity: 1,
+              duration: 0.4,
+              overwrite: "auto"
+            });
+            
+            gsap.to(zoomVideo, {
+              currentTime: 0,
+              duration: Math.max(0.5, zoomVideo.currentTime),
+              ease: "none",
+              overwrite: "auto"
+            });
+          }
+        }
+      },
+      onToggle: (self) => {
+        if (!self.isActive) {
+          currentDirection = 0;
+          if (zoomVideo) zoomVideo.pause();
+          gsap.killTweensOf(zoomVideo);
+        }
+      }
+    });
 
     // --- SCENE 3: SHOCK AND FALL (0.42 to 0.65) ---
     masterTL
