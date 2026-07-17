@@ -1,6 +1,5 @@
 import re
 import math
-import random
 import subprocess
 from typing import List, Optional
 from datetime import datetime
@@ -119,7 +118,14 @@ def parse_netsh_networks(output: str) -> List[dict]:
                     bssid_info["channel"] = int(chan_m.group(1))
                     
                 i += 1
-                
+
+            # Some Windows builds omit the "Band" line. Derive it from the
+            # channel number (a fixed Wi-Fi mapping: ch 1-14 = 2.4 GHz,
+            # else 5 GHz) so band-dependent overlap math and the spectrum-map
+            # filter stay correct. This is a derivation, not fabricated data.
+            if bssid_info["band"] in ("Unknown", "") and bssid_info["channel"] > 0:
+                bssid_info["band"] = "2.4 GHz" if bssid_info["channel"] <= 14 else "5 GHz"
+
             networks.append(bssid_info)
             continue
             
@@ -127,112 +133,84 @@ def parse_netsh_networks(output: str) -> List[dict]:
         
     return networks
 
-def generate_simulated_networks(connected_ap: dict) -> List[dict]:
-    networks = []
-    # Add connected AP
-    networks.append({
-        "ssid": connected_ap["ssid"],
-        "bssid": connected_ap["bssid"],
-        "signal_pct": connected_ap["signal_pct"],
-        "rssi_dbm": connected_ap["rssi"],
-        "radio_type": "802.11ax",
-        "band": "2.4 GHz" if connected_ap["channel"] <= 14 else "5 GHz",
-        "channel": connected_ap["channel"]
-    })
-
-    # Seed a local RNG from the connected AP so an unchanged environment produces
-    # the SAME simulated neighbours on every scan. Without this, each scan re-rolls
-    # random channels/signals and SIR/SINR/overlap counts jump around even though
-    # nothing physically moved. (SNR is unaffected — it only depends on the real
-    # connected signal and the fixed noise floor, which is why it stays constant.)
-    seed_key = f"{connected_ap.get('bssid', '')}|{connected_ap.get('channel', 0)}"
-    rng = random.Random(seed_key)
-
-    # Generate mock networks
-    mock_ssids = ["Airtel_Extreme_5G", "JioFiber_4G", "NETGEAR_Guest", "Linksys_Home", "TP-LINK_Free"]
-    channels_24 = [1, 6, 11]
-    channels_5 = [36, 44, 48, 149]
-
-    for i, ssid in enumerate(mock_ssids):
-        # Distribute channels relative to connected AP
-        if connected_ap["channel"] <= 14:
-            # 2.4 GHz band
-            band = "2.4 GHz"
-            if i == 0:
-                ch = connected_ap["channel"]  # Co-channel
-            elif i == 1:
-                ch = max(1, min(13, connected_ap["channel"] + 2))  # Adjacent channel
-            else:
-                ch = rng.choice(channels_24)
-        else:
-            # 5 GHz band
-            band = "5 GHz"
-            if i == 0:
-                ch = connected_ap["channel"]  # Co-channel
-            else:
-                ch = rng.choice(channels_5)
-
-        sig = int(rng.uniform(40, 95))
-        networks.append({
-            "ssid": ssid,
-            "bssid": f"00:11:22:33:44:0{i}",
-            "signal_pct": sig,
-            "rssi_dbm": round((sig / 2.0) - 100, 1),
-            "radio_type": "802.11ac",
-            "band": band,
-            "channel": ch
-        })
-        
-    return networks
-
 @router.get("/scan")
 def scan_interference():
-    """Runs a full scan of the wireless environment to detect noise/interference."""
-    # 1. Get the current connected AP status
+    """
+    Scans the wireless environment using ONLY real measured data:
+      - the active connection (from `netsh wlan show interfaces`), and
+      - real neighbouring BSSIDs (from `netsh wlan show networks mode=bssid`).
+    No networks are fabricated. If no other APs are visible, the channel is
+    reported as clean (0 interferers) — which is the honest result.
+    """
+    # 1. Get the current connected AP status (real measurement).
     connected_ap = get_current_wifi()
-    simulated = connected_ap.get("simulated", False)
-    
-    networks = []
-    if not simulated:
-        try:
-            # Attempt real scan
-            result = subprocess.run(
-                ["netsh", "wlan", "show", "networks", "mode=bssid"],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            if result.returncode == 0:
-                networks = parse_netsh_networks(result.stdout)
-            else:
-                simulated = True
-        except Exception:
-            simulated = True
-            
-    if simulated or not networks:
-        # Fallback to simulated networks
-        networks = generate_simulated_networks(connected_ap)
-        
-    # 2. Identify the active network in the scan list
-    # If connected to a real network, find it in the scan list by BSSID or SSID
-    connected_bssid = connected_ap.get("bssid", "").lower()
-    connected_rssi = connected_ap.get("rssi", -70.0)
-    connected_channel = connected_ap.get("channel", 6)
+
+    # No active Wi-Fi connection → there is nothing real to analyse.
+    if not connected_ap.get("connected"):
+        record = {
+            "id": len(scan_history) + 1,
+            "timestamp": datetime.now().isoformat(),
+            "connected": None,
+            "networks": [],
+            "metrics": None,
+            "message": "No active Wi-Fi connection detected.",
+        }
+        scan_history.append(record)
+        if len(scan_history) > 10:
+            scan_history.pop(0)
+        return record
+
+    connected_bssid = (connected_ap.get("bssid") or "").lower()
+    connected_rssi = connected_ap.get("rssi")
+    connected_channel = connected_ap.get("channel") or 0
     connected_band = "2.4 GHz" if connected_channel <= 14 else "5 GHz"
-    
-    # 3. Compute interference metrics
+
+    # 2. Always include the real connected AP. `netsh wlan show interfaces`
+    #    reports its BSSID/channel/signal even when neighbour-scan detail is
+    #    unavailable (e.g. Windows Location Services turned off).
+    networks = [{
+        "ssid": connected_ap.get("ssid") or "Unknown Network",
+        "bssid": connected_ap.get("bssid") or "N/A",
+        "signal_pct": connected_ap.get("signal_pct") or 0,
+        "rssi_dbm": connected_rssi,
+        "radio_type": "Connected",
+        "band": connected_band,
+        "channel": connected_channel,
+    }]
+
+    # 3. Add any real neighbouring BSSIDs the OS can see.
+    try:
+        result = subprocess.run(
+            ["netsh", "wlan", "show", "networks", "mode=bssid"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0:
+            for net in parse_netsh_networks(result.stdout):
+                # Skip the connected AP (already added) and entries with no
+                # usable channel/signal detail.
+                if net["bssid"].lower() == connected_bssid:
+                    continue
+                if net.get("channel", 0) == 0:
+                    continue
+                networks.append(net)
+    except Exception:
+        pass
+
+    # 4. Compute interference metrics from the real neighbours only.
     co_channel_count = 0
     adj_channel_count = 0
-    
+
     p_sig_linear = 10 ** (connected_rssi / 10.0)
     p_inf_linear = 0.0
-    
+
     for net in networks:
         # Avoid counting our own connected BSSID as an interferer
         if net["bssid"].lower() == connected_bssid:
             net["interference_type"] = "Connected"
             continue
-            
+
         overlap = get_channel_overlap_factor(
             connected_channel, net["channel"],
             connected_band, net["band"]
@@ -288,12 +266,11 @@ def scan_interference():
         "id": len(scan_history) + 1,
         "timestamp": datetime.now().isoformat(),
         "connected": {
-            "ssid": connected_ap.get("ssid", "Unknown Network"),
-            "bssid": connected_ap.get("bssid", "N/A"),
+            "ssid": connected_ap.get("ssid") or "Unknown Network",
+            "bssid": connected_ap.get("bssid") or "N/A",
             "channel": connected_channel,
             "rssi_dbm": connected_rssi,
             "band": connected_band,
-            "simulated": simulated
         },
         "networks": networks,
         "metrics": metrics

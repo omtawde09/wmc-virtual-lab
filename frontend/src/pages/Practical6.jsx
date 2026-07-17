@@ -254,8 +254,7 @@ export default function Practical6() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <div className="live-dot" style={{ background: 'var(--amber)', boxShadow: '0 0 8px var(--amber)' }} />
             <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--amber)' }}>Live Channel Monitoring</span>
-            {liveWifi?.simulated && <span className="sim-badge">Simulated</span>}
-            {liveWifi && !liveErr && (
+            {liveWifi && liveWifi.connected !== false && !liveErr && (
               <span className="badge badge-amber" style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)' }}>
                 ● Streaming
                 {updateMs != null && <>&nbsp;·&nbsp;{updateMs} ms/update</>}
@@ -268,8 +267,14 @@ export default function Practical6() {
               ⚠️ Connection error. Ensure backend FastAPI is running on port 8000.
             </div>
           )}
-          
-          {liveWifi && (
+
+          {liveWifi && liveWifi.connected === false && !liveErr && (
+            <div className="alert alert-warning">
+              📡 No active Wi-Fi connection detected. Connect to a network to monitor the channel.
+            </div>
+          )}
+
+          {liveWifi && liveWifi.connected !== false && (
             <div className="four-col">
               <div className="stat-pill">
                 <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--amber)', marginBottom: '4px', fontFamily: 'var(--font-mono)' }}>

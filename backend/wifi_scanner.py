@@ -1,11 +1,10 @@
 import asyncio
 import subprocess
 import re
-import random
 import time
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -20,9 +19,20 @@ class ReadingInput(BaseModel):
 
 def get_current_wifi() -> dict:
     """
-    Reads current Wi-Fi RSSI using `netsh wlan show interfaces` on Windows.
-    Falls back to simulated data if the command fails or no Wi-Fi is connected.
+    Reads the current Wi-Fi connection using `netsh wlan show interfaces` on
+    Windows. Returns only real measured values. If there is no active Wi-Fi
+    connection (or the command fails), returns a disconnected state — no data
+    is ever fabricated.
     """
+    disconnected = {
+        "ssid": None,
+        "bssid": None,
+        "rssi": None,
+        "signal_pct": None,
+        "channel": None,
+        "connected": False,
+    }
+
     try:
         result = subprocess.run(
             ["netsh", "wlan", "show", "interfaces"],
@@ -32,6 +42,11 @@ def get_current_wifi() -> dict:
         )
         output = result.stdout
 
+        # A live link must report "State : connected".
+        state_match = re.search(r"^\s+State\s+:\s+(.+)$", output, re.MULTILINE)
+        if not state_match or state_match.group(1).strip().lower() != "connected":
+            return disconnected
+
         ssid_match = re.search(r"^\s+SSID\s+:\s+(.+)$", output, re.MULTILINE)
         signal_match = re.search(r"Signal\s+:\s+(\d+)%", output)
         bssid_match = re.search(r"BSSID\s+:\s+([0-9a-fA-F:]+)", output)
@@ -39,34 +54,24 @@ def get_current_wifi() -> dict:
 
         if signal_match:
             signal_pct = int(signal_match.group(1))
-            # Convert signal % to approximate dBm
+            # netsh reports link quality as a percentage; convert to approximate
+            # dBm using Microsoft's standard linear mapping (quality 0% ≈ -100 dBm,
+            # 100% ≈ -50 dBm). This is a derivation of a real measurement, not
+            # synthetic data.
             rssi = round((signal_pct / 2) - 100, 1)
-            ssid = ssid_match.group(1).strip() if ssid_match else "Unknown Network"
-            bssid = bssid_match.group(1).strip() if bssid_match else "N/A"
-            channel = int(channel_match.group(1)) if channel_match else 0
             return {
-                "ssid": ssid,
-                "bssid": bssid,
+                "ssid": ssid_match.group(1).strip() if ssid_match else "Unknown Network",
+                "bssid": bssid_match.group(1).strip() if bssid_match else None,
                 "rssi": rssi,
                 "signal_pct": signal_pct,
-                "channel": channel,
-                "simulated": False,
+                "channel": int(channel_match.group(1)) if channel_match else None,
+                "connected": True,
             }
 
     except Exception:
         pass
 
-    # Fallback: simulated values for demonstration
-    rssi = round(random.uniform(-70, -40), 1)
-    signal_pct = int((rssi + 100) * 2)
-    return {
-        "ssid": "Demo_WiFi_Network",
-        "bssid": "AA:BB:CC:DD:EE:FF",
-        "rssi": rssi,
-        "signal_pct": signal_pct,
-        "channel": 6,
-        "simulated": True,
-    }
+    return disconnected
 
 
 @router.get("/scan")
@@ -121,6 +126,9 @@ def add_reading(data: ReadingInput):
     Captures current RSSI and associates it with the provided distance.
     """
     wifi = get_current_wifi()
+    if not wifi.get("connected"):
+        # No active Wi-Fi connection — there is no real RSSI to record.
+        raise HTTPException(status_code=409, detail="No active Wi-Fi connection to record.")
     reading = {
         "id": len(readings) + 1,
         "distance": data.distance,
@@ -129,7 +137,6 @@ def add_reading(data: ReadingInput):
         "ssid": wifi["ssid"],
         "channel": wifi["channel"],
         "timestamp": datetime.now().isoformat(),
-        "simulated": wifi["simulated"],
     }
     readings.append(reading)
     return reading

@@ -193,8 +193,7 @@ export default function Practical4() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <div className="live-dot" />
             <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--cyan)' }}>Live Wi-Fi Status</span>
-            {liveWifi?.simulated && <span className="sim-badge">Simulated</span>}
-            {liveWifi && !liveErr && (
+            {liveWifi && liveWifi.connected !== false && !liveErr && (
               <span className="badge badge-green" style={{ marginLeft: 'auto', fontFamily: 'var(--font-mono)' }}>
                 ● Streaming
                 {updateMs != null && <>&nbsp;·&nbsp;{updateMs} ms/update</>}
@@ -209,7 +208,13 @@ export default function Practical4() {
             </div>
           )}
 
-          {liveWifi && (
+          {liveWifi && liveWifi.connected === false && !liveErr && (
+            <div className="alert alert-warning">
+              📡 No active Wi-Fi connection detected. Connect to a network to see live readings.
+            </div>
+          )}
+
+          {liveWifi && liveWifi.connected !== false && (
             <div className="four-col">
               {/* SSID — same stat-value style/size as the other cards */}
               <div className="stat-pill">
@@ -252,7 +257,7 @@ export default function Practical4() {
           )}
 
           {/* Signal bar */}
-          {liveWifi && (
+          {liveWifi && liveWifi.connected !== false && (
             <div style={{ marginTop: '16px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' }}>
                 Signal Level
