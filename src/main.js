@@ -338,9 +338,8 @@ window.addEventListener('load', () => {
     masterTL
       .to("#scene-3", { autoAlpha: 0, duration: 0.8 })
       .to("#phone-wrapper", { autoAlpha: 0, duration: 0.8 }, "<")
-      .to(".viewport", { backgroundColor: "#0c0a15", duration: 0.8 }, "<")
+      .to(".viewport", { backgroundColor: "#ffffff", duration: 0.8 }, "<")
       .to("#scene-4", { autoAlpha: 1, duration: 0.4 }, "-=0.4")
-      .to(".sunlight-beam", { scale: 22, duration: 1.8, ease: "power2.out" }, "-=0.6")
       
       // Solution Header fade-in
       .from(".solution-header", { y: 40, opacity: 0, duration: 1, ease: "power2.out" })
