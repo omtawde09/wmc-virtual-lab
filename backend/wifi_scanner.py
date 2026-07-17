@@ -49,16 +49,20 @@ def get_current_wifi() -> dict:
 
         ssid_match = re.search(r"^\s+SSID\s+:\s+(.+)$", output, re.MULTILINE)
         signal_match = re.search(r"Signal\s+:\s+(\d+)%", output)
+        rssi_match = re.search(r"Rssi\s+:\s+(-?\d+)", output)
         bssid_match = re.search(r"BSSID\s+:\s+([0-9a-fA-F:]+)", output)
         channel_match = re.search(r"Channel\s+:\s+(\d+)", output)
 
         if signal_match:
             signal_pct = int(signal_match.group(1))
-            # netsh reports link quality as a percentage; convert to approximate
-            # dBm using Microsoft's standard linear mapping (quality 0% ≈ -100 dBm,
-            # 100% ≈ -50 dBm). This is a derivation of a real measurement, not
-            # synthetic data.
-            rssi = round((signal_pct / 2) - 100, 1)
+            # Prefer the driver's real dBm RSSI when Windows exposes it (newer
+            # builds report an "Rssi : -48" line) — this is the actual measured
+            # value and is far more accurate/granular than the smoothed Signal%.
+            # Only fall back to converting the percentage if the field is absent.
+            if rssi_match:
+                rssi = float(rssi_match.group(1))
+            else:
+                rssi = round((signal_pct / 2) - 100, 1)
             return {
                 "ssid": ssid_match.group(1).strip() if ssid_match else "Unknown Network",
                 "bssid": bssid_match.group(1).strip() if bssid_match else None,
