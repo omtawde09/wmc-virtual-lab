@@ -211,15 +211,12 @@ export default function Practical4() {
 
           {liveWifi && (
             <div className="four-col">
-              {/* SSID */}
+              {/* SSID — same stat-value style/size as the other cards */}
               <div className="stat-pill">
                 <div
+                  className="stat-value"
                   title={liveWifi.ssid}
-                  style={{
-                    fontSize: '22px', fontWeight: '800', color: 'var(--cyan)', marginBottom: '4px',
-                    fontFamily: 'var(--font-mono)', letterSpacing: '-0.5px',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                  }}
+                  style={{ color: 'var(--cyan)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
                   {liveWifi.ssid}
                 </div>
