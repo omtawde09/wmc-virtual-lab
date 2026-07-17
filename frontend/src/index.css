@@ -456,6 +456,7 @@ body::before {
   padding: 20px;
   text-align: center;
   transition: transform var(--transition), border-color var(--transition);
+  min-width: 0;   /* let grid tracks shrink so long text (e.g. SSID) can ellipsize */
 }
 
 .stat-pill:hover {
