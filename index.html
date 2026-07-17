@@ -31,11 +31,10 @@
           <!-- Scene 1: Opening Atmosphere -->
           <div id="scene-1" class="scene">
             <div class="classroom-container">
-              <div class="classroom-bg"></div>
+              <video class="classroom-window-video" src="/resources/girl_sitting_in_classroom_hero_1st_section.mp4" autoplay loop muted playsinline preload="auto"></video>
+              <img class="classroom-foreground" src="/resources/girl_in_classroom_skeleton_transparent_windows.png" alt="Classroom Foreground">
               <div class="classroom-vignette"></div>
             </div>
-            <!-- Interactive Cherry Blossom Canvas -->
-            <canvas id="cherry-blossom-canvas"></canvas>
             <div class="title-overlay">
               <h1 class="landing-title">AETHER</h1>
               <p class="landing-subtitle">Wireless & Mobile Communication Lab</p>
@@ -48,67 +47,108 @@
 
           <!-- Scene 2: Camera Push & Phone Messaging -->
           <div id="scene-2" class="scene">
-            <!-- Pinned Global Phone is animated into this scene's view -->
+            <div class="zoom-video-container">
+              <video id="zoom-video" src="/resources/zoom_in_from_girl_to_mobile_2.mp4" muted playsinline preload="auto"></video>
+            </div>
           </div>
 
           <!-- Scene 3: Shock and Fall -->
           <div id="scene-3" class="scene">
-            <div class="spiral-container">
-              <!-- SVG Spiral Staircase -->
-              <svg class="spiral-staircase" viewBox="0 0 1000 1000" fill="none">
-                <path id="spiral-path" d="M 500 80 C 730 80, 920 270, 920 500 C 920 730, 730 920, 500 920 C 270 920, 80 730, 80 500 C 80 320, 220 170, 400 170 C 550 170, 670 290, 670 440 C 670 560, 570 660, 450 660 C 360 660, 290 590, 290 500 C 290 430, 350 370, 420 370 C 470 370, 510 410, 510 460 C 510 490, 490 510, 470 510" stroke="#00f3ff" stroke-width="4" stroke-linecap="round" />
-              </svg>
+            <div class="steps-container">
+              <div class="floating-step" id="step-1">
+                <div class="step-face step-top"></div>
+                <div class="step-face step-front"></div>
+                <div class="step-face step-left"></div>
+                <div class="step-face step-right"></div>
+              </div>
+              <div class="floating-step" id="step-2">
+                <div class="step-face step-top"></div>
+                <div class="step-face step-front"></div>
+                <div class="step-face step-left"></div>
+                <div class="step-face step-right"></div>
+              </div>
+              <div class="floating-step" id="step-3">
+                <div class="step-face step-top"></div>
+                <div class="step-face step-front"></div>
+                <div class="step-face step-left"></div>
+                <div class="step-face step-right"></div>
+              </div>
+              <div class="floating-step" id="step-4">
+                <div class="step-face step-top"></div>
+                <div class="step-face step-front"></div>
+                <div class="step-face step-left"></div>
+                <div class="step-face step-right"></div>
+              </div>
+              <div class="floating-step" id="step-5">
+                <div class="step-face step-top"></div>
+                <div class="step-face step-front"></div>
+                <div class="step-face step-left"></div>
+                <div class="step-face step-right"></div>
+              </div>
               <div class="dramatic-text" id="shock-text">Why so shocked?</div>
             </div>
           </div>
 
-          <!-- Global Phone Mockup: Shared across Scene 2 & Scene 3 for seamless layout transition -->
-          <div class="global-phone" id="phone-element">
-            <div class="phone-case">
-              <div class="phone-bezel">
-                <div class="phone-screen" id="phone-screen-container">
-                  <!-- Chat View (Scene 2) -->
-                  <div class="chat-view">
-                    <div class="chat-header">
-                      <div class="chat-avatar">📡</div>
-                      <div class="chat-info">
-                        <span class="chat-title">MDM Lab - Sec A</span>
-                        <span class="chat-status">online</span>
+          <!-- Global 3D Phone Mockup: Shared across Scene 2 & Scene 3 -->
+          <div class="phone-3d-wrapper" id="phone-wrapper">
+            <div class="phone-3d-device" id="phone-element">
+              <!-- Front Face -->
+              <div class="phone-face phone-front">
+                <div class="phone-inner-bezel">
+                  <div class="phone-screen" id="phone-screen-container">
+                    <!-- Chat View (Scene 2) -->
+                    <div class="chat-view">
+                      <div class="chat-header">
+                        <div class="chat-avatar">📡</div>
+                        <div class="chat-info">
+                          <span class="chat-title">MDM Lab - Sec A</span>
+                          <span class="chat-status">online</span>
+                        </div>
+                      </div>
+                      <div class="chat-body">
+                        <div class="chat-bubble received" id="msg-1">
+                          <span class="sender">Prof. Sen</span>
+                          <p>Reminder: The Wireless & Mobile Communication practicals begin tomorrow morning at 9 AM.</p>
+                          <span class="timestamp">18:42</span>
+                        </div>
+                        <div class="chat-bubble sent" id="msg-2">
+                          <span class="sender">You</span>
+                          <p>Sir, do we have access to the hardware signal kits and base station setups? The equipment room was locked.</p>
+                          <span class="timestamp">18:43</span>
+                        </div>
+                        <div class="chat-bubble received error-msg" id="msg-3">
+                          <span class="sender">Prof. Sen</span>
+                          <p>No. Practical equipment is unavailable this semester. We will study the configurations purely on paper.</p>
+                          <span class="timestamp">18:45</span>
+                        </div>
                       </div>
                     </div>
-                    <div class="chat-body">
-                      <div class="chat-bubble received" id="msg-1">
-                        <span class="sender">Prof. Sen</span>
-                        <p>Reminder: The Wireless & Mobile Communication practicals begin tomorrow morning at 9 AM.</p>
-                        <span class="timestamp">18:42</span>
-                      </div>
-                      <div class="chat-bubble sent" id="msg-2">
-                        <span class="sender">You</span>
-                        <p>Sir, do we have access to the hardware signal kits and base station setups? The equipment room was locked.</p>
-                        <span class="timestamp">18:43</span>
-                      </div>
-                      <div class="chat-bubble received error-msg" id="msg-3">
-                        <span class="sender">Prof. Sen</span>
-                        <p>No. Practical equipment is unavailable this semester. We will study the configurations purely on paper.</p>
-                        <span class="timestamp">18:45</span>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Cracked screen overlay (triggered in Scene 3) -->
-                  <div class="phone-screen-cracks" id="phone-cracks"></div>
-                  <!-- Glitch Screen (Scene 3) -->
-                  <div class="phone-glitch-overlay" id="phone-glitch">
-                    <div class="glitch-text">NO SIGNAL</div>
-                    <div class="glitch-sub">ERROR 404: PHYSICAL HARDWARE NOT FOUND</div>
+                    <!-- Cracked screen overlay (triggered in Scene 3) -->
+                    <div class="phone-screen-cracks" id="phone-cracks"></div>
                   </div>
                 </div>
               </div>
+              <!-- Back Face -->
+              <div class="phone-face phone-back">
+                <div class="phone-camera-bump">
+                  <div class="phone-lens"></div>
+                  <div class="phone-lens"></div>
+                  <div class="phone-lens"></div>
+                </div>
+                <div class="phone-back-logo">AETHER</div>
+              </div>
+              <!-- Side Panels for 3D thickness -->
+              <div class="phone-side phone-side-left"></div>
+              <div class="phone-side phone-side-right"></div>
+              <div class="phone-side phone-side-top"></div>
+              <div class="phone-side phone-side-bottom"></div>
             </div>
           </div>
 
           <!-- Scene 4: Solution Reveal -->
           <div id="scene-4" class="scene">
             <div class="mesh-bg"></div>
+            <div class="sunlight-beam"></div>
             <div class="solution-container">
               <div class="solution-header">
                 <h2 class="solution-title">Aether Web Lab</h2>
@@ -151,30 +191,19 @@
 
           <!-- Scene 5: Final CTA Frame -->
           <div id="scene-5" class="scene">
-            <div class="network-nodes-bg">
-              <canvas id="nodes-canvas"></canvas>
+            <!-- Fade back to classroom skeleton in Scene 5 -->
+            <div class="classroom-container-scene5">
+              <img class="classroom-foreground" src="/resources/girl_in_classroom_skeleton_transparent_windows.png" alt="Classroom Foreground">
+              <div class="classroom-vignette"></div>
             </div>
             
-            <div class="collage-container">
-              <!-- Visual parallax layers -->
-              <div class="collage-item tower-layer" id="layer-tower">
-                <div class="interactive-tower">
-                  <div class="tower-base"></div>
-                  <div class="tower-beams">
-                    <div class="beam beam-1"></div>
-                    <div class="beam beam-2"></div>
-                    <div class="beam beam-3"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="collage-item signal-layer" id="layer-waves">
-                <div class="pulse-ring ring-1"></div>
-                <div class="pulse-ring ring-2"></div>
-                <div class="pulse-ring ring-3"></div>
-              </div>
-              <div class="collage-item tech-layer" id="layer-graph">
-                <!-- Styled tech overlay nodes -->
-              </div>
+            <div class="collage-container" id="collage-container">
+              <img class="collage-item obj-router" src="/resources/router_transparent_objects_1.webp" alt="Router">
+              <img class="collage-item obj-dish" src="/resources/dish_antenna_objects_2.webp" alt="Dish Antenna">
+              <img class="collage-item obj-tower" src="/resources/cell_tower_objects_3.webp" alt="Cell Tower">
+              <img class="collage-item obj-mobile" src="/resources/mobile_objects_4.webp" alt="Mobile">
+              <img class="collage-item obj-sim" src="/resources/sim_card_objects_5.webp" alt="SIM Card">
+              <img class="collage-item obj-cables" src="/resources/router_and_ethernet_cables_objects_6.webp" alt="Router and Cables">
             </div>
 
             <div class="cta-box">
