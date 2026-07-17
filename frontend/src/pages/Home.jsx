@@ -69,38 +69,38 @@ export default function Home() {
               <span className="card-cta violet">Launch Experiment →</span>
             </Link>
 
-            {/* Practical 6 */}
-            <Link to="/practical6" className="practical-card amber">
+            {/* Practical 8 */}
+            <Link to="/practical8" className="practical-card amber">
               <div className="card-icon-wrap amber" style={{ background: 'var(--amber-dim)', boxShadow: '0 0 20px var(--amber)' }}>🌊</div>
-              <div className="card-label amber" style={{ color: 'var(--amber)' }}>Practical 6 · MDL501.5</div>
-              <h2 className="card-title">Multipath Effects Analysis</h2>
+              <div className="card-label amber" style={{ color: 'var(--amber)' }}>Practical 8 · MDL501.5</div>
+              <h2 className="card-title">Analysis of Multipath Effects</h2>
               <p className="card-desc">
-                Observe live Wi-Fi signal amplitude fluctuations (fading) caused by multi-path propagation. Test different environmental scenarios and compare against Rayleigh fading model curves.
+                Record live Wi-Fi signal fluctuation (fading) caused by multipath propagation. Test stationary vs moving scenarios and compare the amplitude distribution to a Rayleigh model fitted to your own data.
               </p>
               <div className="card-tags">
                 <span className="tag">Fast Fading</span>
-                <span className="tag">Rayleigh Model</span>
                 <span className="tag">Std Dev (σ)</span>
                 <span className="tag">Crossing Rate</span>
                 <span className="tag">Coherence Time</span>
+                <span className="tag">Rayleigh Fit</span>
               </div>
               <span className="card-cta amber" style={{ color: 'var(--amber)' }}>Launch Experiment →</span>
             </Link>
 
-            {/* Practical 7 */}
-            <Link to="/practical7" className="practical-card green">
-              <div className="card-icon-wrap green" style={{ background: 'var(--green-dim)', boxShadow: '0 0 20px var(--green)' }}>📡</div>
-              <div className="card-label green" style={{ color: 'var(--green)' }}>Practical 7 · MDL501.5</div>
-              <h2 className="card-title">Path Loss in Indoor Environment</h2>
+            {/* Practical 9 */}
+            <Link to="/practical9" className="practical-card green">
+              <div className="card-icon-wrap green" style={{ background: 'var(--green-dim)', boxShadow: '0 0 20px var(--green)' }}>📻</div>
+              <div className="card-label green" style={{ color: 'var(--green)' }}>Practical 9 · MDL501.6</div>
+              <h2 className="card-title">Noise &amp; Interference Analysis</h2>
               <p className="card-desc">
-                Measure how RSSI decays with distance and obstacles. Capture the real signal at each point, then fit the log-distance path-loss exponent (n) and the attenuation per wall.
+                Scan the real access points around you to analyze channel congestion. Quantify Signal-to-Noise (SNR) and Signal-to-Interference (SIR/SINR) ratios, and compute the theoretical Shannon capacity.
               </p>
               <div className="card-tags">
-                <span className="tag">RSSI vs Distance</span>
-                <span className="tag">Path-Loss Exponent</span>
-                <span className="tag">RSSI vs Obstacles</span>
-                <span className="tag">Log-Distance Model</span>
-                <span className="tag">Regression Fit</span>
+                <span className="tag">Noise Floor</span>
+                <span className="tag">Co-channel Overlap</span>
+                <span className="tag">SNR / SIR / SINR</span>
+                <span className="tag">Shannon Capacity</span>
+                <span className="tag">Channel Spectrum</span>
               </div>
               <span className="card-cta green" style={{ color: 'var(--green)' }}>Launch Experiment →</span>
             </Link>

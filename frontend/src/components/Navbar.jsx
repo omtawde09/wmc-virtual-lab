@@ -28,15 +28,15 @@ export default function Navbar() {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/practical6" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'var(--amber-dim)', color: 'var(--amber)' }}>P6</span>
+            <NavLink to="/practical8" className={({ isActive }) => isActive ? 'active' : ''}>
+              <span className="nav-badge" style={{ background: 'var(--amber-dim)', color: 'var(--amber)' }}>P8</span>
               <span className="nav-text">Multipath</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/practical7" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)' }}>P7</span>
-              <span className="nav-text">Path Loss</span>
+            <NavLink to="/practical9" className={({ isActive }) => isActive ? 'active' : ''}>
+              <span className="nav-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)' }}>P9</span>
+              <span className="nav-text">Noise &amp; Interf.</span>
             </NavLink>
           </li>
         </ul>
