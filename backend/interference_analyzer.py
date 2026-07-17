@@ -139,12 +139,20 @@ def generate_simulated_networks(connected_ap: dict) -> List[dict]:
         "band": "2.4 GHz" if connected_ap["channel"] <= 14 else "5 GHz",
         "channel": connected_ap["channel"]
     })
-    
+
+    # Seed a local RNG from the connected AP so an unchanged environment produces
+    # the SAME simulated neighbours on every scan. Without this, each scan re-rolls
+    # random channels/signals and SIR/SINR/overlap counts jump around even though
+    # nothing physically moved. (SNR is unaffected — it only depends on the real
+    # connected signal and the fixed noise floor, which is why it stays constant.)
+    seed_key = f"{connected_ap.get('bssid', '')}|{connected_ap.get('channel', 0)}"
+    rng = random.Random(seed_key)
+
     # Generate mock networks
     mock_ssids = ["Airtel_Extreme_5G", "JioFiber_4G", "NETGEAR_Guest", "Linksys_Home", "TP-LINK_Free"]
     channels_24 = [1, 6, 11]
     channels_5 = [36, 44, 48, 149]
-    
+
     for i, ssid in enumerate(mock_ssids):
         # Distribute channels relative to connected AP
         if connected_ap["channel"] <= 14:
@@ -155,16 +163,16 @@ def generate_simulated_networks(connected_ap: dict) -> List[dict]:
             elif i == 1:
                 ch = max(1, min(13, connected_ap["channel"] + 2))  # Adjacent channel
             else:
-                ch = random.choice(channels_24)
+                ch = rng.choice(channels_24)
         else:
             # 5 GHz band
             band = "5 GHz"
             if i == 0:
                 ch = connected_ap["channel"]  # Co-channel
             else:
-                ch = random.choice(channels_5)
-                
-        sig = int(random.uniform(40, 95))
+                ch = rng.choice(channels_5)
+
+        sig = int(rng.uniform(40, 95))
         networks.append({
             "ssid": ssid,
             "bssid": f"00:11:22:33:44:0{i}",
