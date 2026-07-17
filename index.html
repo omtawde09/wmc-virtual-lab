@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AETHER | Cinematic Wireless & Mobile Communication Web Lab</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Step into AETHER, the next-generation virtual MDM web lab for wireless and mobile device management experimentation. Explore signal propagation, antenna arrays, and protocol analysis from your browser." />
+    <meta name="keywords" content="MDM web lab, mobile device management, wireless communication, signal propagation simulator, antenna array designer, virtual lab, protocol analyzer" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Inline Error Logger for Debugging -->
+    <script>
+      window.addEventListener('error', function(e) {
+        const div = document.createElement('div');
+        div.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#ff0055;color:#fff;padding:20px;z-index:999999;font-family:monospace;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-width:80%;word-wrap:break-word;font-size:12px;line-height:1.5;';
+        div.innerHTML = '<h3 style="margin-bottom:8px;font-size:14px;font-weight:bold;">⚠️ In-Browser JS Error:</h3><p style="margin-bottom:4px;">' + e.message + '</p><p style="opacity:0.8;">File: ' + e.filename + ':' + e.lineno + '</p>';
+        document.body.appendChild(div);
+      });
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <div id="scroll-container">
+        <!-- Pinned Viewport for continuous cinematic scroll -->
+        <div class="viewport">
+          
+          <!-- Scene 1: Opening Atmosphere -->
+          <div id="scene-1" class="scene">
+            <div class="classroom-container">
+              <div class="classroom-bg"></div>
+              <div class="classroom-vignette"></div>
+            </div>
+            <!-- Interactive Cherry Blossom Canvas -->
+            <canvas id="cherry-blossom-canvas"></canvas>
+            <div class="title-overlay">
+              <h1 class="landing-title">AETHER</h1>
+              <p class="landing-subtitle">Wireless & Mobile Communication Lab</p>
+              <div class="scroll-prompt">
+                <span class="prompt-text">Scroll to Begin</span>
+                <span class="prompt-arrow">↓</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 2: Camera Push & Phone Messaging -->
+          <div id="scene-2" class="scene">
+            <!-- Pinned Global Phone is animated into this scene's view -->
+          </div>
+
+          <!-- Scene 3: Shock and Fall -->
+          <div id="scene-3" class="scene">
+            <div class="spiral-container">
+              <!-- SVG Spiral Staircase -->
+              <svg class="spiral-staircase" viewBox="0 0 1000 1000" fill="none">
+                <path id="spiral-path" d="M 500 80 C 730 80, 920 270, 920 500 C 920 730, 730 920, 500 920 C 270 920, 80 730, 80 500 C 80 320, 220 170, 400 170 C 550 170, 670 290, 670 440 C 670 560, 570 660, 450 660 C 360 660, 290 590, 290 500 C 290 430, 350 370, 420 370 C 470 370, 510 410, 510 460 C 510 490, 490 510, 470 510" stroke="#00f3ff" stroke-width="4" stroke-linecap="round" />
+              </svg>
+              <div class="dramatic-text" id="shock-text">Why so shocked?</div>
+            </div>
+          </div>
+
+          <!-- Global Phone Mockup: Shared across Scene 2 & Scene 3 for seamless layout transition -->
+          <div class="global-phone" id="phone-element">
+            <div class="phone-case">
+              <div class="phone-bezel">
+                <div class="phone-screen" id="phone-screen-container">
+                  <!-- Chat View (Scene 2) -->
+                  <div class="chat-view">
+                    <div class="chat-header">
+                      <div class="chat-avatar">📡</div>
+                      <div class="chat-info">
+                        <span class="chat-title">MDM Lab - Sec A</span>
+                        <span class="chat-status">online</span>
+                      </div>
+                    </div>
+                    <div class="chat-body">
+                      <div class="chat-bubble received" id="msg-1">
+                        <span class="sender">Prof. Sen</span>
+                        <p>Reminder: The Wireless & Mobile Communication practicals begin tomorrow morning at 9 AM.</p>
+                        <span class="timestamp">18:42</span>
+                      </div>
+                      <div class="chat-bubble sent" id="msg-2">
+                        <span class="sender">You</span>
+                        <p>Sir, do we have access to the hardware signal kits and base station setups? The equipment room was locked.</p>
+                        <span class="timestamp">18:43</span>
+                      </div>
+                      <div class="chat-bubble received error-msg" id="msg-3">
+                        <span class="sender">Prof. Sen</span>
+                        <p>No. Practical equipment is unavailable this semester. We will study the configurations purely on paper.</p>
+                        <span class="timestamp">18:45</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Cracked screen overlay (triggered in Scene 3) -->
+                  <div class="phone-screen-cracks" id="phone-cracks"></div>
+                  <!-- Glitch Screen (Scene 3) -->
+                  <div class="phone-glitch-overlay" id="phone-glitch">
+                    <div class="glitch-text">NO SIGNAL</div>
+                    <div class="glitch-sub">ERROR 404: PHYSICAL HARDWARE NOT FOUND</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 4: Solution Reveal -->
+          <div id="scene-4" class="scene">
+            <div class="mesh-bg"></div>
+            <div class="solution-container">
+              <div class="solution-header">
+                <h2 class="solution-title">Aether Web Lab</h2>
+                <p class="solution-tagline">Step into the virtual airwaves. Break physical limits.</p>
+              </div>
+              
+              <!-- Cards Area (Grid snapping fanned deck) -->
+              <div class="cards-wrapper">
+                <div class="deck-card" id="card-1">
+                  <div class="card-inner">
+                    <div class="card-icon">📶</div>
+                    <h3 class="card-title">Signal Propagation</h3>
+                    <p class="card-content">Visualize electromagnetic waves, path loss, multipath fading, and Fresnel zones in real time on an interactive vector field.</p>
+                  </div>
+                </div>
+                <div class="deck-card" id="card-2">
+                  <div class="card-inner">
+                    <div class="card-icon">📡</div>
+                    <h3 class="card-title">Antenna Arrays</h3>
+                    <p class="card-content">Design beamforming patterns and phase shifters. Shape radiation lobes and simulate coverage ranges instantly.</p>
+                  </div>
+                </div>
+                <div class="deck-card" id="card-3">
+                  <div class="card-inner">
+                    <div class="card-icon">🛠️</div>
+                    <h3 class="card-title">Base Station Sandboxes</h3>
+                    <p class="card-content">Configure virtual eNodeB/gNodeB base stations. Simulate handovers, user traffic, and spectrum bandwidth allocations.</p>
+                  </div>
+                </div>
+                <div class="deck-card" id="card-4">
+                  <div class="card-inner">
+                    <div class="card-icon">📊</div>
+                    <h3 class="card-title">Protocol Analyzers</h3>
+                    <p class="card-content">Deconstruct packet headers, trace RF frames, and inspect network signalling transactions from MAC to Physical layers.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 5: Final CTA Frame -->
+          <div id="scene-5" class="scene">
+            <div class="network-nodes-bg">
+              <canvas id="nodes-canvas"></canvas>
+            </div>
+            
+            <div class="collage-container">
+              <!-- Visual parallax layers -->
+              <div class="collage-item tower-layer" id="layer-tower">
+                <div class="interactive-tower">
+                  <div class="tower-base"></div>
+                  <div class="tower-beams">
+                    <div class="beam beam-1"></div>
+                    <div class="beam beam-2"></div>
+                    <div class="beam beam-3"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="collage-item signal-layer" id="layer-waves">
+                <div class="pulse-ring ring-1"></div>
+                <div class="pulse-ring ring-2"></div>
+                <div class="pulse-ring ring-3"></div>
+              </div>
+              <div class="collage-item tech-layer" id="layer-graph">
+                <!-- Styled tech overlay nodes -->
+              </div>
+            </div>
+
+            <div class="cta-box">
+              <h2 class="cta-title">Democratizing Mobile Communication</h2>
+              <p class="cta-desc">Ditch the locked cabinets. Explore, break, and rebuild advanced communication protocols anywhere, anytime.</p>
+              <a href="https://github.com/Parth/aether-lab" class="cta-btn" id="launch-button">
+                <span>Enter Aether Web Lab</span>
+                <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+            </div>
+
+            <footer class="scene-footer">
+              <div class="footer-links">
+                <span class="footer-tag">AETHER LAB &copy; 2026</span>
+                <a href="#lab" class="foot-link">Virtual Experimentation</a>
+                <a href="#docs" class="foot-link">Documentation</a>
+                <a href="#github" class="foot-link">Open Source</a>
+              </div>
+            </footer>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
