@@ -77,6 +77,7 @@ window.addEventListener('load', () => {
   // Camera Zoom Video Setup
   const zoomVideo = document.getElementById('zoom-video');
   let duration = 6.4;
+  let currentDirection = 0; // 0 = idle, 1 = forward, -1 = backward
   if (zoomVideo) {
     zoomVideo.addEventListener('loadedmetadata', () => {
       duration = zoomVideo.duration || 6.4;
@@ -95,39 +96,99 @@ window.addEventListener('load', () => {
         end: "bottom bottom",
         scrub: 1.5, // smooth scrubbing duration
         pin: ".viewport",
-        anticipatePin: 1
+        anticipatePin: 1,
+        onUpdate: (self) => {
+          const progress = self.progress;
+          // Scene 2 starts immediately when scrolling starts (above 2%)
+          if (progress >= 0.02) {
+            if (currentDirection !== 1) {
+              currentDirection = 1;
+              console.log("Timeline scroll: Playing video forward and locking...");
+              if (zoomVideo) {
+                gsap.killTweensOf(zoomVideo);
+                gsap.killTweensOf("#phone-wrapper");
+                gsap.killTweensOf(".zoom-video-container");
+                
+                zoomVideo.play();
+                
+                const remaining = Math.max(0, duration - zoomVideo.currentTime);
+                gsap.to("#phone-wrapper", {
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                  duration: 0.6,
+                  delay: Math.max(0, remaining - 0.6),
+                  ease: "power2.inOut",
+                  overwrite: "auto"
+                });
+                gsap.to(".zoom-video-container", {
+                  opacity: 0,
+                  duration: 0.5,
+                  delay: Math.max(0, remaining - 0.4),
+                  overwrite: "auto"
+                });
+              }
+            }
+          } else {
+            // Scroll back to top (Scene 1) -> Reset for replay
+            if (currentDirection !== 0) {
+              currentDirection = 0;
+              console.log("Timeline scroll: resetting zoom video to start...");
+              if (zoomVideo) {
+                zoomVideo.pause();
+                zoomVideo.currentTime = 0;
+              }
+              gsap.killTweensOf(zoomVideo);
+              gsap.killTweensOf("#phone-wrapper");
+              gsap.killTweensOf(".zoom-video-container");
+              
+              gsap.to("#phone-wrapper", {
+                opacity: 0,
+                scale: 0.1,
+                y: 200,
+                duration: 0.4,
+                ease: "power2.inOut",
+                overwrite: "auto"
+              });
+              gsap.to(".zoom-video-container", {
+                opacity: 1,
+                duration: 0.4,
+                overwrite: "auto"
+              });
+            }
+          }
+        }
       }
     })
 
     // Build Timeline Choreography
 
-    // --- SCENE 1: OPENING ATMOSPHERE -> CAMERA PUSH (0.0 to 0.20) ---
+    // --- SCENE 1: OPENING ATMOSPHERE -> CAMERA PUSH (Snappy transition with no gap) ---
     masterTL
       .to(".title-overlay", { 
-        y: -80, 
         opacity: 0, 
-        duration: 1.2, 
-        ease: "power2.inOut" 
+        duration: 0.4, 
+        ease: "power1.out" 
       })
       .to(".classroom-container", { 
         opacity: 0, 
-        duration: 1.2 
+        duration: 0.4 
       }, "<")
       .to(".zoom-video-container", { 
         opacity: 1, 
-        duration: 1.2 
+        duration: 0.4 
       }, "<")
       .to("#scene-1", { 
         autoAlpha: 0, 
-        duration: 1 
-      })
+        duration: 0.4 
+      }, "<")
 
-    // --- SCENE 2: CAMERA PUSH TO PHONE (0.20 to 0.42) ---
+    // --- SCENE 2: CAMERA PUSH TO PHONE (Locked zoom sequence) ---
     masterTL
       .to("#scene-2", { 
         autoAlpha: 1, 
         duration: 0.1 
-      }, "-=0.8")
+      })
       // Blank spacer representing the scroll space allocated to the video zoom
       .to({}, { duration: 3.5 })
       // Staggered reveal of chat messages (triggered after the video space)
@@ -150,83 +211,7 @@ window.addEventListener('load', () => {
         ease: "power1.out" 
       }, "+=0.3")
 
-    // ScrollTrigger to trigger video playback at normal speed (non-scrubbed) based on direction
-    let currentDirection = 0; // 0 = idle, 1 = forward, -1 = backward
 
-    ScrollTrigger.create({
-      trigger: "#scene-2",
-      start: "top center",
-      end: "bottom center",
-      onUpdate: (self) => {
-        if (!self.isActive) return;
-        
-        if (self.direction === 1 && currentDirection !== 1) {
-          currentDirection = 1;
-          console.log("Scroll direction changed: playing forward...");
-          if (zoomVideo) {
-            gsap.killTweensOf(zoomVideo);
-            gsap.killTweensOf("#phone-wrapper");
-            gsap.killTweensOf(".zoom-video-container");
-            
-            zoomVideo.play();
-            
-            const remaining = Math.max(0, duration - zoomVideo.currentTime);
-            gsap.to("#phone-wrapper", {
-              opacity: 1,
-              scale: 1,
-              y: 0,
-              duration: 0.6,
-              delay: Math.max(0, remaining - 0.6),
-              ease: "power2.inOut",
-              overwrite: "auto"
-            });
-            gsap.to(".zoom-video-container", {
-              opacity: 0,
-              duration: 0.5,
-              delay: Math.max(0, remaining - 0.4),
-              overwrite: "auto"
-            });
-          }
-        } else if (self.direction === -1 && currentDirection !== -1) {
-          currentDirection = -1;
-          console.log("Scroll direction changed: playing backward...");
-          if (zoomVideo) {
-            zoomVideo.pause();
-            gsap.killTweensOf(zoomVideo);
-            gsap.killTweensOf("#phone-wrapper");
-            gsap.killTweensOf(".zoom-video-container");
-            
-            gsap.to("#phone-wrapper", {
-              opacity: 0,
-              scale: 0.1,
-              y: 200,
-              duration: 0.4,
-              ease: "power2.inOut",
-              overwrite: "auto"
-            });
-            gsap.to(".zoom-video-container", {
-              opacity: 1,
-              duration: 0.4,
-              overwrite: "auto"
-            });
-            
-            gsap.to(zoomVideo, {
-              currentTime: 0,
-              duration: Math.max(0.5, zoomVideo.currentTime),
-              ease: "none",
-              overwrite: "auto"
-            });
-          }
-        }
-      },
-      onToggle: (self) => {
-        if (!self.isActive) {
-          currentDirection = 0;
-          if (zoomVideo) zoomVideo.pause();
-          gsap.killTweensOf(zoomVideo);
-        }
-      }
-    });
 
     // --- SCENE 3: SHOCK AND FALL (0.42 to 0.65) ---
     masterTL
@@ -245,11 +230,11 @@ window.addEventListener('load', () => {
 
       // Step-by-step bouncing fall down floating steps (holographic reveal physics)
       
-      // Step 1: Hit, bounce, then reveal
+      // Step 1: Hit, bounce, then reveal Step 1
       .to("#phone-wrapper", {
-        x: "12vw",
-        y: "-32vh",
-        scale: 0.65,
+        x: "24vw",
+        y: "-38vh",
+        scale: 0.55,
         duration: 0.8,
         ease: "power2.in"
       })
@@ -260,130 +245,151 @@ window.addEventListener('load', () => {
         duration: 0.8,
         ease: "power2.in"
       }, "<")
-      // Bounce recoil 1 (still invisible)
-      .to("#phone-wrapper", { y: "-35vh", duration: 0.15, ease: "power1.out" })
-      .to("#phone-element", { rotationX: 95, duration: 0.15, ease: "power1.out" }, "<")
-      .to("#phone-wrapper", { y: "-32vh", duration: 0.15, ease: "power1.in" })
-      .to("#phone-element", { rotationX: 110, duration: 0.15, ease: "power1.in" }, "<")
-      // Reveal Step 1
+      // Bounce recoil 1 (rebound and roll on platform)
+      .to("#phone-wrapper", { y: "-42vh", x: "22vw", duration: 0.15, ease: "power1.out" })
+      .to("#phone-element", { rotationX: 180, rotationY: -60, rotationZ: -30, duration: 0.15, ease: "power1.out" }, "<")
+      .to("#phone-wrapper", { y: "-38vh", x: "21vw", duration: 0.15, ease: "power1.in" })
+      .to("#phone-element", { rotationX: 240, rotationY: -75, rotationZ: -45, duration: 0.15, ease: "power1.in" }, "<")
+      // Reveal Step 1 (reveals after impact settles)
       .to("#step-1", {
         opacity: 1,
-        duration: 0.35,
+        duration: 0.45,
         ease: "power2.out"
-      }, "-=0.35")
+      }, "-=0.25")
 
-      // Step 2: Hit, bounce, then reveal
+      // Step 2: Fall, hit, bounce, then reveal Step 2
       .to("#phone-wrapper", {
-        x: "-1vw",
-        y: "-18vh",
-        scale: 0.74,
+        x: "8vw",
+        y: "-22vh",
+        scale: 0.68,
         duration: 0.7,
         ease: "power2.in"
       })
       .to("#phone-element", {
-        rotationX: 55,
-        rotationY: -10,
-        rotationZ: -18,
+        rotationX: 380,
+        rotationY: -45,
+        rotationZ: -60,
         duration: 0.7,
         ease: "power2.in"
       }, "<")
-      // Bounce recoil 2 (still invisible)
-      .to("#phone-wrapper", { y: "-21vh", duration: 0.15, ease: "power1.out" })
-      .to("#phone-element", { rotationY: -20, duration: 0.15, ease: "power1.out" }, "<")
-      .to("#phone-wrapper", { y: "-18vh", duration: 0.15, ease: "power1.in" })
-      .to("#phone-element", { rotationY: -10, duration: 0.15, ease: "power1.in" }, "<")
+      // Bounce recoil 2
+      .to("#phone-wrapper", { y: "-25vh", x: "6vw", duration: 0.15, ease: "power1.out" })
+      .to("#phone-element", { rotationX: 430, rotationY: -30, rotationZ: -75, duration: 0.15, ease: "power1.out" }, "<")
+      .to("#phone-wrapper", { y: "-22vh", x: "5vw", duration: 0.15, ease: "power1.in" })
+      .to("#phone-element", { rotationX: 480, rotationY: -15, rotationZ: -90, duration: 0.15, ease: "power1.in" }, "<")
       // Reveal Step 2
       .to("#step-2", {
         opacity: 1,
-        duration: 0.35,
+        duration: 0.45,
         ease: "power2.out"
-      }, "-=0.35")
+      }, "-=0.25")
 
-      // Step 3: Hit, bounce, then reveal
+      // Step 3: Fall, hit, bounce, then reveal Step 3
       .to("#phone-wrapper", {
-        x: "-13vw",
+        x: "-8vw",
         y: "-2vh",
-        scale: 0.83,
+        scale: 0.80,
         duration: 0.7,
         ease: "power2.in"
       })
       .to("#phone-element", {
-        rotationX: 35,
-        rotationY: -5,
-        rotationZ: -24,
+        rotationX: 600,
+        rotationY: 20,
+        rotationZ: -110,
         duration: 0.7,
         ease: "power2.in"
       }, "<")
-      // Bounce recoil 3 (still invisible)
-      .to("#phone-wrapper", { y: "-5vh", duration: 0.15, ease: "power1.out" })
-      .to("#phone-element", { rotationX: 45, duration: 0.15, ease: "power1.out" }, "<")
-      .to("#phone-wrapper", { y: "-2vh", duration: 0.15, ease: "power1.in" })
-      .to("#phone-element", { rotationX: 35, duration: 0.15, ease: "power1.in" }, "<")
+      // Bounce recoil 3
+      .to("#phone-wrapper", { y: "-5vh", x: "-10vw", duration: 0.15, ease: "power1.out" })
+      .to("#phone-element", { rotationX: 650, rotationY: 35, rotationZ: -125, duration: 0.15, ease: "power1.out" }, "<")
+      .to("#phone-wrapper", { y: "-2vh", x: "-11vw", duration: 0.15, ease: "power1.in" })
+      .to("#phone-element", { rotationX: 700, rotationY: 45, rotationZ: -140, duration: 0.15, ease: "power1.in" }, "<")
       // Reveal Step 3
       .to("#step-3", {
         opacity: 1,
-        duration: 0.35,
+        duration: 0.45,
         ease: "power2.out"
-      }, "-=0.35")
+      }, "-=0.25")
 
-      // Step 4: Hit, bounce, then reveal
+      // Step 4: Fall, hit, bounce, then reveal Step 4
       .to("#phone-wrapper", {
-        x: "-23vw",
-        y: "14vh",
-        scale: 0.92,
+        x: "-24vw",
+        y: "18vh",
+        scale: 0.95,
         duration: 0.7,
         ease: "power2.in"
       })
       .to("#phone-element", {
-        rotationX: 15,
-        rotationY: 0,
-        rotationZ: -30,
+        rotationX: 820,
+        rotationY: 60,
+        rotationZ: -160,
         duration: 0.7,
         ease: "power2.in"
       }, "<")
-      // Bounce recoil 4 (still invisible)
-      .to("#phone-wrapper", { y: "11vh", duration: 0.15, ease: "power1.out" })
-      .to("#phone-element", { rotationY: 10, duration: 0.15, ease: "power1.out" }, "<")
-      .to("#phone-wrapper", { y: "14vh", duration: 0.15, ease: "power1.in" })
-      .to("#phone-element", { rotationY: 0, duration: 0.15, ease: "power1.in" }, "<")
+      // Bounce recoil 4
+      .to("#phone-wrapper", { y: "15vh", x: "-26vw", duration: 0.15, ease: "power1.out" })
+      .to("#phone-element", { rotationX: 860, rotationY: 70, rotationZ: -175, duration: 0.15, ease: "power1.out" }, "<")
+      .to("#phone-wrapper", { y: "18vh", x: "-27vw", duration: 0.15, ease: "power1.in" })
+      .to("#phone-element", { rotationX: 900, rotationY: 80, rotationZ: -190, duration: 0.15, ease: "power1.in" }, "<")
       // Reveal Step 4
       .to("#step-4", {
         opacity: 1,
-        duration: 0.35,
+        duration: 0.45,
         ease: "power2.out"
-      }, "-=0.35")
+      }, "-=0.25")
 
-      // Step 5: Final Impact & Screen Crack
+      // Step 5: Fall, hit, bounce, then reveal Step 5
       .to("#phone-wrapper", {
-        x: "-30vw",
-        y: "30vh",
-        scale: 1.0,
+        x: "-40vw",
+        y: "38vh",
+        scale: 1.15,
         duration: 0.8,
         ease: "power2.in"
       })
       .to("#phone-element", {
-        rotationX: 5,
-        rotationY: -5,
-        rotationZ: -36,
+        rotationX: 1020,
+        rotationY: 95,
+        rotationZ: -210,
         duration: 0.8,
         ease: "power2.in"
       }, "<")
-      // Impact recoil 5 (rebound up)
-      .to("#phone-wrapper", { y: "27vh", duration: 0.15, ease: "power1.out" })
-      .to("#phone-element", { rotationX: -5, duration: 0.15, ease: "power1.out" }, "<")
-      .to("#phone-wrapper", { y: "30vh", duration: 0.15, ease: "power1.in" })
-      .to("#phone-element", { rotationX: 5, duration: 0.15, ease: "power1.in" }, "<")
-      // Screen crack triggers on impact
-      .to("#phone-cracks", { opacity: 1, duration: 0.1 }, "<")
+      // Bounce recoil 5
+      .to("#phone-wrapper", { y: "35vh", x: "-42vw", duration: 0.15, ease: "power1.out" })
+      .to("#phone-element", { rotationX: 1060, rotationY: 105, rotationZ: -225, duration: 0.15, ease: "power1.out" }, "<")
+      .to("#phone-wrapper", { y: "38vh", x: "-43vw", duration: 0.15, ease: "power1.in" })
+      .to("#phone-element", { rotationX: 1100, rotationY: 110, rotationZ: -240, duration: 0.15, ease: "power1.in" }, "<")
       // Reveal Step 5
       .to("#step-5", {
         opacity: 1,
-        duration: 0.35,
+        duration: 0.45,
         ease: "power2.out"
       }, "-=0.25")
-      // Impact shake
-      .to("#phone-wrapper", { x: "+=12", y: "-=6", duration: 0.05, yoyo: true, repeat: 4 })
-      // Text reveal
+
+      // Final Crash: Fall off Step 5 onto the ground and land perfectly flat & centered
+      .to("#phone-wrapper", {
+        x: 0,
+        y: 0,
+        scale: 1.45, /* Fills enough of the frame comfortably */
+        duration: 0.9,
+        ease: "power2.in"
+      })
+      .to("#phone-element", {
+        rotationX: 0,
+        rotationY: 0,
+        rotationZ: 0,
+        duration: 0.9,
+        ease: "power2.in"
+      }, "<")
+      // Impact! Hit the ground, screen cracks on impact
+      .to("#phone-cracks", { 
+        opacity: 1, 
+        duration: 0.05 
+      }, "<")
+      // Recoil & Shake on impact
+      .to("#phone-wrapper", { y: "-2vh", duration: 0.1, ease: "power1.out" })
+      .to("#phone-wrapper", { y: 0, duration: 0.1, ease: "power1.in" })
+      .to("#phone-wrapper", { x: "+=10", y: "-=5", duration: 0.05, yoyo: true, repeat: 4 })
+      // Shock text reveal
       .to("#shock-text", { 
         autoAlpha: 1, 
         y: 0, 

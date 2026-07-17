@@ -626,59 +626,70 @@ html, body {
 
 .floating-step {
   position: absolute;
-  width: 220px;
-  height: 30px;
+  width: 240px;
+  height: 35px;
   transform-style: preserve-3d;
   opacity: 0;
 }
 
 .step-face {
   position: absolute;
-  background: rgba(0, 243, 255, 0.06);
-  border: 1.5px solid rgba(0, 243, 255, 0.4);
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.15);
   box-sizing: border-box;
+  background: rgba(255, 105, 180, 0.04);
+  border: 1.5px solid rgba(255, 182, 193, 0.35);
+  box-shadow: 0 0 15px rgba(255, 20, 147, 0.1);
 }
 
 .step-top {
-  width: 220px;
-  height: 100px;
+  width: 240px;
+  height: 110px;
   transform: rotateX(-90deg);
   transform-origin: top center;
-  background: rgba(0, 243, 255, 0.1);
-  border-bottom: 2px solid rgba(0, 243, 255, 0.6);
-  box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.2), 0 0 20px rgba(0, 243, 255, 0.25);
+  background: rgba(255, 240, 245, 0.08);
+  border-bottom: 2.5px solid rgba(255, 255, 255, 0.85); /* white top highlight */
+  background-image: 
+    linear-gradient(rgba(255, 192, 203, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 192, 203, 0.2) 1px, transparent 1px);
+  background-size: 24px 24px;
+  box-shadow: 
+    inset 0 0 20px rgba(255, 182, 193, 0.3), 
+    0 0 25px rgba(255, 20, 147, 0.25),
+    0 0 50px rgba(255, 255, 255, 0.1);
 }
 
 .step-front {
-  width: 220px;
-  height: 30px;
-  transform: translateZ(100px);
-  background: rgba(0, 243, 255, 0.05);
+  width: 240px;
+  height: 35px;
+  transform: translateZ(110px);
+  background: rgba(255, 192, 203, 0.05);
+  border: 1.5px solid rgba(255, 105, 180, 0.4);
+  box-shadow: inset 0 0 12px rgba(255, 20, 147, 0.15);
 }
 
 .step-left {
-  width: 100px;
-  height: 30px;
+  width: 110px;
+  height: 35px;
   transform: rotateY(-90deg);
   transform-origin: left center;
-  background: rgba(0, 243, 255, 0.08);
+  background: rgba(255, 192, 203, 0.07);
+  border: 1.5px solid rgba(255, 105, 180, 0.35);
 }
 
 .step-right {
-  width: 100px;
-  height: 30px;
+  width: 110px;
+  height: 35px;
   transform: rotateY(90deg);
   transform-origin: right center;
   right: 0;
-  background: rgba(0, 243, 255, 0.08);
+  background: rgba(255, 192, 203, 0.07);
+  border: 1.5px solid rgba(255, 105, 180, 0.35);
 }
 
-#step-1 { left: 62%; top: 18%; transform: rotateX(55deg) rotateY(-10deg) rotateZ(-12deg) scale(0.65); }
-#step-2 { left: 49%; top: 32%; transform: rotateX(55deg) rotateY(-10deg) rotateZ(-18deg) scale(0.74); }
-#step-3 { left: 37%; top: 48%; transform: rotateX(55deg) rotateY(-10deg) rotateZ(-24deg) scale(0.83); }
-#step-4 { left: 27%; top: 64%; transform: rotateX(55deg) rotateY(-10deg) rotateZ(-30deg) scale(0.92); }
-#step-5 { left: 20%; top: 80%; transform: rotateX(55deg) rotateY(-10deg) rotateZ(-36deg) scale(1.0); }
+#step-1 { left: 74%; top: 12%; transform: rotateX(65deg) rotateY(-12deg) rotateZ(-10deg) scale(0.55); }
+#step-2 { left: 58%; top: 28%; transform: rotateX(65deg) rotateY(-10deg) rotateZ(-15deg) scale(0.68); }
+#step-3 { left: 42%; top: 48%; transform: rotateX(65deg) rotateY(-8deg) rotateZ(-20deg) scale(0.80); }
+#step-4 { left: 26%; top: 68%; transform: rotateX(65deg) rotateY(-6deg) rotateZ(-25deg) scale(0.95); }
+#step-5 { left: 10%; top: 88%; transform: rotateX(65deg) rotateY(-4deg) rotateZ(-30deg) scale(1.15); }
 
 .dramatic-text {
   position: absolute;
