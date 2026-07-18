@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine, Line, ComposedChart, Area
+  ResponsiveContainer, ReferenceLine, Line, ComposedChart, Area, Legend
 } from 'recharts'
 
 const API = '/api/wifi'
@@ -74,6 +74,7 @@ export default function Practical4() {
     return s ? parseFloat(s) : null
   })
   const [updateMs, setUpdateMs]   = useState(null)   // gap between live frames
+  const [chartMode, setChartMode] = useState('percent') // 'percent' (experiment view) | 'dbm'
 
   const lastFrameAt = useRef(0)
 
@@ -174,6 +175,14 @@ export default function Practical4() {
 
   const chartData = [...readings].sort((a, b) => a.distance - b.distance)
   const qual = liveWifi ? signalLabel(liveWifi.rssi) : null
+
+  /* Theoretical inverse-decay curve (100/√d) for the Signal % view, per the experiment. */
+  const maxDist = chartData.length ? Math.max(...chartData.map(r => r.distance), 2) : 20
+  const theoretical = []
+  for (let i = 0; i <= 40; i++) {
+    const d = 1 + (maxDist - 1) * i / 40
+    theoretical.push({ distance: +d.toFixed(2), theo: +Math.min(100, 100 / Math.sqrt(d)).toFixed(1) })
+  }
 
   return (
     <main className="practical-page">
@@ -404,18 +413,26 @@ export default function Practical4() {
 
         {/* ── CHART ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
-              <div style={{ fontSize: '16px', fontWeight: '700' }}>📊 RSSI vs Distance Chart</div>
+              <div style={{ fontSize: '16px', fontWeight: '700' }}>
+                {chartMode === 'percent' ? '📊 Signal Strength (%) vs Distance' : '📊 RSSI (dBm) vs Distance'}
+              </div>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                Signal strength (dBm) plotted against distance from the Wi-Fi router
+                {chartMode === 'percent'
+                  ? 'PC signal strength (%) vs distance, with the theoretical inverse-decay curve (100/√d).'
+                  : 'Raw signal strength (dBm) vs distance from the Wi-Fi router.'}
               </div>
             </div>
-            {readings.length > 0 && (
-              <button id="clear-btn" className="btn btn-danger btn-sm" onClick={handleClear} disabled={loading}>
-                🗑 Clear All
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className={`btn btn-sm ${chartMode === 'percent' ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => setChartMode('percent')}>Signal %</button>
+              <button className={`btn btn-sm ${chartMode === 'dbm' ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => setChartMode('dbm')}>RSSI dBm</button>
+              {readings.length > 0 && (
+                <button id="clear-btn" className="btn btn-danger btn-sm" onClick={handleClear} disabled={loading}>🗑 Clear All</button>
+              )}
+            </div>
           </div>
 
           {readings.length === 0 ? (
@@ -423,6 +440,28 @@ export default function Practical4() {
               <div className="empty-state-icon">📶</div>
               <div className="empty-state-text">No readings yet. Record your first measurement above.</div>
             </div>
+          ) : chartMode === 'percent' ? (
+            <ResponsiveContainer width="100%" height={360}>
+              <ComposedChart margin={{ top: 10, right: 30, left: 0, bottom: 16 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+                <XAxis type="number" dataKey="distance" domain={[0, 'dataMax']} allowDecimals
+                  label={{ value: 'Distance (m)', position: 'insideBottom', offset: -8, fill: '#94a3b8', fontSize: 12 }}
+                  tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
+                <YAxis type="number" domain={[0, 110]}
+                  label={{ value: 'Signal Strength (%)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }}
+                  tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
+                <Tooltip
+                  contentStyle={{ background: 'rgba(8,13,32,0.95)', border: '1px solid rgba(0,212,255,0.3)', borderRadius: '10px', fontSize: '13px' }}
+                  formatter={(v, name) => [`${v}%`, name]} labelFormatter={(l) => `Distance: ${l} m`} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Line data={theoretical} dataKey="theo" name="Theoretical decay (100/√d)"
+                  stroke="#f59e0b" strokeDasharray="5 4" strokeWidth={1.5} dot={false} />
+                <Line data={chartData} dataKey="signal_pct" name="Measured (your Wi-Fi)"
+                  stroke="#00d4ff" strokeWidth={2.5}
+                  dot={{ fill: '#00d4ff', r: 5, strokeWidth: 2, stroke: '#050a18' }}
+                  activeDot={{ r: 7, fill: '#00d4ff', stroke: '#fff', strokeWidth: 2 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
           ) : (
             <ResponsiveContainer width="100%" height={360}>
               <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
@@ -433,35 +472,20 @@ export default function Practical4() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-                <XAxis
-                  dataKey="distance"
-                  name="Distance"
+                <XAxis dataKey="distance" name="Distance"
                   label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, fill: '#94a3b8', fontSize: 12 }}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                  stroke="#334155"
-                />
-                <YAxis
-                  dataKey="rssi"
-                  name="RSSI"
-                  domain={[-100, -30]}
+                  tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
+                <YAxis dataKey="rssi" name="RSSI" domain={[-100, -30]}
                   label={{ value: 'RSSI (dBm)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                  stroke="#334155"
-                />
+                  tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
                 <Tooltip content={<CustomTooltip />} />
-                {/* Reference lines for quality zones */}
                 <ReferenceLine y={-50} stroke="#10b981" strokeDasharray="5 3" label={{ value: 'Excellent', fill: '#10b981', fontSize: 10, position: 'right' }} />
                 <ReferenceLine y={-60} stroke="#00d4ff" strokeDasharray="5 3" label={{ value: 'Good',      fill: '#00d4ff', fontSize: 10, position: 'right' }} />
                 <ReferenceLine y={-70} stroke="#f59e0b" strokeDasharray="5 3" label={{ value: 'Fair',      fill: '#f59e0b', fontSize: 10, position: 'right' }} />
                 <Area type="monotone" dataKey="rssi" fill="url(#rssiGrad)" stroke="transparent" />
-                <Line
-                  type="monotone"
-                  dataKey="rssi"
-                  stroke="#00d4ff"
-                  strokeWidth={2.5}
+                <Line type="monotone" dataKey="rssi" stroke="#00d4ff" strokeWidth={2.5}
                   dot={{ fill: '#00d4ff', r: 5, strokeWidth: 2, stroke: '#050a18' }}
-                  activeDot={{ r: 7, fill: '#00d4ff', stroke: '#fff', strokeWidth: 2 }}
-                />
+                  activeDot={{ r: 7, fill: '#00d4ff', stroke: '#fff', strokeWidth: 2 }} />
               </ComposedChart>
             </ResponsiveContainer>
           )}

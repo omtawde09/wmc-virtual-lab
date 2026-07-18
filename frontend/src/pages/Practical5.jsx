@@ -331,6 +331,11 @@ export default function Practical5() {
   const [ulPart,   setUlPart]   = useState(null)
   const [error,    setError]    = useState('')
 
+  /* CLI Ping test (Experiment Table 1) */
+  const [pingHost, setPingHost] = useState('8.8.8.8')
+  const [pinging,  setPinging]  = useState(false)
+  const [cliPing,  setCliPing]  = useState(null)
+
   /* Traceroute (advanced, optional) */
   const [traceHost,   setTraceHost]   = useState('8.8.8.8')
   const [tracing,     setTracing]     = useState(false)
@@ -379,6 +384,19 @@ export default function Practical5() {
     setTesting(false)
   }
 
+  /* CLI Ping — runs the real Windows `ping` command on the backend (Table 1) */
+  async function handlePing() {
+    if (!pingHost.trim()) return
+    setPinging(true); setCliPing(null)
+    try {
+      const res = await axios.post(`${API}/ping`, { host: pingHost.trim(), count: 4 }, { timeout: 60000 })
+      setCliPing(res.data)
+    } catch {
+      setCliPing({ success: false, error: 'Ping request failed. Ensure the backend is running.' })
+    }
+    setPinging(false)
+  }
+
   /* Traceroute */
   async function handleTrace() {
     if (!traceHost.trim()) return
@@ -401,7 +419,8 @@ export default function Practical5() {
           <div className="section-eyebrow violet">⚡ Practical 5 · MDL501.4</div>
           <h1 className="section-title">Throughput &amp; Latency Measurement</h1>
           <p className="section-desc">
-            One-tap network test — measures ping, download and upload speed live, the way a real speed test does.
+            Measure real network performance: throughput (download/upload) and latency via a live speed test (Table 2),
+            plus a command-line <code>ping</code> test reporting packet loss and RTT (Table 1).
           </p>
         </div>
 
@@ -482,6 +501,65 @@ export default function Practical5() {
               </div>
             )
           })()}
+        </div>
+
+        {/* ── CLI PING TEST · Table 1 ── */}
+        <div className="glass-card" style={{ marginBottom: '24px' }}>
+          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: 'var(--green)' }}>
+            ⌨ Command-Line Latency Test <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>(Table 1 · real <code>ping</code>)</span>
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+            Runs the actual Windows <code>ping</code> command (4 packets, like <code>ping 8.8.8.8</code>) and reports packets sent/received, packet loss and RTT — exactly the columns in Experiment Table 1.
+          </div>
+
+          <div className="input-row" style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <div className="input-group" style={{ flex: 1 }}>
+              <label className="input-label">Target Host</label>
+              <input className="input-field" placeholder="e.g. 8.8.8.8"
+                value={pingHost} onChange={e => setPingHost(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handlePing()} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button className="btn btn-primary" onClick={handlePing} disabled={pinging}
+                style={{ height: '46px', background: 'var(--green)', color: '#050a18' }}>
+                {pinging ? <><div className="spinner" style={{ borderTopColor: '#050a18' }} />&nbsp;Pinging…</> : '◍ Run Ping'}
+              </button>
+            </div>
+          </div>
+
+          {cliPing && cliPing.success === false && (
+            <div className="alert alert-warning">⚠️ {cliPing.error || 'Host unreachable or not found.'}</div>
+          )}
+
+          {cliPing && cliPing.success && (
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Target Host</th><th>Packets Sent</th><th>Received</th><th>Packet Loss (%)</th>
+                    <th>Min Latency (ms)</th><th>Max Latency (ms)</th><th>Avg Latency (ms)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>{cliPing.host}</td>
+                    <td>{cliPing.sent}</td>
+                    <td>{cliPing.received}</td>
+                    <td style={{ color: cliPing.packet_loss > 0 ? 'var(--red)' : 'var(--green)' }}>
+                      <strong>{cliPing.packet_loss}%</strong>
+                    </td>
+                    <td style={{ color: latencyColor(cliPing.min_rtt) }}>{cliPing.min_rtt} ms</td>
+                    <td style={{ color: latencyColor(cliPing.max_rtt) }}>{cliPing.max_rtt} ms</td>
+                    <td style={{ color: latencyColor(cliPing.avg_rtt), fontWeight: 700 }}>{cliPing.avg_rtt} ms</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '10px' }}>
+                Jitter (avg RTT variation): <strong>{cliPing.jitter} ms</strong>
+                {cliPing.times?.length > 0 && <> · Per-packet RTT: {cliPing.times.map(t => `${t}ms`).join(', ')}</>}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── ADVANCED · TRACEROUTE (optional) ── */}
