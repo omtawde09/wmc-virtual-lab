@@ -52,11 +52,8 @@ window.addEventListener('load', () => {
   })
 
   // Chat bubbles start hidden
-  gsap.set(["#msg-1", "#msg-2", "#msg-3"], { opacity: 0, y: 15 })
+  gsap.set(["#msg-1", "#msg-2", "#msg-3", "#msg-4"], { opacity: 0, y: 15 })
   
-  // Shock text starts hidden
-  gsap.set("#shock-text", { autoAlpha: 0, scale: 0.8 })
-
   // Scene 4 cards dynamic offset stack
   const cards = gsap.utils.toArray('.deck-card')
   
@@ -93,7 +90,8 @@ window.addEventListener('load', () => {
 
   // Scene 5 collage and CTA
   gsap.set(".collage-item", { opacity: 0, scale: 0.7, y: 40 })
-  gsap.set(".cta-box", { opacity: 0, scale: 0.88 })
+  gsap.set(".cta-wrapper", { opacity: 0, scale: 0.88 })
+  gsap.set(".bottom-features-bar", { opacity: 0, y: 20 })
 
   // ========== SCROLL INPUT LOCK MANAGER ==========
   // Cap the user's scroll depth during video play so they cannot scroll past the video.
@@ -189,19 +187,30 @@ window.addEventListener('load', () => {
           const progress = self.progress;
 
           // 1. Enter Scene 2 (scrolling down) -> Lock scroll and play video
-          if (progress >= 0.02) {
+          if (progress >= 0.27) {
             if (!videoPlaying && !videoCompleted && zoomVideo) {
               videoPlaying = true;
               console.log("Playing zoom video natively...");
-              // Cap scroll 200px down from current offset
-              lockScroll(self.scroll() + 200);
+              // Cap scroll 300px down from current offset
+              lockScroll(self.scroll() + 300);
               zoomVideo.currentTime = 0;
+              
+              // Only fade in Scene 2 when we guarantee the video is moving
+              const onPlay = () => {
+                gsap.to("#scene-2", { autoAlpha: 1, duration: 0.3 });
+                gsap.to(".zoom-video-container", { opacity: 1, duration: 0.3 });
+                gsap.to(".classroom-container", { opacity: 0, duration: 0.3 });
+                gsap.to("#scene-1", { autoAlpha: 0, duration: 0.3 });
+                zoomVideo.removeEventListener("timeupdate", onPlay);
+              };
+              zoomVideo.addEventListener("timeupdate", onPlay);
+
               zoomVideo.play().catch(e => console.log("Video playback error:", e));
             }
           } 
           
-          // 2. Scroll back to top (progress < 0.02) -> Full reset
-          if (progress < 0.02) {
+          // 2. Scroll back to top (progress < 0.27) -> Full reset
+          if (progress < 0.27) {
             if ((videoPlaying || videoCompleted) && zoomVideo) {
               videoPlaying = false;
               videoCompleted = false;
@@ -211,14 +220,28 @@ window.addEventListener('load', () => {
               zoomVideo.currentTime = 0;
               
               // Reset visual layers
-              gsap.set(".zoom-video-container", { opacity: 1 });
+              gsap.set("#scene-2", { autoAlpha: 0 });
+              gsap.set(".zoom-video-container", { opacity: 0 });
+              gsap.set("#scene-1", { autoAlpha: 1 });
+              gsap.set(".classroom-container", { opacity: 1 });
               gsap.set("#phone-wrapper", { autoAlpha: 0, y: 0, x: 0, scale: 1.0 });
-              gsap.set(["#msg-1", "#msg-2", "#msg-3"], { opacity: 0, y: 15 });
+              gsap.set(["#msg-1", "#msg-2", "#msg-3", "#msg-4"], { opacity: 0, y: 15 });
             }
           }
         }
       }
     });
+
+    // ========== SCENE 1: PANEL REVEAL ==========
+    masterTL.to(".white-panel", { 
+      y: "100%", 
+      duration: 2.0, 
+      ease: "power2.inOut" 
+    });
+
+    // ========== LOOPING VIDEO SPACER ==========
+    // Give the user time to see the looping hero background before transitioning
+    masterTL.to({}, { duration: 1.5 });
 
     // ========== SCENE 1 → SCENE 2 TRANSITION ==========
     masterTL
@@ -226,11 +249,7 @@ window.addEventListener('load', () => {
         opacity: 0, 
         duration: 0.3, 
         ease: "power1.out" 
-      })
-      .to("#scene-2", { autoAlpha: 1, duration: 0.3 }, "<")
-      .to(".zoom-video-container", { opacity: 1, duration: 0.3 }, "<")
-      .to(".classroom-container", { opacity: 0, duration: 0.3 }, "<")
-      .to("#scene-1", { autoAlpha: 0, duration: 0.3 }, "<")
+      });
 
     // ========== CAMERA ZOOM VIDEO SPACER ==========
     // Represents scroll space allocated to the native video zoom while scroll is locked.
@@ -249,6 +268,10 @@ window.addEventListener('load', () => {
       opacity: 1, y: 0, duration: 0.7, ease: "power1.out" 
     }, "+=0.25")
 
+    masterTL.to("#msg-4", { 
+      opacity: 1, y: 0, duration: 0.5, ease: "power1.out" 
+    }, "+=0.2")
+
     // Dramatic scroll space before drop
     masterTL.to({}, { duration: 1.2 })
 
@@ -262,7 +285,7 @@ window.addEventListener('load', () => {
     masterTL
       .to("#phone-wrapper", {
         y: "85vh",           // Falls downward out of frame
-        scale: 0.6,          // Recedes in perspective
+        scale: 0.45,         // Recedes in perspective
         duration: 0.7,
         ease: "power2.in"
       }, "<")
@@ -274,18 +297,16 @@ window.addEventListener('load', () => {
         ease: "power2.in"
       }, "<")
 
-    // Phase 2: Reposition to Top (silently while hidden)
+    // Phase 2: Reposition to Top (silently while hidden off-screen)
     masterTL
-      .to("#phone-wrapper", { autoAlpha: 0, duration: 0.05 })
-      .set("#phone-wrapper", { y: "-85vh", scale: 0.65 })
+      .set("#phone-wrapper", { y: "-85vh", scale: 0.5 })
       .set("#phone-element", { rotationX: -180, rotationY: 45, rotationZ: -45 })
-      .to("#phone-wrapper", { autoAlpha: 1, duration: 0.05 })
 
     // Phase 3: Accelerating Fall down into the void
     masterTL
       .to("#phone-wrapper", {
-        y: "-30vh",
-        scale: 0.85,
+        y: "-20vh",
+        scale: 0.65,
         duration: 0.8,
         ease: "power1.in"
       })
@@ -302,7 +323,7 @@ window.addEventListener('load', () => {
       .to("#phone-wrapper", {
         x: 0,
         y: 0,                // Settle flat at center
-        scale: 1.0,          // Lands flat at design scale
+        scale: 0.75,         // Lands nicely framed
         duration: 0.45,
         ease: "power3.in"
       })
@@ -323,14 +344,17 @@ window.addEventListener('load', () => {
         duration: 0.25,
         ease: "elastic.out(1, 0.4)"
       })
-
-    // Phase 5: "Why so shocked?" text appears on cracked screen
-    masterTL.to("#shock-text", {
-      autoAlpha: 1,
-      scale: 1,
-      duration: 1.0,
-      ease: "back.out(1.5)"
-    }, "-=0.15")
+      // Animate the Stuck In Cycle layout
+      .fromTo(".crash-content-left", 
+        { x: -50, autoAlpha: 0 }, 
+        { x: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" }, 
+        "-=0.2"
+      )
+      .fromTo(".crash-content-right", 
+        { x: 50, autoAlpha: 0 }, 
+        { x: 0, autoAlpha: 1, duration: 0.8, ease: "power2.out" }, 
+        "<"
+      )
 
     masterTL.to({}, { duration: 1.0 })
 
@@ -345,7 +369,7 @@ window.addEventListener('load', () => {
       .from(".solution-header", { y: 40, opacity: 0, duration: 1, ease: "power2.out" })
 
       // Step 1: Open / Spread like a deck of cards from left to right
-      .to(cards, { opacity: 1, duration: 0.1 })
+      .to(cards, { opacity: 1, duration: 0.1 }, "-=0.5")
       .to("#card-1", { x: () => cards[0]._offsetX - 320, y: () => cards[0]._offsetY + 30, rotation: -12, scale: 0.95, duration: 1.0, ease: "power2.out" }, "-=0.6")
       .to("#card-2", { x: () => cards[1]._offsetX - 192, y: () => cards[1]._offsetY + 10, rotation: -7, scale: 0.95, duration: 1.0, ease: "power2.out" }, "<")
       .to("#card-3", { x: () => cards[2]._offsetX - 64, y: () => cards[2]._offsetY, rotation: -2, scale: 0.95, duration: 1.0, ease: "power2.out" }, "<")
@@ -356,7 +380,9 @@ window.addEventListener('load', () => {
       // Card fanning scroll spacer
       .to({}, { duration: 0.8 })
 
-      // Step 2: Launch cards back into their natural flat bento grid positions (x:0, y:0)
+      // Step 2: Transition to Stage 2 Grid
+
+      // Launch cards back into their natural flat bento grid positions (x:0, y:0)
       .to(cards, {
         x: 0,
         y: 0,
@@ -365,10 +391,10 @@ window.addEventListener('load', () => {
         stagger: 0.08,
         duration: 1.2,
         ease: "power3.inOut"
-      })
+      }, "-=0.2")
       
-      // Card content legibility fade in
-      .to(".card-content", { 
+      // Card detailed content fade in
+      .to([".card-content", ".card-number", ".card-bottom-elements", ".scene4-footer"], { 
         opacity: 1, stagger: 0.08, duration: 0.8 
       }, "-=0.8")
 
@@ -384,7 +410,8 @@ window.addEventListener('load', () => {
       .to(".obj-cables", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
       .to(".obj-mobile", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
       .to(".obj-sim", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
-      .to(".cta-box", { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" }, "-=1.0")
+      .to(".cta-wrapper", { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" }, "-=1.0")
+      .to(".bottom-features-bar", { opacity: 1, y: 0, duration: 1.0, ease: "power2.out" }, "-=0.8")
 
     ScrollTrigger.refresh()
   }
