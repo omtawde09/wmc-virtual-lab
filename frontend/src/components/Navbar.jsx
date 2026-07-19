@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink } from "react-router-dom";
 
 export default function Navbar() {
   return (
@@ -6,41 +6,94 @@ export default function Navbar() {
       <div className="navbar-inner">
         <NavLink to="/" className="navbar-logo">
           <div className="navbar-logo-icon">📡</div>
-          <span className="navbar-logo-text">MDM <span>Practicals</span></span>
+          <span className="navbar-logo-text">
+            MDM <span>Practicals</span>
+          </span>
         </NavLink>
 
         <ul className="navbar-links">
           <li>
-            <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
               🏠 <span className="nav-text">Home</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/practical4" className={({ isActive }) => isActive ? 'active' : ''}>
+            <NavLink
+              to="/practical4"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
               <span className="nav-badge">P4</span>
               <span className="nav-text">Wi-Fi RSSI</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/practical5" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'rgba(124,58,237,0.2)', color: '#a78bfa' }}>P5</span>
+            <NavLink
+              to="/practical5"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <span
+                className="nav-badge"
+                style={{ background: "rgba(124,58,237,0.2)", color: "#a78bfa" }}
+              >
+                P5
+              </span>
               <span className="nav-text">Network Test</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/practical6" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'var(--amber-dim)', color: 'var(--amber)' }}>P6</span>
+            <NavLink
+              to="/practical6"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <span
+                className="nav-badge"
+                style={{
+                  background: "var(--amber-dim)",
+                  color: "var(--amber)",
+                }}
+              >
+                P6
+              </span>
               <span className="nav-text">Multipath</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/practical7" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)' }}>P7</span>
+            <NavLink
+              to="/practical7"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <span
+                className="nav-badge"
+                style={{
+                  background: "var(--green-dim)",
+                  color: "var(--green)",
+                }}
+              >
+                P7
+              </span>
               <span className="nav-text">Path Loss</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/practical8"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <span
+                className="nav-badge"
+                style={{ background: "rgba(0,212,255,0.2)", color: "#00d4ff" }}
+              >
+                P8
+              </span>
+              <span className="nav-text">Bluetooth</span>
             </NavLink>
           </li>
         </ul>
       </div>
     </nav>
-  )
+  );
 }
