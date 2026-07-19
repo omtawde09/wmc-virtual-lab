@@ -138,12 +138,22 @@ window.addEventListener('load', () => {
   let videoPlaying = false;
   let videoCompleted = false;
 
+  const triggerChatAnimation = () => {
+    gsap.set(["#msg-1", "#msg-2", "#msg-3", "#msg-4"], { opacity: 0, y: 15 });
+    const chatTL = gsap.timeline({ delay: 0.2 });
+    chatTL.to("#msg-1", { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" })
+          .to("#msg-2", { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, "+=0.4")
+          .to("#msg-3", { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, "+=0.8")
+          .to("#msg-4", { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, "+=0.5");
+  };
+
   if (zoomVideo) {
     zoomVideo.addEventListener('ended', () => {
       if (isScrollLocked) {
         console.log("Video naturally ended. Transitioning phone & unlocking scroll...");
         gsap.to(".zoom-video-container", { opacity: 0, duration: 0.3 });
         gsap.to("#phone-wrapper", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
+        triggerChatAnimation();
         unlockScroll();
         videoCompleted = true;
       }
@@ -163,6 +173,7 @@ window.addEventListener('load', () => {
           // Fade in phone wrapper & fade out video container smoothly
           gsap.to(".zoom-video-container", { opacity: 0, duration: 0.3 });
           gsap.to("#phone-wrapper", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
+          triggerChatAnimation();
           
           unlockScroll();
           videoCompleted = true;
@@ -255,22 +266,10 @@ window.addEventListener('load', () => {
     // Represents scroll space allocated to the native video zoom while scroll is locked.
     masterTL.to({}, { duration: 3.0 });
 
-    // ========== WHATSAPP CHAT REVEALS DIRECTLY ON SCROLL ==========
-    masterTL.to("#msg-1", { 
-      opacity: 1, y: 0, duration: 0.5, ease: "power1.out" 
-    }, "+=0.1")
-
-    masterTL.to("#msg-2", { 
-      opacity: 1, y: 0, duration: 0.5, ease: "power1.out" 
-    }, "+=0.25")
-
-    masterTL.to("#msg-3", { 
-      opacity: 1, y: 0, duration: 0.7, ease: "power1.out" 
-    }, "+=0.25")
-
-    masterTL.to("#msg-4", { 
-      opacity: 1, y: 0, duration: 0.5, ease: "power1.out" 
-    }, "+=0.2")
+    // ========== WHATSAPP CHAT SPACER ==========
+    // We removed the chat animations from here, but we need to maintain the same timeline duration 
+    // so the hardcoded progress >= 0.27 scroll lock still works perfectly.
+    masterTL.to({}, { duration: 3.0 });
 
     // Dramatic scroll space before drop
     masterTL.to({}, { duration: 1.2 })
@@ -398,9 +397,59 @@ window.addEventListener('load', () => {
         opacity: 1, stagger: 0.08, duration: 0.8 
       }, "-=0.8")
 
+    // ========== SCENE 4.5: TIMELINE JOURNEY ==========
+    masterTL
+      // Fade out Scene 4
+      .to("#scene-4", { autoAlpha: 0, duration: 0.8 })
+      
+      // Setup and fade in Scene 4.5
+      .to(".viewport", { backgroundColor: "#fff0f5", duration: 0.5 }, "<")
+      .to("#scene-timeline", { autoAlpha: 1, duration: 0.5 }, "-=0.3")
+      
+      // Get the exact path length for drawing and set it up immediately
+      .call(() => {
+        const path = document.querySelector(".tl-path-draw");
+        if(path) {
+          const length = path.getTotalLength();
+          path.style.strokeDasharray = length;
+          path.style.strokeDashoffset = length;
+          path.dataset.length = length;
+        }
+      })
+      
+      // Animate the container scrolling up so we can see the full 1600px height over 8s
+      // We use a y translation of roughly -1200px (assuming viewport is ~800px tall, 1800 - 800 = 1000px + padding)
+      .to(".timeline-container", { 
+        y: () => -(document.querySelector(".timeline-container").offsetHeight - window.innerHeight + 200),
+        duration: 8.0, 
+        ease: "none" 
+      }, "timelineScroll")
+      
+      // Animate the path drawing down over the same 8 seconds
+      .to(".tl-path-draw", { strokeDashoffset: 0, duration: 8.0, ease: "none" }, "timelineScroll")
+      
+      // Pop in the nodes and cards as the line draws past them
+      // Node 1 (at ~12.5% of the 8s = 1s in)
+      .to(".tl-node-container:nth-child(2)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=1.0")
+      
+      // Node 2 (at ~31.25% of the 8s = 2.5s in)
+      .to(".tl-node-container:nth-child(3)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=2.5")
+      
+      // Node 3 (at ~50% of the 8s = 4.0s in)
+      .to(".tl-node-container:nth-child(4)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=4.0")
+      
+      // Node 4 (at ~68.75% of the 8s = 5.5s in)
+      .to(".tl-node-container:nth-child(5)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=5.5")
+      
+      // Node 5 (at ~87.5% of the 8s = 7.0s in)
+      .to(".tl-node-container:nth-child(6)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=7.0")
+      
+      // Spacer to read the final CTA
+      .to({}, { duration: 1.5 })
+
     // ========== SCENE 5: FINAL CTA FRAME ==========
     masterTL
-      .to("#scene-4", { autoAlpha: 0, duration: 0.8 })
+      .to("#scene-timeline", { autoAlpha: 0, duration: 0.8 })
       .to(".classroom-container-scene5", { opacity: 1, duration: 0.8 }, "<")
       .to(".viewport", { backgroundColor: "#07050e", duration: 0.8 }, "<")
       .to("#scene-5", { autoAlpha: 1, duration: 0.4 }, "-=0.4")
