@@ -25,3 +25,8 @@ dist-ssr
 
 # AI Agent skills/customizations
 .agents/
+
+.cursor/
+.codex/
+.gemini/
+.kiro/
