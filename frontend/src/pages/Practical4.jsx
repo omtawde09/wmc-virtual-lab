@@ -7,6 +7,11 @@ import {
 
 const API = '/api/wifi'
 
+// Reset the stored readings once per full page load (a browser reload re-runs
+// this module, so the flag goes back to false). It stays true across in-app
+// navigation, so switching tabs and returning does NOT wipe your readings.
+let didInitReset = false
+
 /* ── Helpers ── */
 function signalColor(rssi) {
   if (rssi >= -50) return '#10b981'  // excellent
@@ -88,7 +93,16 @@ export default function Practical4() {
 
   /* ── Live Wi-Fi via WebSocket — pushes as fast as the OS produces a reading ── */
   useEffect(() => {
-    fetchReadings()
+    // On a full page reload, clear any readings left over from a previous
+    // session so the observation table starts empty; then load (now empty).
+    const init = async () => {
+      if (!didInitReset) {
+        didInitReset = true
+        try { await axios.delete(`${API}/clear`) } catch {}
+      }
+      fetchReadings()
+    }
+    init()
     let stopped = false
     let ws = null
     let reconnectTimer = null
