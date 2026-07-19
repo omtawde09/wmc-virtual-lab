@@ -196,9 +196,12 @@ window.addEventListener('load', () => {
         anticipatePin: 1,
         onUpdate: (self) => {
           const progress = self.progress;
+          // The video trigger is precisely at 3.8s into the timeline.
+          // By dividing by total duration, it mathematically adapts to any timeline length!
+          const videoStartProgress = 3.8 / masterTL.duration();
 
           // 1. Enter Scene 2 (scrolling down) -> Lock scroll and play video
-          if (progress >= 0.27) {
+          if (progress >= videoStartProgress) {
             if (!videoPlaying && !videoCompleted && zoomVideo) {
               videoPlaying = true;
               console.log("Playing zoom video natively...");
@@ -220,8 +223,8 @@ window.addEventListener('load', () => {
             }
           } 
           
-          // 2. Scroll back to top (progress < 0.27) -> Full reset
-          if (progress < 0.27) {
+          // 2. Scroll back to top (progress < videoStartProgress) -> Full reset
+          if (progress < videoStartProgress) {
             if ((videoPlaying || videoCompleted) && zoomVideo) {
               videoPlaying = false;
               videoCompleted = false;
@@ -447,9 +450,22 @@ window.addEventListener('load', () => {
       // Spacer to read the final CTA
       .to({}, { duration: 1.5 })
 
-    // ========== SCENE 5: FINAL CTA FRAME ==========
+    // ========== SCENE 4.75: RADAR SYSTEM ==========
     masterTL
       .to("#scene-timeline", { autoAlpha: 0, duration: 0.8 })
+      .to("#scene-radar", { autoAlpha: 1, duration: 0.5 }, "-=0.3")
+      // Animate the entrance of the radar elements
+      .from(".radar-circle", { opacity: 0, scale: 0, duration: 0.8, stagger: 0.2, ease: "power2.out" })
+      .from(".radar-sweeper", { opacity: 0, duration: 0.5 }, "-=0.4")
+      .from(".radar-center-node", { opacity: 0, scale: 0, duration: 0.5, ease: "back.out(1.5)" }, "-=0.5")
+      .from(".radar-node", { opacity: 0, scale: 0, duration: 0.6, stagger: 0.1, ease: "back.out(1.5)" }, "-=0.2")
+      .from(".radar-content-left", { opacity: 0, x: -50, duration: 0.8 }, "-=0.8")
+      // Let the radar spin while the user scrolls
+      .to({}, { duration: 6.0 })
+
+    // ========== SCENE 5: FINAL CTA FRAME ==========
+    masterTL
+      .to("#scene-radar", { autoAlpha: 0, duration: 0.8 })
       .to(".classroom-container-scene5", { opacity: 1, duration: 0.8 }, "<")
       .to(".viewport", { backgroundColor: "#07050e", duration: 0.8 }, "<")
       .to("#scene-5", { autoAlpha: 1, duration: 0.4 }, "-=0.4")
@@ -464,6 +480,47 @@ window.addEventListener('load', () => {
 
     ScrollTrigger.refresh()
   }
+
+  // ========== RADAR SYSTEM LOGIC ==========
+  let radarAngle = 0;
+  const radarNodes = document.querySelectorAll(".radar-node");
+  
+  // Position nodes
+  const radius = 280; // Half of 560px sweeper
+  radarNodes.forEach(node => {
+    const angle = parseFloat(node.dataset.angle);
+    const rad = (angle - 90) * (Math.PI / 180); 
+    const x = Math.cos(rad) * radius;
+    const y = Math.sin(rad) * radius;
+    node.style.transform = `translate(${x}px, ${y}px)`;
+  });
+
+  const animateRadar = () => {
+    radarAngle = (radarAngle + 1.5) % 360; 
+    const sweeper = document.querySelector(".radar-sweeper");
+    if (sweeper) {
+      sweeper.style.background = `conic-gradient(from ${radarAngle}deg, transparent 70%, rgba(244, 114, 182, 0.8) 100%)`;
+      
+      radarNodes.forEach(node => {
+        let nodeAngle = parseFloat(node.dataset.angle); 
+        if (nodeAngle < 0) nodeAngle += 360;
+        
+        let diff = Math.abs(radarAngle - nodeAngle);
+        if (diff > 180) diff = 360 - diff;
+        
+        if (diff < 15) { 
+          if (!node.classList.contains("ping")) {
+            node.classList.add("ping");
+            setTimeout(() => {
+              node.classList.remove("ping");
+            }, 800);
+          }
+        }
+      });
+    }
+    requestAnimationFrame(animateRadar);
+  };
+  requestAnimationFrame(animateRadar);
 
   // ========== BOOTSTRAP ==========
   if (zoomVideo) {

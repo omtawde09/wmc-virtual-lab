@@ -1,0 +1,228 @@
+/* ==========================================================================
+   SCENE 4.75: RADAR SYSTEM
+   ========================================================================== */
+
+#scene-radar {
+  background-color: #fff0f5; /* Dreamy pink background matching timeline */
+  color: #1a1a2e;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.radar-layout {
+  display: flex;
+  width: 100%;
+  max-width: 1800px;
+  height: 100vh;
+  margin: 0 auto;
+  align-items: center;
+  padding: 0 40px;
+}
+
+.radar-content-left {
+  flex: 0 0 30%;
+  z-index: 10;
+  padding-left: 40px;
+}
+
+.radar-subtitle {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #f472b6;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.radar-heading {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #1a1a2e;
+  margin-bottom: 30px;
+}
+
+.radar-heading .text-pink {
+  color: #f472b6;
+}
+
+.radar-flower-icon {
+  margin-bottom: 30px;
+}
+
+.radar-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #4b5563;
+  max-width: 300px;
+}
+
+/* Radar System */
+.radar-system {
+  flex: 0 0 70%;
+  position: relative;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radar-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 114, 182, 0.2);
+  top: 50%;
+  left: 40%; /* Shift center to the left */
+  transform: translate(-50%, -50%);
+}
+
+.rc-1 { width: 180px; height: 180px; }
+.rc-2 { width: 380px; height: 380px; border: 1px solid rgba(244, 114, 182, 0.4); }
+.rc-3 { width: 560px; height: 560px; border-style: dashed; border-color: rgba(244, 114, 182, 0.3); }
+
+/* Center Node */
+.radar-center-node {
+  position: absolute;
+  top: 50%;
+  left: 40%; /* Shift center to the left */
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, #f472b6 0%, rgba(244,114,182,0.3) 100%);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 40px #f472b6;
+  z-index: 20;
+}
+
+/* Sweeper */
+.radar-sweeper {
+  position: absolute;
+  top: 50%;
+  left: 40%; /* Shift center to the left */
+  transform: translate(-50%, -50%);
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 70%, rgba(244, 114, 182, 0.8) 100%);
+  /* We will rotate this with JS to sync pings */
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* Node Array */
+.radar-node {
+  position: absolute;
+  top: 50%;
+  left: 40%; /* Shift center to the left */
+  z-index: 25;
+  /* Transform will be set via JS based on data-angle, radius is ~375px */
+}
+
+.radar-node-img-wrap {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 8px 32px rgba(244, 114, 182, 0.3);
+  position: relative;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  transition: transform 0.3s ease;
+}
+
+.radar-node-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.radar-node-glow {
+  position: absolute;
+  inset: 0;
+  background: rgba(244, 114, 182, 0.6);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  mix-blend-mode: overlay;
+}
+
+/* Ping Class added by JS */
+.radar-node.ping .radar-node-img-wrap {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 0 40px #f472b6, inset 0 0 20px #f472b6;
+}
+
+.radar-node.ping .radar-node-glow {
+  opacity: 1;
+}
+
+/* Node Info Box */
+.radar-node-info {
+  position: absolute;
+  width: 200px;
+  top: -40px;
+}
+
+.info-right {
+  left: 70px;
+}
+
+.info-left {
+  right: 70px;
+  text-align: right;
+}
+
+.rn-num {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f472b6;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.rn-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.rn-desc {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #6b7280;
+  margin-bottom: 10px;
+}
+
+.rn-link {
+  font-size: 10px;
+  font-weight: 700;
+  color: #f472b6;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Bottom CTA */
+.radar-bottom-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  text-align: center;
+  z-index: 10;
+}
+
+.radar-bottom-cta h3 {
+  font-size: 1.5rem;
+  color: #1a1a2e;
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
