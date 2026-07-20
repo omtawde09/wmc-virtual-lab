@@ -421,6 +421,33 @@
 
           <!-- Scene 4: Solution Reveal -->
           <div id="scene-4" class="scene">
+            <!-- Cherry Blossom & Signal Wave Background SVG Artwork -->
+            <div class="sakura-bg-layer bento-sakura-bg" aria-hidden="true">
+              <svg class="sakura-branch-svg" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Blossom Branch Line Art -->
+                <path d="M30 550 C 140 450, 240 380, 340 300 C 420 230, 510 170, 580 80" stroke="rgba(244,114,182,0.22)" stroke-width="3" stroke-linecap="round"/>
+                <path d="M240 380 C 290 330, 330 230, 380 180" stroke="rgba(244,114,182,0.18)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M340 300 C 400 300, 480 340, 540 360" stroke="rgba(244,114,182,0.18)" stroke-width="2" stroke-linecap="round"/>
+                <!-- Sakura Flowers on branch -->
+                <g transform="translate(340, 300) scale(0.65)" fill="#fbcfe8" opacity="0.65">
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" />
+                </g>
+                <g transform="translate(510, 170) scale(0.75)" fill="#f472b6" opacity="0.55">
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" />
+                </g>
+                <!-- Wireless Signal Wave Vectors -->
+                <path d="M0 480 Q 150 430, 300 480 T 600 480" stroke="rgba(244,114,182,0.18)" stroke-width="1.5" fill="none" stroke-dasharray="6 6"/>
+                <path d="M0 520 Q 150 470, 300 520 T 600 520" stroke="rgba(244,114,182,0.12)" stroke-width="1.5" fill="none"/>
+              </svg>
+            </div>
             
             <div class="solution-container">
               <div class="solution-header">
@@ -594,6 +621,26 @@
           </div>
           <!-- Scene 4.5: Timeline Journey -->
           <div id="scene-timeline" class="scene">
+            <!-- Japanese Sun & Cherry Blossom Background SVG Artwork -->
+            <div class="sakura-bg-layer timeline-sakura-bg" aria-hidden="true">
+              <svg class="sun-sakura-svg" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Glowing Japanese Sun Aura -->
+                <circle cx="400" cy="400" r="320" fill="url(#sun-grad)" opacity="0.14"/>
+                <circle cx="400" cy="400" r="260" stroke="rgba(244,114,182,0.2)" stroke-width="1.5" stroke-dasharray="8 8"/>
+                <circle cx="400" cy="400" r="200" stroke="rgba(244,114,182,0.25)" stroke-width="2"/>
+                <circle cx="400" cy="400" r="140" stroke="rgba(244,114,182,0.15)" stroke-width="1"/>
+                <!-- Delicate Floating Cherry Petals Vector Art -->
+                <path d="M 280 200 C 260 170 300 130 320 160 C 340 190 300 230 280 200 Z" fill="#f472b6" opacity="0.3"/>
+                <path d="M 520 480 C 500 450 540 410 560 440 C 580 470 540 510 520 480 Z" fill="#fbcfe8" opacity="0.4" transform="rotate(25 540 460)"/>
+                <path d="M 180 620 C 160 590 200 550 220 580 C 240 610 200 650 180 620 Z" fill="#f472b6" opacity="0.25" transform="rotate(-40 200 600)"/>
+                <defs>
+                  <radialGradient id="sun-grad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(400 400) scale(320)">
+                    <stop stop-color="#f472b6"/>
+                    <stop offset="1" stop-color="#f472b6" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+              </svg>
+            </div>
             <div class="tl-ambient-orb tl-orb-1"></div>
             <div class="tl-ambient-orb tl-orb-2"></div>
             <div class="timeline-container">
@@ -698,6 +745,24 @@
           </div>
           <!-- Scene 4.75: Radar System -->
           <div id="scene-radar" class="scene">
+            <!-- Japanese Seigaiha Ripple Wave & Sakura Background SVG Artwork -->
+            <div class="sakura-bg-layer radar-sakura-bg" aria-hidden="true">
+              <svg class="radar-bg-wave-svg" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Concentric Seigaiha Wave Ripples -->
+                <path d="M 500 150 A 350 350 0 0 1 850 500" stroke="rgba(244,114,182,0.22)" stroke-width="1.5" stroke-dasharray="6 6"/>
+                <path d="M 500 80 A 420 420 0 0 1 920 500" stroke="rgba(244,114,182,0.14)" stroke-width="1"/>
+                <path d="M 150 500 A 350 350 0 0 1 500 850" stroke="rgba(244,114,182,0.18)" stroke-width="1.5" stroke-dasharray="10 4"/>
+                <path d="M 80 500 A 420 420 0 0 1 500 920" stroke="rgba(244,114,182,0.1)" stroke-width="1"/>
+                <!-- Cherry Blossom Petal Accents -->
+                <g transform="translate(140, 180) scale(0.5)" fill="#f472b6" opacity="0.35">
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" />
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" />
+                </g>
+              </svg>
+            </div>
             <div class="radar-layout">
               <!-- Left Content -->
               <div class="radar-content-left">

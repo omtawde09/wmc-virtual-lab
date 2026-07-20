@@ -2634,3 +2634,66 @@ html.reduce-motion .classroom-container-scene5 {
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   CHERRY BLOSSOM & JAPANESE VECTOR SVG BACKGROUND ARTWORK
+   ========================================================================== */
+
+.sakura-bg-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bento-sakura-bg {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.sakura-branch-svg {
+  width: min(85vw, 42rem);
+  height: auto;
+  opacity: 0.85;
+  animation: gentlePulse 8s ease-in-out infinite alternate;
+}
+
+.timeline-sakura-bg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 10%;
+}
+
+.sun-sakura-svg {
+  width: min(90vw, 52rem);
+  height: auto;
+  opacity: 0.9;
+  animation: floatDrift 14s ease-in-out infinite alternate;
+}
+
+.radar-sakura-bg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.radar-bg-wave-svg {
+  width: min(95vw, 65rem);
+  height: auto;
+  opacity: 0.8;
+  animation: gentlePulse 10s ease-in-out infinite alternate;
+}
+
+@keyframes gentlePulse {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.75; }
+  100% { transform: scale(1.04) rotate(1deg); opacity: 0.95; }
+}
+
+@keyframes floatDrift {
+  0% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1.5deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
