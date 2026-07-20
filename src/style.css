@@ -1584,7 +1584,7 @@ html, body {
   animation: floatDrift 14s ease-in-out infinite alternate;
 }
 
-/* Central Light-Themed Hero Glass Card */
+/* Central Light-Themed Transparent Glass Hero Card */
 .cta-glass-card.light-theme {
   position: relative;
   z-index: 5;
@@ -1594,13 +1594,188 @@ html, body {
   align-items: center;
   opacity: 0;
   transform: scale(0.9);
-  background: rgba(255, 250, 252, 0.94);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(244, 114, 182, 0.35);
-  border-radius: 32px;
-  padding: 3rem 4.5rem;
-  box-shadow: 0 25px 65px rgba(244, 114, 182, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+  border-radius: 28px;
+  padding: 3rem 4rem;
+  box-shadow: 0 20px 50px rgba(244, 114, 182, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
   max-width: 760px;
+}
+
+/* Side Widgets (Interactive Spectrum & Constellation) */
+.cta-side-widget {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: min(280px, 22vw);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 15px 40px rgba(244, 114, 182, 0.1);
+  transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.cta-side-widget:hover {
+  transform: translateY(calc(-50% - 6px)) scale(1.03);
+  border-color: rgba(244, 114, 182, 0.6);
+  box-shadow: 0 20px 50px rgba(244, 114, 182, 0.2);
+}
+
+.widget-left {
+  left: 3%;
+}
+
+.widget-right {
+  right: 3%;
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(244, 114, 182, 0.2);
+}
+
+.widget-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #22c55e;
+}
+
+.pulse-dot {
+  background-color: #f472b6;
+  box-shadow: 0 0 10px #f472b6;
+  animation: dotPulse 2s infinite;
+}
+
+.widget-title {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #1a1a2e;
+}
+
+/* Equalizer Spectrum Visualizer */
+.spectrum-visualizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 80px;
+  margin-bottom: 1.25rem;
+  padding: 8px 12px;
+  background: rgba(255, 250, 252, 0.7);
+  border-radius: 12px;
+  border: 1px stroke rgba(244, 114, 182, 0.15);
+}
+
+.spec-bar {
+  width: 6px;
+  height: var(--h);
+  background: linear-gradient(180deg, #f472b6, #fb7185);
+  border-radius: 4px;
+  animation: barBounce 1.4s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+
+/* Constellation Matrix Grid */
+.constellation-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 12px;
+  height: 120px;
+  margin-bottom: 1.25rem;
+  padding: 14px;
+  background: rgba(255, 250, 252, 0.7);
+  border-radius: 12px;
+  place-items: center;
+}
+
+.c-point {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(244, 114, 182, 0.4);
+  transition: all 0.3s ease;
+}
+
+.c-point.highlight {
+  background-color: #f472b6;
+  box-shadow: 0 0 12px #f472b6;
+  transform: scale(1.4);
+  animation: pointPulse 2s ease-in-out infinite alternate;
+}
+
+.const-axis {
+  position: absolute;
+  background: rgba(244, 114, 182, 0.2);
+  pointer-events: none;
+}
+
+.axis-x {
+  top: 50%;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+}
+
+.axis-y {
+  left: 50%;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+}
+
+/* Widget Metrics */
+.widget-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.m-label {
+  color: #6b7280;
+  letter-spacing: 0.05em;
+}
+
+.m-val {
+  color: #1a1a2e;
+  font-family: monospace;
+}
+
+@keyframes barBounce {
+  0% { height: 15%; }
+  100% { height: 95%; }
+}
+
+@keyframes pointPulse {
+  0% { transform: scale(1.1); box-shadow: 0 0 6px #f472b6; }
+  100% { transform: scale(1.6); box-shadow: 0 0 16px #f472b6; }
+}
+
+@keyframes dotPulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
 }
 
 .cta-top-icon {
