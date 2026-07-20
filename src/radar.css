@@ -32,25 +32,34 @@
   font-size: 12px;
   letter-spacing: 2px;
   font-weight: 700;
-  color: #f472b6;
+  color: #c84b14;
   text-transform: uppercase;
   margin-bottom: 20px;
 }
 
 .radar-heading {
-  font-size: 4rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 4.25rem;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.04;
   color: #1a1a2e;
-  margin-bottom: 30px;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
 }
 
 .radar-heading .text-pink {
-  color: #f472b6;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  color: #c84b14;
 }
 
 .radar-flower-icon {
   margin-bottom: 30px;
+}
+
+.radar-flower-icon svg {
+  fill: #c84b14;
 }
 
 .radar-description {
@@ -181,16 +190,18 @@
 .rn-num {
   font-size: 14px;
   font-weight: 700;
-  color: #f472b6;
+  color: #c84b14;
   display: block;
   margin-bottom: 5px;
 }
 
 .rn-title {
-  font-size: 16px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #1a1a2e;
   margin-bottom: 8px;
+  letter-spacing: -0.01em;
 }
 
 .rn-desc {
@@ -203,7 +214,7 @@
 .rn-link {
   font-size: 10px;
   font-weight: 700;
-  color: #f472b6;
+  color: #c84b14;
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 1px;
