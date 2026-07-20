@@ -1626,23 +1626,23 @@ html, body {
 }
 
 .widget-top-left {
-  top: 8%;
-  left: 2.5%;
+  top: 18%;
+  left: 7.5%;
 }
 
 .widget-bottom-left {
-  bottom: 12%;
-  left: 2.5%;
+  bottom: 18%;
+  left: 7.5%;
 }
 
 .widget-top-right {
-  top: 8%;
-  right: 2.5%;
+  top: 18%;
+  right: 7.5%;
 }
 
 .widget-bottom-right {
-  bottom: 12%;
-  right: 2.5%;
+  bottom: 18%;
+  right: 7.5%;
 }
 
 .widget-header {
