@@ -12,15 +12,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <!-- Inline Error Logger for Debugging -->
-    <script>
-      window.addEventListener('error', function(e) {
-        const div = document.createElement('div');
-        div.style.cssText = 'position:fixed;bottom:20px;left:20px;background:#ff0055;color:#fff;padding:20px;z-index:999999;font-family:monospace;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-width:80%;word-wrap:break-word;font-size:12px;line-height:1.5;';
-        div.innerHTML = '<h3 style="margin-bottom:8px;font-size:14px;font-weight:bold;">⚠️ In-Browser JS Error:</h3><p style="margin-bottom:4px;">' + e.message + '</p><p style="opacity:0.8;">File: ' + e.filename + ':' + e.lineno + '</p>';
-        document.body.appendChild(div);
-      });
-    </script>
   </head>
   <body>
     <div id="app">
@@ -428,33 +419,12 @@
 
           <!-- Scene 4: Solution Reveal -->
           <div id="scene-4" class="scene">
-            <div class="ambient-orb orb-1"></div>
-            <div class="ambient-orb orb-2"></div>
-            <div class="mesh-bg"></div>
-            <div class="sunlight-beam"></div>
             
-            <!-- Scene 4 Custom Annotations (Red requested elements) -->
-            <svg class="dec-circles" viewBox="0 0 200 200" fill="none" stroke="#f472b6" stroke-width="2" style="position: absolute; top: 0; left: 0; width: 300px; opacity: 0.5; pointer-events: none; z-index: 5;">
-              <circle cx="50" cy="50" r="30" />
-              <circle cx="50" cy="50" r="60" stroke-opacity="0.7"/>
-              <circle cx="50" cy="50" r="90" stroke-opacity="0.4"/>
-              <circle cx="50" cy="50" r="120" stroke-opacity="0.2"/>
-            </svg>
-
-            <svg class="dec-loops" viewBox="0 0 60 400" fill="none" stroke="#f472b6" stroke-width="2" style="position: absolute; top: 60%; left: 40px; transform: translateY(-50%); height: 350px; opacity: 0.5; pointer-events: none; z-index: 5;">
-              <path d="M30,20 C60,40 60,80 30,100 C0,120 0,160 30,180 C60,200 60,240 30,260 C0,280 0,320 30,340 C60,360 60,400 30,420" stroke-linecap="round"/>
-            </svg>
-
-            <svg class="dec-sine" viewBox="0 0 300 100" fill="none" stroke="#f472b6" stroke-width="2" style="position: absolute; top: 80px; right: 40px; width: 250px; opacity: 0.5; pointer-events: none; z-index: 5;">
-              <path d="M0,50 Q37.5,-20 75,50 T150,50 T225,50 T300,50" stroke-linecap="round"/>
-              <line x1="0" y1="50" x2="300" y2="50" stroke-opacity="0.3" />
-            </svg>
-
             <div class="solution-container">
               <div class="solution-header">
                 <div class="scene4-overtitle">EXPLORE • EXPERIMENT • EXCEL</div>
-                <h2 class="solution-title" id="scene-4-title">AETHER <span class="text-pink">WEB LAB</span></h2>
-                <p class="solution-tagline">Step into the virtual airwaves. Break physical limits.</p>
+                <h2 class="solution-title" id="scene-4-title">Learn by <span class="text-pink">building signals.</span></h2>
+                <p class="solution-tagline">Six focused instruments for testing the systems that keep people connected.</p>
                 <div class="scene4-diamond-sep">
                   <div class="diamond-line"></div>
                   <div class="diamond-icon">
@@ -482,7 +452,6 @@
                       <div class="card-icon-svg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round"/></svg>
                       </div>
-                      <span class="card-number">01</span>
                     </div>
                     <h3 class="card-title">Signal Propagation</h3>
                     <p class="card-content">Visualize electromagnetic waves, path loss, multipath fading, and Fresnel zones in real time on an interactive vector field.</p>
@@ -505,7 +474,6 @@
                       <div class="card-icon-svg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M13.5 10.5L21 3M16 3h5v5M3 21l8-8M9 21H3v-6" stroke-linecap="round"/><circle cx="10" cy="10" r="3"/><circle cx="14" cy="14" r="3"/></svg>
                       </div>
-                      <span class="card-number">02</span>
                     </div>
                     <h3 class="card-title">Antenna Arrays</h3>
                     <p class="card-content">Design beamforming patterns and phase shifters. Shape radiation lobes and simulate coverage ranges instantly.</p>
@@ -528,7 +496,6 @@
                       <div class="card-icon-svg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M4 22h16M12 2v20M8 12l4-10 4 10M10 6h4" stroke-linecap="round"/></svg>
                       </div>
-                      <span class="card-number">03</span>
                     </div>
                     <h3 class="card-title">Base Station Sandboxes</h3>
                     <p class="card-content">Configure virtual eNodeB/gNodeB base stations. Simulate handovers, user traffic, and spectrum bandwidth allocations.</p>
@@ -554,7 +521,6 @@
                       <div class="card-icon-svg multi-color">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 20v-8" stroke="#f472b6"/><path d="M12 20V4" stroke="#fb7185"/><path d="M18 20v-6" stroke="#fda4af"/></svg>
                       </div>
-                      <span class="card-number">04</span>
                     </div>
                     <h3 class="card-title">Protocol Analyzers</h3>
                     <p class="card-content">Deconstruct packet headers, trace RF frames, and inspect network signalling transactions from MAC to Physical layers.</p>
@@ -580,7 +546,6 @@
                       <div class="card-icon-svg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M2 12h4l3-8 5 16 3-8h5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                       </div>
-                      <span class="card-number">05</span>
                     </div>
                     <h3 class="card-title">Channel Emulation</h3>
                     <p class="card-content">Simulate Rayleigh/Rician fading profiles, Doppler shifts, atmospheric noise models, and path attenuation dynamically.</p>
@@ -603,7 +568,6 @@
                       <div class="card-icon-svg">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M3 3v18h18M3 15l6-6 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                       </div>
-                      <span class="card-number">06</span>
                     </div>
                     <h3 class="card-title">Spectrum Analytics</h3>
                     <p class="card-content">Inspect waterfall spectrograms, QPSK/QAM constellation diagrams, and EVM metrics in real time.</p>
@@ -652,7 +616,6 @@
                   <div class="tl-node-icon"><svg viewBox="0 0 100 100" fill="#f472b6"><g transform="translate(50, 50) scale(0.6)"><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" /><circle cx="0" cy="0" r="10" fill="#ffffff" opacity="0.6"/></g></svg></div>
                   <div class="tl-card tl-right">
                     <div class="tl-card-header">
-                      <span class="tl-num">01</span>
                       <div class="tl-icon-container"><svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round"/></svg></div>
                     </div>
                     <h3 class="tl-card-title">Signal Propagation</h3>
@@ -669,7 +632,6 @@
                   <div class="tl-node-icon"><svg viewBox="0 0 100 100" fill="#f472b6"><g transform="translate(50, 50) scale(0.6)"><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" /><circle cx="0" cy="0" r="10" fill="#ffffff" opacity="0.6"/></g></svg></div>
                   <div class="tl-card tl-left">
                     <div class="tl-card-header">
-                      <span class="tl-num">02</span>
                       <div class="tl-icon-container"><svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M13.5 10.5L21 3M16 3h5v5M3 21l8-8M9 21H3v-6" stroke-linecap="round"/><circle cx="10" cy="10" r="3"/><circle cx="14" cy="14" r="3"/></svg></div>
                     </div>
                     <h3 class="tl-card-title">Antenna Arrays</h3>
@@ -686,7 +648,6 @@
                   <div class="tl-node-icon"><svg viewBox="0 0 100 100" fill="#f472b6"><g transform="translate(50, 50) scale(0.6)"><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" /><circle cx="0" cy="0" r="10" fill="#ffffff" opacity="0.6"/></g></svg></div>
                   <div class="tl-card tl-right">
                     <div class="tl-card-header">
-                      <span class="tl-num">03</span>
                       <div class="tl-icon-container"><svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M3 3v18h18M3 15l6-6 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                     </div>
                     <h3 class="tl-card-title">Spectrum Analytics</h3>
@@ -703,7 +664,6 @@
                   <div class="tl-node-icon"><svg viewBox="0 0 100 100" fill="#f472b6"><g transform="translate(50, 50) scale(0.6)"><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" /><circle cx="0" cy="0" r="10" fill="#ffffff" opacity="0.6"/></g></svg></div>
                   <div class="tl-card tl-left">
                     <div class="tl-card-header">
-                      <span class="tl-num">04</span>
                       <div class="tl-icon-container"><svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round"><path d="M6 20v-8"/><path d="M12 20V4"/><path d="M18 20v-6"/></svg></div>
                     </div>
                     <h3 class="tl-card-title">Protocol Analysis</h3>
@@ -720,7 +680,6 @@
                   <div class="tl-node-icon"><svg viewBox="0 0 100 100" fill="#f472b6"><g transform="translate(50, 50) scale(0.6)"><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" /><path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" /><circle cx="0" cy="0" r="10" fill="#ffffff" opacity="0.6"/></g></svg></div>
                   <div class="tl-card tl-right">
                     <div class="tl-card-header">
-                      <span class="tl-num">05</span>
                       <div class="tl-icon-container"><svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M12 2v20M2 12h20" stroke-linecap="round"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="10"/></svg></div>
                     </div>
                     <h3 class="tl-card-title">Simulation Lab</h3>
@@ -776,7 +735,6 @@
                 <div class="radar-node" data-angle="60">
                   <div class="radar-node-img-wrap"><img src="/resources/radar_01_signal.png" alt="Signal Propagation"><div class="radar-node-glow"></div></div>
                   <div class="radar-node-info info-right">
-                    <span class="rn-num">01</span>
                     <h4 class="rn-title">Signal Propagation</h4>
                     <p class="rn-desc">Visualize how waves travel, reflect, and interact across environments in real time.</p>
                     <a href="#" class="rn-link">LEARN MORE &rarr;</a>
@@ -787,7 +745,6 @@
                 <div class="radar-node" data-angle="0">
                   <div class="radar-node-img-wrap"><img src="/resources/radar_02_antenna.png" alt="Antenna Arrays"><div class="radar-node-glow"></div></div>
                   <div class="radar-node-info info-right">
-                    <span class="rn-num">02</span>
                     <h4 class="rn-title">Antenna Arrays</h4>
                     <p class="rn-desc">Design smart arrays. Shape beams. Control coverage with precision.</p>
                     <a href="#" class="rn-link">LEARN MORE &rarr;</a>
@@ -798,7 +755,6 @@
                 <div class="radar-node" data-angle="-60">
                   <div class="radar-node-img-wrap"><img src="/resources/radar_03_spectrum.png" alt="Spectrum Analysis"><div class="radar-node-glow"></div></div>
                   <div class="radar-node-info info-right">
-                    <span class="rn-num">03</span>
                     <h4 class="rn-title">Spectrum Analysis</h4>
                     <p class="rn-desc">Inspect, analyze, and optimize spectrum usage for a smarter future.</p>
                     <a href="#" class="rn-link">LEARN MORE &rarr;</a>
@@ -809,7 +765,6 @@
                 <div class="radar-node" data-angle="-120">
                   <div class="radar-node-img-wrap"><img src="/resources/radar_04_protocol.png" alt="Protocol Insights"><div class="radar-node-glow"></div></div>
                   <div class="radar-node-info info-left">
-                    <span class="rn-num">04</span>
                     <h4 class="rn-title">Protocol Insights</h4>
                     <p class="rn-desc">Decode packets. Trace flows. Strengthen every connection.</p>
                     <a href="#" class="rn-link">LEARN MORE &rarr;</a>
@@ -820,7 +775,6 @@
                 <div class="radar-node" data-angle="180">
                   <div class="radar-node-img-wrap"><img src="/resources/radar_05_simulation.png" alt="Simulation Lab"><div class="radar-node-glow"></div></div>
                   <div class="radar-node-info info-left">
-                    <span class="rn-num">05</span>
                     <h4 class="rn-title">Simulation Lab</h4>
                     <p class="rn-desc">Model, simulate, predict. Build networks that perform in the real world.</p>
                     <a href="#" class="rn-link">LEARN MORE &rarr;</a>
@@ -831,7 +785,6 @@
                 <div class="radar-node" data-angle="120">
                   <div class="radar-node-img-wrap"><img src="/resources/radar_06_base.png" alt="Base Station Sandbox"><div class="radar-node-glow"></div></div>
                   <div class="radar-node-info info-left">
-                    <span class="rn-num">06</span>
                     <h4 class="rn-title">Base Station Sandbox</h4>
                     <p class="rn-desc">Configure. Test. Validate. Your virtual base station, your rules.</p>
                     <a href="#" class="rn-link">LEARN MORE &rarr;</a>
