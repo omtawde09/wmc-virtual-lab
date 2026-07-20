@@ -2080,9 +2080,14 @@ a:focus-visible {
 }
 
 .radar-layout {
+  display: grid;
   grid-template-columns: minmax(15rem, 0.7fr) minmax(30rem, 1.05fr) minmax(18rem, 0.65fr);
   width: min(96vw, 108rem);
   padding: 0;
+}
+
+.radar-layout > * {
+  min-width: 0;
 }
 
 .radar-content-left {
@@ -2116,17 +2121,21 @@ a:focus-visible {
 .radar-system {
   --radar-center: 50%;
   flex: none;
+  width: 100%;
   height: min(82vh, 44rem);
   isolation: isolate;
 }
 
 .radar-image-feature {
   align-self: center;
+  justify-self: end;
+  width: min(100%, 22rem);
   min-height: min(68vh, 34rem);
 }
 
 .field-image-frame {
   position: relative;
+  width: 100%;
   height: 100%;
   min-height: min(68vh, 34rem);
   overflow: hidden;
