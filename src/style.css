@@ -2080,8 +2080,8 @@ a:focus-visible {
 }
 
 .radar-layout {
-  grid-template-columns: minmax(16rem, 0.78fr) minmax(34rem, 1.22fr);
-  width: min(92vw, 88rem);
+  grid-template-columns: minmax(15rem, 0.7fr) minmax(30rem, 1.05fr) minmax(18rem, 0.65fr);
+  width: min(96vw, 108rem);
   padding: 0;
 }
 
@@ -2118,6 +2118,77 @@ a:focus-visible {
   flex: none;
   height: min(82vh, 44rem);
   isolation: isolate;
+}
+
+.radar-image-feature {
+  align-self: center;
+  min-height: min(68vh, 34rem);
+}
+
+.field-image-frame {
+  position: relative;
+  height: 100%;
+  min-height: min(68vh, 34rem);
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--signal) 34%, transparent);
+  border-radius: 0.5rem;
+  background: var(--ink-lab);
+}
+
+.field-image-frame::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(16, 11, 29, 0.06) 20%, rgba(16, 11, 29, 0.88) 100%);
+  pointer-events: none;
+}
+
+.field-image-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.65) contrast(1.08) hue-rotate(300deg);
+  transition: transform 700ms var(--ease-out), filter 700ms var(--ease-out);
+}
+
+.field-image-frame:hover img {
+  filter: saturate(0.9) contrast(1.05) hue-rotate(300deg);
+  transform: scale(1.04);
+}
+
+.field-image-copy {
+  position: absolute;
+  right: var(--space-lg);
+  bottom: var(--space-lg);
+  left: var(--space-lg);
+  z-index: 1;
+  color: #fff;
+}
+
+.field-image-copy span {
+  display: block;
+  margin-bottom: var(--space-xs);
+  color: oklch(0.82 0.12 345);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.field-image-copy h3 {
+  max-width: 12ch;
+  font-size: clamp(1.6rem, 2.4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.field-image-copy p {
+  max-width: 28ch;
+  margin-top: var(--space-sm);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .radar-circle,
@@ -2263,6 +2334,10 @@ a:focus-visible {
 
   .radar-layout {
     grid-template-columns: minmax(13rem, 0.75fr) minmax(28rem, 1.25fr);
+  }
+
+  .radar-image-feature {
+    display: none;
   }
 
   .radar-node-info {
