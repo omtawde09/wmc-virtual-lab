@@ -32,7 +32,7 @@
   font-size: 12px;
   letter-spacing: 2px;
   font-weight: 700;
-  color: #c84b14;
+  color: #f472b6;
   text-transform: uppercase;
   margin-bottom: 20px;
 }
@@ -51,7 +51,7 @@
   font-family: 'Playfair Display', Georgia, serif;
   font-style: italic;
   font-weight: 700;
-  color: #c84b14;
+  color: #f472b6;
 }
 
 .radar-flower-icon {
@@ -59,7 +59,7 @@
 }
 
 .radar-flower-icon svg {
-  fill: #c84b14;
+  fill: #f472b6;
 }
 
 .radar-description {

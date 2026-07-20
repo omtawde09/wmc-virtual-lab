@@ -1873,7 +1873,7 @@ a:focus-visible {
 }
 
 #scene-4 {
-  background: #07050e;
+  background: #ffffff;
 }
 
 #scene-timeline {
@@ -1953,18 +1953,18 @@ a:focus-visible {
 .deck-card {
   min-height: 15.5rem;
   padding: var(--space-lg);
-  border: 1px solid var(--line-lab);
-  border-radius: 0.375rem;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: none;
-  cursor: default;
-  transition: transform 220ms var(--ease-out), border-color 220ms var(--ease-out), background-color 220ms var(--ease-out);
+  border: 1px solid rgba(244, 114, 182, 0.2);
+  border-radius: 1.25rem;
+  background: rgba(255, 250, 252, 0.95);
+  box-shadow: 0 10px 30px rgba(244, 114, 182, 0.08);
+  cursor: pointer;
+  transition: transform 300ms var(--ease-out), border-color 300ms var(--ease-out), box-shadow 300ms var(--ease-out);
 }
 
 .deck-card:hover {
-  border-color: var(--signal);
-  background: #fff;
-  box-shadow: none;
+  border-color: rgba(244, 114, 182, 0.5);
+  background: #ffffff;
+  box-shadow: 0 20px 45px rgba(244, 114, 182, 0.15);
 }
 
 .deck-card:hover .card-inner {
