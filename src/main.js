@@ -17,13 +17,13 @@ window.sakuraWind = {
 
 // Wrap initialization in window load event to ensure all styles, images, and DOM structures are fully resolved
 window.addEventListener('load', () => {
-  console.log("Aether Landing Page: Initializing GSAP and ScrollTrigger...");
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Start Canvas Particle Systems (only if elements exist)
-  if (document.getElementById('cherry-blossom-canvas')) {
+  if (!prefersReducedMotion && document.getElementById('cherry-blossom-canvas')) {
     initCherryBlossoms('cherry-blossom-canvas');
   }
-  if (document.getElementById('nodes-canvas')) {
+  if (!prefersReducedMotion && document.getElementById('nodes-canvas')) {
     initNodesBackground('nodes-canvas');
   }
 
@@ -56,6 +56,16 @@ window.addEventListener('load', () => {
   
   // Scene 4 cards dynamic offset stack
   const cards = gsap.utils.toArray('.deck-card')
+
+  if (prefersReducedMotion) {
+    document.documentElement.classList.add('reduce-motion');
+    gsap.set('.scene', { autoAlpha: 1, pointerEvents: 'auto' });
+    gsap.set('#scene-2, #phone-wrapper', { display: 'none' });
+    gsap.set('.crash-content-left, .crash-content-right, .tl-node-container, .tl-bottom-cta', { autoAlpha: 1, scale: 1 });
+    gsap.set('.collage-item, .cta-wrapper, .bottom-features-bar', { autoAlpha: 1, scale: 1, x: 0, y: 0 });
+    gsap.set('.tl-path-draw', { strokeDashoffset: 0 });
+    return;
+  }
   
   const calculateCardOffsets = () => {
     const wrapper = document.querySelector('.cards-wrapper');
@@ -75,6 +85,7 @@ window.addEventListener('load', () => {
   };
 
   calculateCardOffsets();
+  ScrollTrigger.addEventListener('refreshInit', calculateCardOffsets);
 
   cards.forEach((card, index) => {
     gsap.set(card, {
@@ -109,14 +120,12 @@ window.addEventListener('load', () => {
     if (isScrollLocked) return;
     isScrollLocked = true;
     lockScrollY = yPosition !== undefined ? yPosition : window.scrollY;
-    console.log("Aether Scroll Lock Enabled at Y:", lockScrollY);
     window.addEventListener('scroll', forceScrollPosition, { passive: false });
 
     // Failsafe: Automatically unlock scroll after 8 seconds (zoom video is ~6.4s long)
     clearTimeout(backupUnlockTimeout);
     backupUnlockTimeout = setTimeout(() => {
       if (isScrollLocked) {
-        console.warn("Failsafe scroll unlock triggered.");
         gsap.to(".zoom-video-container", { opacity: 0, duration: 0.3 });
         gsap.to("#phone-wrapper", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
         unlockScroll();
@@ -128,7 +137,6 @@ window.addEventListener('load', () => {
   const unlockScroll = () => {
     if (!isScrollLocked) return;
     isScrollLocked = false;
-    console.log("Aether Scroll Lock Disabled");
     clearTimeout(backupUnlockTimeout);
     window.removeEventListener('scroll', forceScrollPosition);
   };
@@ -150,7 +158,6 @@ window.addEventListener('load', () => {
   if (zoomVideo) {
     zoomVideo.addEventListener('ended', () => {
       if (isScrollLocked) {
-        console.log("Video naturally ended. Transitioning phone & unlocking scroll...");
         gsap.to(".zoom-video-container", { opacity: 0, duration: 0.3 });
         gsap.to("#phone-wrapper", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
         triggerChatAnimation();
@@ -168,8 +175,6 @@ window.addEventListener('load', () => {
       // Once video is within 0.1 seconds of ending
       if (zoomVideo.currentTime >= duration - 0.1) {
         if (isScrollLocked) {
-          console.log("Video close to end. Transitioning phone & unlocking scroll...");
-          
           // Fade in phone wrapper & fade out video container smoothly
           gsap.to(".zoom-video-container", { opacity: 0, duration: 0.3 });
           gsap.to("#phone-wrapper", { autoAlpha: 1, duration: 0.5, ease: "power2.out" });
@@ -204,7 +209,6 @@ window.addEventListener('load', () => {
           if (progress >= videoStartProgress) {
             if (!videoPlaying && !videoCompleted && zoomVideo) {
               videoPlaying = true;
-              console.log("Playing zoom video natively...");
               // Cap scroll 300px down from current offset
               lockScroll(self.scroll() + 300);
               zoomVideo.currentTime = 0;
@@ -219,7 +223,7 @@ window.addEventListener('load', () => {
               };
               zoomVideo.addEventListener("timeupdate", onPlay);
 
-              zoomVideo.play().catch(e => console.log("Video playback error:", e));
+              zoomVideo.play().catch(() => {});
             }
           } 
           
@@ -229,7 +233,6 @@ window.addEventListener('load', () => {
               videoPlaying = false;
               videoCompleted = false;
               unlockScroll();
-              console.log("Resetting zoom video...");
               zoomVideo.pause();
               zoomVideo.currentTime = 0;
               
@@ -344,7 +347,7 @@ window.addEventListener('load', () => {
       .to("#phone-wrapper", {
         x: 0, y: 0,
         duration: 0.25,
-        ease: "elastic.out(1, 0.4)"
+        ease: "power3.out"
       })
       // Animate the Stuck In Cycle layout
       .fromTo(".crash-content-left", 
@@ -433,19 +436,19 @@ window.addEventListener('load', () => {
       
       // Pop in the nodes and cards as the line draws past them
       // Node 1 (at ~12.5% of the 8s = 1s in)
-      .to(".tl-node-container:nth-child(2)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=1.0")
+      .to(".tl-node-container:nth-child(2)", { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, "timelineScroll+=1.0")
       
       // Node 2 (at ~31.25% of the 8s = 2.5s in)
-      .to(".tl-node-container:nth-child(3)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=2.5")
+      .to(".tl-node-container:nth-child(3)", { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, "timelineScroll+=2.5")
       
       // Node 3 (at ~50% of the 8s = 4.0s in)
-      .to(".tl-node-container:nth-child(4)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=4.0")
+      .to(".tl-node-container:nth-child(4)", { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, "timelineScroll+=4.0")
       
       // Node 4 (at ~68.75% of the 8s = 5.5s in)
-      .to(".tl-node-container:nth-child(5)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=5.5")
+      .to(".tl-node-container:nth-child(5)", { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, "timelineScroll+=5.5")
       
       // Node 5 (at ~87.5% of the 8s = 7.0s in)
-      .to(".tl-node-container:nth-child(6)", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "timelineScroll+=7.0")
+      .to(".tl-node-container:nth-child(6)", { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, "timelineScroll+=7.0")
       
       // Spacer to read the final CTA
       .to({}, { duration: 1.5 })
@@ -457,8 +460,8 @@ window.addEventListener('load', () => {
       // Animate the entrance of the radar elements
       .from(".radar-circle", { opacity: 0, scale: 0, duration: 0.8, stagger: 0.2, ease: "power2.out" })
       .from(".radar-sweeper", { opacity: 0, duration: 0.5 }, "-=0.4")
-      .from(".radar-center-node", { opacity: 0, scale: 0, duration: 0.5, ease: "back.out(1.5)" }, "-=0.5")
-      .from(".radar-node", { opacity: 0, scale: 0, duration: 0.6, stagger: 0.1, ease: "back.out(1.5)" }, "-=0.2")
+      .from(".radar-center-node", { opacity: 0, scale: 0, duration: 0.5, ease: "power3.out" }, "-=0.5")
+      .from(".radar-node", { opacity: 0, scale: 0, duration: 0.6, stagger: 0.1, ease: "power3.out" }, "-=0.2")
       .from(".radar-content-left", { opacity: 0, x: -50, duration: 0.8 }, "-=0.8")
       // Let the radar spin while the user scrolls
       .to({}, { duration: 6.0 })
@@ -469,12 +472,12 @@ window.addEventListener('load', () => {
       .to(".classroom-container-scene5", { opacity: 1, duration: 0.8 }, "<")
       .to(".viewport", { backgroundColor: "#07050e", duration: 0.8 }, "<")
       .to("#scene-5", { autoAlpha: 1, duration: 0.4 }, "-=0.4")
-      .to(".obj-tower", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=0.4")
-      .to(".obj-dish", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
-      .to(".obj-router", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
-      .to(".obj-cables", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
-      .to(".obj-mobile", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
-      .to(".obj-sim", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "back.out(1.15)" }, "-=1.0")
+      .to(".obj-tower", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=0.4")
+      .to(".obj-dish", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
+      .to(".obj-router", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
+      .to(".obj-cables", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
+      .to(".obj-mobile", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
+      .to(".obj-sim", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
       .to(".cta-wrapper", { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" }, "-=1.0")
       .to(".bottom-features-bar", { opacity: 1, y: 0, duration: 1.0, ease: "power2.out" }, "-=0.8")
 
@@ -486,17 +489,32 @@ window.addEventListener('load', () => {
   const radarNodes = document.querySelectorAll(".radar-node");
   
   // Position nodes
-  const radius = 280; // Half of 560px sweeper
-  radarNodes.forEach(node => {
-    const angle = parseFloat(node.dataset.angle);
-    const rad = (angle - 90) * (Math.PI / 180); 
-    const x = Math.cos(rad) * radius;
-    const y = Math.sin(rad) * radius;
-    node.style.transform = `translate(${x}px, ${y}px)`;
-  });
+  const positionRadarNodes = () => {
+    const radarSystem = document.querySelector('.radar-system');
+    if (!radarSystem) return;
 
-  const animateRadar = () => {
-    radarAngle = (radarAngle + 1.5) % 360; 
+    const radius = Math.min(280, Math.max(96, radarSystem.clientWidth * (window.innerWidth <= 768 ? 0.29 : 0.3)));
+    radarNodes.forEach(node => {
+      const angle = parseFloat(node.dataset.angle);
+      const rad = (angle - 90) * (Math.PI / 180);
+      const x = Math.cos(rad) * radius;
+      const y = Math.sin(rad) * radius;
+      node.style.transform = `translate(${x}px, ${y}px)`;
+    });
+  };
+
+  positionRadarNodes();
+  window.addEventListener('resize', positionRadarNodes);
+
+  let lastRadarUpdate = 0;
+  const animateRadar = (timestamp) => {
+    if (timestamp - lastRadarUpdate < 120) {
+      requestAnimationFrame(animateRadar);
+      return;
+    }
+
+    lastRadarUpdate = timestamp;
+    radarAngle = (radarAngle + 5) % 360;
     const sweeper = document.querySelector(".radar-sweeper");
     if (sweeper) {
       sweeper.style.background = `conic-gradient(from ${radarAngle}deg, transparent 70%, rgba(244, 114, 182, 0.8) 100%)`;
@@ -530,6 +548,5 @@ window.addEventListener('load', () => {
       zoomVideo.addEventListener('loadedmetadata', initTimeline);
     }
   } else {
-    console.error("Zoom video element not found!");
   }
 })

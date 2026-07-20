@@ -2443,3 +2443,59 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+html.reduce-motion #scroll-container {
+  height: auto;
+}
+
+html.reduce-motion .viewport {
+  position: static;
+  height: auto;
+  overflow: visible;
+}
+
+html.reduce-motion .scene {
+  position: relative;
+  min-height: 100svh;
+  height: auto;
+  overflow: hidden;
+}
+
+html.reduce-motion #scene-2,
+html.reduce-motion #scene-timeline {
+  display: none;
+}
+
+html.reduce-motion #scene-3 .crash-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: var(--space-3xl);
+  min-height: 100svh;
+  padding: var(--space-3xl) 0;
+}
+
+html.reduce-motion .crash-content-left,
+html.reduce-motion .crash-content-right {
+  position: relative;
+  inset: auto;
+  width: auto;
+  transform: none;
+}
+
+html.reduce-motion .classroom-container-scene5 {
+  opacity: 1;
+}
+
+@media (max-width: 48rem) {
+  html.reduce-motion #scene-3 .crash-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+    padding: var(--space-2xl) 0;
+  }
+
+  html.reduce-motion .crash-content-left,
+  html.reduce-motion .crash-content-right {
+    width: 100%;
+  }
+}
