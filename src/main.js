@@ -517,7 +517,7 @@ window.addEventListener('load', () => {
     radarAngle = (radarAngle + 5) % 360;
     const sweeper = document.querySelector(".radar-sweeper");
     if (sweeper) {
-      sweeper.style.background = `conic-gradient(from ${radarAngle}deg, transparent 70%, rgba(244, 114, 182, 0.8) 100%)`;
+      sweeper.style.background = `conic-gradient(from ${radarAngle}deg, transparent 76%, rgba(244, 114, 182, 0.24) 88%, transparent 100%)`;
       
       radarNodes.forEach(node => {
         let nodeAngle = parseFloat(node.dataset.angle); 

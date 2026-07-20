@@ -2080,14 +2080,13 @@ a:focus-visible {
 }
 
 .radar-layout {
-  display: grid;
-  grid-template-columns: minmax(15rem, 0.72fr) minmax(32rem, 1.28fr);
-  width: min(94vw, 92rem);
+  grid-template-columns: minmax(16rem, 0.78fr) minmax(34rem, 1.22fr);
+  width: min(92vw, 88rem);
   padding: 0;
 }
 
 .radar-content-left {
-  padding: 0 var(--space-2xl) 0 0;
+  padding: 0 clamp(var(--space-xl), 4vw, var(--space-3xl)) 0 0;
 }
 
 .radar-subtitle {
@@ -2111,11 +2110,14 @@ a:focus-visible {
   color: var(--ink-muted);
   font-size: 1rem;
   line-height: 1.6;
-  max-width: 30ch;
+  max-width: 34ch;
 }
 
 .radar-system {
-  --radar-center: 52%;
+  --radar-center: 50%;
+  flex: none;
+  height: min(82vh, 44rem);
+  isolation: isolate;
 }
 
 .radar-circle,
@@ -2127,18 +2129,31 @@ a:focus-visible {
 
 .radar-center-node {
   background: var(--signal);
-  box-shadow: 0 0 1.5rem rgba(232, 72, 147, 0.42);
+  box-shadow: 0 0 1.25rem rgba(232, 72, 147, 0.32);
 }
 
 .radar-node-img-wrap {
-  width: 5.25rem;
-  height: 5.25rem;
+  width: 4.75rem;
+  height: 4.75rem;
   border: 2px solid #fff;
-  box-shadow: 0 0.3rem 0.7rem rgba(37, 26, 57, 0.16);
+  box-shadow: 0 0.25rem 0.6rem rgba(37, 26, 57, 0.16);
 }
 
 .radar-node-info {
-  width: 11.5rem;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  right: auto;
+  width: max-content;
+  max-width: 9rem;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.info-left,
+.info-right {
+  left: 50%;
+  right: auto;
+  text-align: center;
 }
 
 .rn-num {
@@ -2146,13 +2161,37 @@ a:focus-visible {
 }
 
 .rn-title {
-  font-size: 1rem;
-  margin-bottom: var(--space-xs);
+  color: var(--ink-lab);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
 }
 
-.rn-desc {
-  font-size: 0.8125rem;
-  margin-bottom: var(--space-xs);
+.rn-desc,
+.rn-link {
+  display: none;
+}
+
+.rc-1 { width: 10rem; height: 10rem; }
+.rc-2 { width: 21rem; height: 21rem; }
+.rc-3,
+.radar-sweeper { width: 32rem; height: 32rem; }
+
+.radar-sweeper {
+  opacity: 0.7;
+  z-index: 3;
+}
+
+.radar-circle {
+  border-color: color-mix(in oklch, var(--signal) 28%, transparent);
+}
+
+.rc-3 {
+  border-style: solid;
+  border-color: color-mix(in oklch, var(--signal) 18%, transparent);
 }
 
 .cta-wrapper {
