@@ -1104,7 +1104,8 @@ html, body {
 }
 
 .card-title {
-  font-size: 1.15rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.2rem;
   font-weight: 800;
   color: #1e293b;
   margin-bottom: 12px;
@@ -1533,6 +1534,7 @@ html, body {
 }
 
 .cta-title {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: clamp(2.5rem, 5vw, 4.5rem);
   font-weight: 900;
   line-height: 1.1;
@@ -1833,9 +1835,10 @@ a:focus-visible {
 
 .crash-title,
 .crash-title-right {
+  font-family: 'Playfair Display', Georgia, serif;
   font-size: clamp(2.35rem, 4vw, 4.75rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 0.98;
 }
 
@@ -1869,17 +1872,22 @@ a:focus-visible {
   font-size: 0.9375rem;
 }
 
-#scene-4,
-#scene-timeline,
+#scene-4 {
+  background: #07050e;
+}
+
+#scene-timeline {
+  background: radial-gradient(circle at top, #fff0f5 0%, #ffffff 50%, #fff0f5 100%);
+}
+
 #scene-radar {
-  background: var(--surface-lab);
+  background-color: #fff0f5;
 }
 
 .mesh-bg,
 .ambient-orb,
-.tl-ambient-orb,
-.sunlight-beam {
-  display: none;
+.tl-ambient-orb {
+  display: block;
 }
 
 .solution-container {
@@ -1910,16 +1918,17 @@ a:focus-visible {
 }
 
 .solution-title {
-  color: var(--ink-lab);
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #1e293b;
   font-size: clamp(2.75rem, 5.5vw, 5rem);
   font-weight: 800;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
   line-height: 0.98;
   text-transform: none;
 }
 
 .text-pink {
-  color: var(--signal);
+  color: #f472b6;
 }
 
 .solution-tagline {
@@ -2021,10 +2030,11 @@ a:focus-visible {
 }
 
 .tl-title {
-  color: var(--ink-lab);
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #1e293b;
   font-size: clamp(2.75rem, 5.5vw, 5rem);
   font-weight: 800;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
   line-height: 0.98;
   margin-bottom: var(--space-lg);
 }
