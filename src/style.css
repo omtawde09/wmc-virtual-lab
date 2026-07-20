@@ -2140,18 +2140,18 @@ a:focus-visible {
 }
 
 .radar-node-info {
-  top: calc(100% + 0.5rem);
-  left: 50%;
+  top: 3rem;
+  left: 0;
   right: auto;
   width: max-content;
-  max-width: 9rem;
+  max-width: 10rem;
   transform: translateX(-50%);
   text-align: center;
 }
 
 .info-left,
 .info-right {
-  left: 50%;
+  left: 0;
   right: auto;
   text-align: center;
 }

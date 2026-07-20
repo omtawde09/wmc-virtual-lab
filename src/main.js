@@ -493,7 +493,10 @@ window.addEventListener('load', () => {
     const radarSystem = document.querySelector('.radar-system');
     if (!radarSystem) return;
 
-    const radius = Math.min(280, Math.max(96, radarSystem.clientWidth * (window.innerWidth <= 768 ? 0.29 : 0.3)));
+    const radius = Math.min(
+      260,
+      Math.max(window.innerWidth <= 768 ? 96 : 200, radarSystem.clientWidth * (window.innerWidth <= 768 ? 0.29 : 0.34))
+    );
     radarNodes.forEach(node => {
       const angle = parseFloat(node.dataset.angle);
       const rad = (angle - 90) * (Math.PI / 180);
