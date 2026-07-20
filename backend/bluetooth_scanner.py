@@ -57,8 +57,10 @@ _last_seen: Dict[str, dict] = {}
 
 
 class RangeReadingInput(BaseModel):
-    address: str          # target device's Bluetooth address
-    distance: float        # metres, measured by the person doing the experiment
+    address: str            # target device's Bluetooth address
+    distance: float          # metres, measured by the person doing the experiment
+    obstacle_count: int = 0  # number of obstacles (walls/doors/etc) between phone and device
+    obstacle_desc: str = ""  # free-text note, e.g. "1 drywall partition", "human body"
 
 
 class DiscoveredDevice(BaseModel):
@@ -210,6 +212,8 @@ async def add_reading(data: RangeReadingInput):
         "address": data.address,
         "name": found["name"],
         "distance": data.distance,
+        "obstacle_count": data.obstacle_count,
+        "obstacle_desc": data.obstacle_desc.strip(),
         "rssi": found["rssi"],
         "tx_power": found["tx_power"],
         "timestamp": datetime.now().isoformat(),

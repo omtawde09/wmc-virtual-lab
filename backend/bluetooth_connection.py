@@ -1,225 +1,261 @@
 """
-Bluetooth Discovery & Range Testing Service (Practical 8)
-===========================================================
-Covers the GAP (Generic Access Profile) layer of Bluetooth Low Energy:
-  - Advertisement scanning / device discovery
-  - Live RSSI streaming for range testing
-  - Manual "distance -> RSSI" logging, same pattern as wifi_scanner.py
+Bluetooth Connection & Pairing Module (Practical 8, Phase 3)
+==============================================================
+Demonstrates the security layer: Connect -> Pair -> Bond.
 
-Design decisions (documented inline, not just here):
-  1. bleak over pybluez  -> bleak is actively maintained, asyncio-native,
-     and uses Windows' own WinRT Bluetooth stack. pybluez is Classic-only
-     and effectively dead upstream; it frequently fails to build on modern
-     Windows/Python combos.
-  2. asyncio throughout   -> BLE calls are I/O-bound waits on the radio.
-     Blocking here would stall the whole FastAPI event loop for every
-     other route, exactly like the wifi_scanner already avoids by using
-     run_in_executor for its blocking `netsh` subprocess calls.
-  3. No fabricated data   -> if scanning finds nothing, or a device drops
-     out of range mid-stream, we report that honestly (empty list / last
-     known RSSI marked stale) rather than interpolating fake numbers.
-  4. In-memory storage    -> matches the rest of this codebase; a real
-     lab tool does not need a database for a session's worth of readings.
+WHY PYTHON DOES NOT (AND SHOULD NOT) HANDLE PAIRING UI ITSELF
+---------------------------------------------------------------
+On Windows, the actual pairing handshake - PIN entry, "Confirm this code
+matches on both devices", "Allow this device to connect?" - is owned by
+the OS Bluetooth stack, not by this process. bleak's BleakClient.pair()
+simply triggers that native OS flow and reports success/failure; it does
+not (and cannot, by design) intercept or automate the PIN/confirmation
+step itself.
+
+This is correct, not a limitation to route around:
+  - Long-term encryption keys generated during bonding are stored in the
+    OS-protected keystore. A userspace script silently generating or
+    approving trust relationships would be a serious security regression
+    (any code with USB/BLE access could mint arbitrary trusted bonds).
+  - The person standing next to the physical device is the correct
+    authority to confirm a pairing code - not an unattended script.
+
+What THIS module legitimately automates:
+  - Establishing the unencrypted GATT connection (post-advertisement,
+    pre-security)
+  - Triggering the native pairing prompt via pair=True / .pair()
+  - Reporting connection/pairing/bond state back to the frontend
+  - Cleanly disconnecting
+
+added timeouts and explicit state reporting throughout, because a hung
+BLE connection attempt (out of range, device turned off mid-handshake)
+should surface as a clear error to the person running the experiment,
+never as a frontend that just spins forever.
 """
 
 import asyncio
+import subprocess
 import sys
-import time
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 if sys.platform == "win32":
-    # Bleak's WinRT backend requires the thread to be MTA (multi-threaded
-    # apartment). FastAPI/uvicorn's event loop thread is not guaranteed to
-    # be MTA by default, which otherwise raises:
-    #   BleakError: The current thread apartment type is not MTA: MAIN_STA
-    # This must run before any BleakScanner/BleakClient is constructed.
+    # Same MTA/STA fix as bluetooth_scanner.py - must run before any
+    # BleakClient/BleakScanner is constructed in this process. Safe to
+    # call again even if bluetooth_scanner already called it.
     from bleak.backends.winrt.util import allow_sta
     allow_sta()
 
-from bleak import BleakScanner
-from bleak.backends.device import BLEDevice
-from bleak.backends.scanner import AdvertisementData
-from bleak.exc import BleakBluetoothNotAvailableError
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
+from bleak import BleakClient, BleakScanner
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter()
 
-# ---------------------------------------------------------------------------
-# In-memory state (mirrors wifi_scanner.py's `readings: List[dict]` pattern)
-# ---------------------------------------------------------------------------
-range_readings: List[dict] = []
-
-# Cache of last-seen advertisement data per address, used by the live RSSI
-# stream so the frontend can show "last seen Xs ago" instead of nothing.
-_last_seen: Dict[str, dict] = {}
+# One BleakClient per address at a time - a real lab session connects to
+# one device under test, not many simultaneously. Keeping this simple and
+# explicit (rather than a generic connection pool) matches the scope of
+# a teaching tool and avoids silently leaking BLE connections.
+_active_client: Optional[BleakClient] = None
+_active_address: Optional[str] = None
 
 
-class RangeReadingInput(BaseModel):
-    address: str          # target device's Bluetooth address
-    distance: float        # metres, measured by the person doing the experiment
-
-
-class DiscoveredDevice(BaseModel):
+class ConnectRequest(BaseModel):
     address: str
-    name: Optional[str]
-    rssi: Optional[int]
-    tx_power: Optional[int]
-    service_uuids: List[str]
-    manufacturer_ids: List[int]
+    pair: bool = False        # explicit opt-in - never pair silently
+    timeout: float = 15.0
 
 
-def _to_public_device(device: BLEDevice, adv: AdvertisementData) -> dict:
+class PairedDevice(BaseModel):
+    name: str
+    status: str
+    instance_id: str
+
+
+class ConnectionState(BaseModel):
+    address: Optional[str]
+    connected: bool
+    paired: Optional[bool]     # None when the platform can't report this
+    services_count: Optional[int]
+
+
+@router.post("/connect", response_model=ConnectionState)
+async def connect_device(req: ConnectRequest):
     """
-    Normalises a bleak (BLEDevice, AdvertisementData) pair into the shape
-    the frontend expects. Only ever reports values bleak actually gave us -
-    RSSI/tx_power are None if the platform didn't supply them, never guessed.
+    Connects to a BLE device and optionally triggers native OS pairing.
+
+    If req.pair is True, Windows will show its native pairing prompt to
+    the person at the keyboard - this call will wait for that human
+    decision. That's intentional: pairing consent belongs to a person,
+    not to an automated script.
     """
-    return {
-        "address": device.address,
-        "name": device.name or adv.local_name,
-        "rssi": adv.rssi,
-        "tx_power": adv.tx_power,
-        "service_uuids": list(adv.service_uuids or []),
-        "manufacturer_ids": list((adv.manufacturer_data or {}).keys()),
-    }
+    global _active_client, _active_address
 
-
-@router.get("/scan", response_model=List[DiscoveredDevice])
-async def scan_devices(timeout: float = 5.0):
-    """
-    One-shot BLE discovery scan (GAP advertisement listening).
-
-    timeout: how many seconds to listen for advertisement packets.
-    5s is the practical floor - BLE devices advertise on a duty cycle
-    (commonly every 100ms-1s), so shorter windows miss infrequent
-    advertisers. This mirrors why the Wi-Fi practical polls repeatedly
-    rather than trusting a single netsh call.
-    """
-    if not (1.0 <= timeout <= 30.0):
-        raise HTTPException(status_code=400, detail="timeout must be between 1 and 30 seconds")
-
-    try:
-        devices = await BleakScanner.discover(timeout=timeout, return_adv=True)
-    except BleakBluetoothNotAvailableError:
-        # This is an expected, recoverable condition (radio off / no
-        # adapter) - not a server bug, so it gets a clean 503 rather than
-        # a raw 500 stack trace. The person just needs to turn Bluetooth on.
-        raise HTTPException(
-            status_code=503,
-            detail="Bluetooth radio is not powered on. Turn on Bluetooth in "
-                   "Windows Settings and try again.",
-        )
-
-    results = [_to_public_device(dev, adv) for dev, adv in devices.values()]
-    # Strongest signal first - most relevant for range testing / triage.
-    results.sort(key=lambda d: (d["rssi"] is None, -(d["rssi"] or -999)))
-    return results
-
-
-@router.websocket("/ws")
-async def bluetooth_stream(ws: WebSocket):
-    """
-    Live BLE advertisement stream for range testing.
-
-    Unlike Wi-Fi's netsh (single active connection, one reading per call),
-    BLE scanning is inherently a *stream* of advertisement events from
-    potentially many devices at once. So instead of polling in a loop like
-    wifi_stream does, we register bleak's detection_callback and forward
-    each advertisement event to the websocket as it arrives - this is the
-    lower-latency, more correct approach for this radio model.
-    """
-    await ws.accept()
-    seq = 0
-    loop = asyncio.get_event_loop()
-    queue: asyncio.Queue = asyncio.Queue()
-
-    def detection_callback(device: BLEDevice, adv: AdvertisementData):
-        # bleak calls this synchronously from its own backend thread/loop
-        # context; hand off to the websocket's loop via a thread-safe queue
-        # put so we never touch the websocket from the wrong task.
-        loop.call_soon_threadsafe(queue.put_nowait, _to_public_device(device, adv))
-
-    scanner = BleakScanner(detection_callback=detection_callback)
-    started = False
-
-    try:
-        await scanner.start()
-        started = True
-        while True:
-            data = await queue.get()
-            seq += 1
-            _last_seen[data["address"]] = {**data, "timestamp": datetime.now().isoformat()}
-            await ws.send_json({**data, "seq": seq, "timestamp": datetime.now().isoformat()})
-    except WebSocketDisconnect:
-        pass
-    except BleakBluetoothNotAvailableError:
-        # Tell the client honestly why the stream can't start, instead of
-        # just closing silently and leaving the frontend guessing.
-        try:
-            await ws.send_json({
-                "error": "bluetooth_unavailable",
-                "detail": "Bluetooth radio is not powered on.",
-            })
-        except Exception:
-            pass
-    except Exception:
-        # Client closed mid-send, adapter was disabled, etc. - end quietly,
-        # matching wifi_scanner's approach of never crashing the route.
-        pass
-    finally:
-        if started:
-            await scanner.stop()
-
-
-@router.get("/readings")
-def get_readings():
-    """Returns all stored distance-RSSI readings for the range-test curve."""
-    return range_readings
-
-
-@router.post("/reading")
-async def add_reading(data: RangeReadingInput):
-    """
-    Records a distance-RSSI measurement for a specific target device.
-    Performs a short live scan filtered to that address so the RSSI is
-    fresh at the moment of recording, not pulled from a stale cache.
-    """
-    found = None
-    try:
-        devices = await BleakScanner.discover(timeout=4.0, return_adv=True)
-    except BleakBluetoothNotAvailableError:
-        raise HTTPException(
-            status_code=503,
-            detail="Bluetooth radio is not powered on. Turn on Bluetooth and try again.",
-        )
-    for dev, adv in devices.values():
-        if dev.address.lower() == data.address.lower():
-            found = _to_public_device(dev, adv)
-            break
-
-    if found is None or found["rssi"] is None:
+    if _active_client is not None:
         raise HTTPException(
             status_code=409,
-            detail=f"Device {data.address} was not seen advertising during the scan window.",
+            detail=f"Already connected to {_active_address}. Disconnect first.",
         )
 
-    reading = {
-        "id": len(range_readings) + 1,
-        "address": data.address,
-        "name": found["name"],
-        "distance": data.distance,
-        "rssi": found["rssi"],
-        "tx_power": found["tx_power"],
-        "timestamp": datetime.now().isoformat(),
-    }
-    range_readings.append(reading)
-    return reading
+    if not (5.0 <= req.timeout <= 60.0):
+        raise HTTPException(status_code=400, detail="timeout must be between 5 and 60 seconds")
+
+    client = BleakClient(req.address, timeout=req.timeout, pair=req.pair)
+
+    try:
+        await client.connect()
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=408,
+            detail=(
+                f"Connection to {req.address} timed out. Common causes: "
+                f"(1) the device is out of range or powered off; "
+                f"(2) if this address belongs to a phone, most phones only "
+                f"act as a BLE *scanner*, not a connectable BLE peripheral, "
+                f"so a direct GATT connect attempt will always time out - "
+                f"this is normal phone behaviour, not a bug. Connectable BLE "
+                f"peripherals are typically dedicated devices: fitness bands, "
+                f"smart tags, sensors, or a phone app specifically running a "
+                f"BLE peripheral/GATT server mode (e.g. nRF Connect's "
+                f"'Advertiser' feature)."
+            ),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Connection failed: {exc}")
+
+    is_paired = None
+    if req.pair:
+        try:
+            is_paired = await client.pair()
+        except NotImplementedError:
+            # Some backends/devices report pairing state differently;
+            # report honestly instead of guessing.
+            is_paired = None
+        except Exception as exc:
+            await client.disconnect()
+            _active_client = None
+            _active_address = None
+            raise HTTPException(status_code=502, detail=f"Pairing failed or was declined: {exc}")
+
+    services_count = None
+    try:
+        services = client.services
+        services_count = len(list(services)) if services else 0
+    except Exception:
+        pass
+
+    _active_client = client
+    _active_address = req.address
+
+    return ConnectionState(
+        address=req.address,
+        connected=client.is_connected,
+        paired=is_paired,
+        services_count=services_count,
+    )
 
 
-@router.delete("/clear")
-def clear_readings():
-    """Clears all stored range readings."""
-    range_readings.clear()
-    return {"message": "All Bluetooth range readings cleared successfully"}
+@router.get("/status", response_model=ConnectionState)
+async def connection_status():
+    """Reports the current live connection state - never cached/assumed."""
+    if _active_client is None:
+        return ConnectionState(address=None, connected=False, paired=None, services_count=None)
+
+    connected = _active_client.is_connected
+    services_count = None
+    try:
+        services = _active_client.services
+        services_count = len(list(services)) if services else 0
+    except Exception:
+        pass
+
+    return ConnectionState(
+        address=_active_address,
+        connected=connected,
+        paired=None,
+        services_count=services_count,
+    )
+
+
+@router.post("/disconnect")
+async def disconnect_device():
+    """Cleanly tears down the active BLE connection."""
+    global _active_client, _active_address
+
+    if _active_client is None:
+        raise HTTPException(status_code=409, detail="No active connection to disconnect.")
+
+    try:
+        await _active_client.disconnect()
+    finally:
+        addr = _active_address
+        _active_client = None
+        _active_address = None
+
+    return {"message": f"Disconnected from {addr}", "timestamp": datetime.now().isoformat()}
+
+
+@router.get("/paired-devices", response_model=List[PairedDevice])
+def list_paired_devices():
+    """
+    Lists Bluetooth devices Windows itself considers paired, via PowerShell's
+    Get-PnpDevice. This exists specifically because phone pairing does NOT
+    happen through BleakClient.connect()/pair() in this system - most phones
+    only run BLE in scanner (central) role, not connectable peripheral role,
+    so a direct GATT connect attempt to a phone will simply time out (see
+    the /connect endpoint's error message for the full explanation).
+
+    Real phone pairing happens the normal way: Windows Settings -> Bluetooth
+    & devices -> Add device -> confirm the code on the phone. This endpoint
+    then reports on that OS-level pairing state honestly, rather than this
+    Python service pretending it performed the pairing itself.
+    """
+    if sys.platform != "win32":
+        raise HTTPException(
+            status_code=501,
+            detail="Paired-device listing uses Windows PnP and is only available on Windows.",
+        )
+
+    try:
+        result = subprocess.run(
+            [
+                "powershell", "-NoProfile", "-Command",
+                "Get-PnpDevice -Class Bluetooth | "
+                "Select-Object FriendlyName, Status, InstanceId | "
+                "ConvertTo-Json -Compress",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="Windows device query timed out.")
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Windows PnP query failed: {result.stderr.strip() or 'unknown error'}",
+        )
+
+    import json
+    raw = result.stdout.strip()
+    if not raw:
+        return []
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=502, detail="Could not parse Windows PnP device list.")
+
+    # PowerShell returns a single object (not a list) when there's only one match.
+    if isinstance(parsed, dict):
+        parsed = [parsed]
+
+    return [
+        PairedDevice(
+            name=item.get("FriendlyName") or "(unnamed)",
+            status=str(item.get("Status") or "Unknown"),
+            instance_id=item.get("InstanceId") or "",
+        )
+        for item in parsed
+    ]

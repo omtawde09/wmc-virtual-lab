@@ -64,10 +64,13 @@ export default function Practical8() {
   /* ── Range test state ── */
   const [readings, setReadings] = useState([])
   const [distance, setDistance] = useState('')
+  const [obstacleCount, setObstacleCount] = useState('0')
+  const [obstacleDesc, setObstacleDesc] = useState('')
   const [recording, setRecording] = useState(false)
   const [lastAdded, setLastAdded] = useState(null)
   const [fit, setFit] = useState(null)
   const [fitErr, setFitErr] = useState(null)
+  const [obstacleAnalysis, setObstacleAnalysis] = useState(null)
 
   /* ── Connection/pairing state ── */
   const [connStatus, setConnStatus] = useState({ connected: false, address: null })
@@ -119,6 +122,18 @@ export default function Practical8() {
 
   useEffect(() => { if (readings.length >= 2) fetchFit() }, [readings, fetchFit])
 
+  /* ── Fetch obstacle attenuation analysis whenever readings change ── */
+  const fetchObstacleAnalysis = useCallback(async () => {
+    try {
+      const res = await axios.get(`${ANALYSIS_API}/obstacles`)
+      setObstacleAnalysis(res.data)
+    } catch {
+      setObstacleAnalysis(null)
+    }
+  }, [])
+
+  useEffect(() => { if (readings.length >= 1) fetchObstacleAnalysis() }, [readings, fetchObstacleAnalysis])
+
   /* ── Fetch connection status periodically (cheap poll, not a stream -
      connection state changes rarely compared to advertisement events) ── */
   const fetchConnStatus = useCallback(async () => {
@@ -137,11 +152,17 @@ export default function Practical8() {
   /* ── Actions ── */
   async function handleAddReading() {
     const dist = parseFloat(distance)
+    const oc = parseInt(obstacleCount, 10) || 0
     if (!selectedAddress) { setFitErr('Select a device from the list first.'); return }
     if (!dist || dist <= 0) return
     setRecording(true)
     try {
-      const res = await axios.post(`${API}/reading`, { address: selectedAddress, distance: dist })
+      const res = await axios.post(`${API}/reading`, {
+        address: selectedAddress,
+        distance: dist,
+        obstacle_count: oc,
+        obstacle_desc: obstacleDesc.trim(),
+      })
       setLastAdded(res.data)
       setDistance('')
       await fetchReadings()
@@ -381,6 +402,11 @@ export default function Practical8() {
               {selected && <> &nbsp;({selected.rssi} dBm)</>}
             </span>
           </div>
+          <p className="section-desc" style={{ marginBottom: '12px', fontSize: '13px' }}>
+            To isolate obstacle effect from distance effect, keep distance roughly
+            constant while varying obstacle_count across readings (e.g. same 3m
+            spot, but 0 walls vs 1 wall vs 2 walls in the path).
+          </p>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
             <input
               type="number"
@@ -392,6 +418,24 @@ export default function Practical8() {
               className="input-field"
               style={{ maxWidth: '160px' }}
             />
+            <input
+              type="number"
+              step="1"
+              min="0"
+              placeholder="Obstacle count"
+              value={obstacleCount}
+              onChange={e => setObstacleCount(e.target.value)}
+              className="input-field"
+              style={{ maxWidth: '160px' }}
+            />
+            <input
+              type="text"
+              placeholder="Obstacle description (e.g. 1 drywall wall)"
+              value={obstacleDesc}
+              onChange={e => setObstacleDesc(e.target.value)}
+              className="input-field"
+              style={{ maxWidth: '260px' }}
+            />
             <button className="btn btn-primary" disabled={recording || !selectedAddress} onClick={handleAddReading}>
               {recording ? 'Logging…' : 'Log Reading'}
             </button>
@@ -399,8 +443,57 @@ export default function Practical8() {
           </div>
           {lastAdded && (
             <div className="alert alert-success" style={{ marginTop: '12px' }}>
-              ✅ Logged {lastAdded.distance} m → {lastAdded.rssi} dBm for {lastAdded.address}
+              ✅ Logged {lastAdded.distance} m, {lastAdded.obstacle_count} obstacle(s) → {lastAdded.rssi} dBm for {lastAdded.address}
             </div>
+          )}
+        </div>
+
+        {/* ── OBSTACLE ATTENUATION ANALYSIS ── */}
+        <div className="glass-card" style={{ marginBottom: '24px' }}>
+          <h3 style={{ marginBottom: '16px' }}>RSSI vs Obstacles — Indoor Path Loss</h3>
+
+          {!obstacleAnalysis && (
+            <div className="alert alert-warning">
+              🧱 Log readings with different obstacle_count values (e.g. 0 and 1)
+              to see per-obstacle attenuation here.
+            </div>
+          )}
+
+          {obstacleAnalysis && (
+            <>
+              <div className="data-table-wrap" style={{ marginBottom: '16px' }}>
+                <table className="data-table">
+                  <thead>
+                    <tr><th>Obstacles</th><th>Avg RSSI</th><th>Attenuation (dB)</th><th>Samples</th></tr>
+                  </thead>
+                  <tbody>
+                    {obstacleAnalysis.groups.map(g => (
+                      <tr key={g.obstacle_count}>
+                        <td>{g.obstacle_count}</td>
+                        <td style={{ color: signalColor(g.avg_rssi), fontFamily: 'var(--font-mono)' }}>{g.avg_rssi} dBm</td>
+                        <td>{g.attenuation_db > 0 ? `-${g.attenuation_db}` : g.attenuation_db} dB</td>
+                        <td>{g.samples}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="four-col" style={{ marginBottom: '12px' }}>
+                <div className="stat-pill">
+                  <div className="stat-value">
+                    {obstacleAnalysis.per_obstacle_db != null ? `${obstacleAnalysis.per_obstacle_db} dB` : '—'}
+                  </div>
+                  <div className="stat-label">Loss per Obstacle</div>
+                </div>
+              </div>
+
+              {obstacleAnalysis.interpretation && (
+                <div className="alert alert-warning" style={{ background: 'rgba(0,212,255,0.06)', borderColor: 'rgba(0,212,255,0.2)' }}>
+                  💡 {obstacleAnalysis.interpretation}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -447,6 +540,11 @@ export default function Practical8() {
                 <div className="stat-value">{fit.sample_count}</div>
                 <div className="stat-label">Samples Used</div>
               </div>
+            </div>
+          )}
+          {fit?.interpretation && (
+            <div className="alert alert-warning" style={{ marginTop: '16px', background: 'rgba(0,212,255,0.06)', borderColor: 'rgba(0,212,255,0.2)' }}>
+              💡 {fit.interpretation}
             </div>
           )}
         </div>
