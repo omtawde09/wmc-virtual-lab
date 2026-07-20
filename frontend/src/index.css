@@ -19,6 +19,9 @@
   --violet:        #7c3aed;
   --violet-dim:    rgba(124, 58, 237, 0.15);
   --violet-glow:   rgba(124, 58, 237, 0.3);
+  --blue:          #1fb6ff;
+  --blue-dim:      rgba(31, 182, 255, 0.12);
+  --blue-glow:     rgba(31, 182, 255, 0.2);
   --amber:         #f59e0b;
   --amber-dim:     rgba(245, 158, 11, 0.15);
   --green:         #10b981;
@@ -43,6 +46,7 @@
   --shadow-glow-violet: 0 0 40px rgba(124, 58, 237, 0.2);
   --shadow-glow-amber: 0 0 40px rgba(245, 158, 11, 0.15);
   --shadow-glow-green: 0 0 40px rgba(16, 185, 129, 0.15);
+  --shadow-glow-blue: 0 0 40px rgba(31, 182, 255, 0.18);
 
   --transition:    0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -312,6 +316,7 @@ body::before {
 .practical-card.violet::before { background: radial-gradient(circle at top left, var(--violet-dim), transparent 60%); }
 .practical-card.amber::before { background: radial-gradient(circle at top left, var(--amber-dim), transparent 60%); }
 .practical-card.green::before { background: radial-gradient(circle at top left, var(--green-dim), transparent 60%); }
+.practical-card.blue::before { background: radial-gradient(circle at top left, var(--blue-dim), transparent 60%); }
 
 .practical-card:hover { transform: translateY(-4px); border-color: var(--border-glow); }
 .practical-card:hover::before { opacity: 1; }
@@ -319,6 +324,7 @@ body::before {
 .practical-card.violet:hover { box-shadow: var(--shadow-glow-violet); }
 .practical-card.amber:hover { box-shadow: var(--shadow-glow-amber); }
 .practical-card.green:hover { box-shadow: var(--shadow-glow-green); }
+.practical-card.blue:hover { box-shadow: var(--shadow-glow-blue); }
 
 .card-icon-wrap {
   width: 56px; height: 56px;
@@ -332,6 +338,7 @@ body::before {
 
 .card-icon-wrap.cyan { background: var(--cyan-dim); box-shadow: 0 0 20px var(--cyan-glow); }
 .card-icon-wrap.violet { background: var(--violet-dim); box-shadow: 0 0 20px var(--violet-glow); }
+.card-icon-wrap.blue { background: var(--blue-dim); box-shadow: 0 0 20px var(--blue-glow); }
 
 .card-label {
   font-size: 11px;
@@ -343,6 +350,7 @@ body::before {
 
 .card-label.cyan { color: var(--cyan); }
 .card-label.violet { color: var(--violet); }
+.card-label.blue { color: var(--blue); }
 
 .card-title {
   font-size: 22px;
@@ -387,6 +395,7 @@ body::before {
 
 .card-cta.cyan { color: var(--cyan); }
 .card-cta.violet { color: #a78bfa; }
+.card-cta.blue { color: var(--blue); }
 .practical-card:hover .card-cta { gap: 14px; }
 
 /* --- Section Header --- */

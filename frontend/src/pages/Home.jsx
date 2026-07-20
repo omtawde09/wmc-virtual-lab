@@ -104,6 +104,24 @@ export default function Home() {
               </div>
               <span className="card-cta green" style={{ color: 'var(--green)' }}>Launch Experiment →</span>
             </Link>
+            
+            {/* Practical 8 */}
+            <Link to="/practical8" className="practical-card blue">
+              <div className="card-icon-wrap blue" style={{ background: 'var(--blue-dim)', boxShadow: '0 0 20px var(--blue)' }}>🔵</div>
+              <div className="card-label blue" style={{ color: 'var(--blue)' }}>Practical 8 · MDL501.3</div>
+              <h2 className="card-title">Bluetooth Discovery, Pairing &amp; Range Testing</h2>
+              <p className="card-desc">
+                Scan nearby Bluetooth Low Energy devices, attempt pairing and connections, and record signal-strength vs distance for path-loss analysis.
+              </p>
+              <div className="card-tags">
+                <span className="tag">BLE</span>
+                <span className="tag">RSSI (dBm)</span>
+                <span className="tag">Pairing</span>
+                <span className="tag">GATT Services</span>
+                <span className="tag">Range Test</span>
+              </div>
+              <span className="card-cta blue" style={{ color: 'var(--blue)' }}>Launch Experiment →</span>
+            </Link>
           </div>
 
           {/* Info Row */}
