@@ -2643,7 +2643,7 @@ html.reduce-motion .classroom-container-scene5 {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
 }
 
@@ -2654,23 +2654,24 @@ html.reduce-motion .classroom-container-scene5 {
 }
 
 .sakura-branch-svg {
-  width: min(85vw, 42rem);
+  width: min(95vw, 54rem);
   height: auto;
-  opacity: 0.85;
+  opacity: 1;
   animation: gentlePulse 8s ease-in-out infinite alternate;
+  transform-origin: bottom right;
 }
 
 .timeline-sakura-bg {
   display: flex;
   justify-content: center;
   align-items: center;
-  top: 10%;
+  top: 5%;
 }
 
 .sun-sakura-svg {
-  width: min(90vw, 52rem);
+  width: min(95vw, 62rem);
   height: auto;
-  opacity: 0.9;
+  opacity: 1;
   animation: floatDrift 14s ease-in-out infinite alternate;
 }
 
@@ -2681,19 +2682,19 @@ html.reduce-motion .classroom-container-scene5 {
 }
 
 .radar-bg-wave-svg {
-  width: min(95vw, 65rem);
+  width: min(100vw, 75rem);
   height: auto;
-  opacity: 0.8;
+  opacity: 1;
   animation: gentlePulse 10s ease-in-out infinite alternate;
 }
 
 @keyframes gentlePulse {
-  0% { transform: scale(1) rotate(0deg); opacity: 0.75; }
-  100% { transform: scale(1.04) rotate(1deg); opacity: 0.95; }
+  0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 10px rgba(244,114,182,0.15)); }
+  100% { transform: scale(1.05) rotate(1.5deg); filter: drop-shadow(0 0 20px rgba(244,114,182,0.3)); }
 }
 
 @keyframes floatDrift {
   0% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(1.5deg); }
+  50% { transform: translateY(-16px) rotate(2deg); }
   100% { transform: translateY(0) rotate(0deg); }
 }
