@@ -14,6 +14,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   </head>
   <body>
+    <!-- Preloader -->
+    <div id="preloader">
+      <div class="preloader-content">
+        <svg class="preloader-lotus" viewBox="0 0 100 100" fill="#f472b6">
+          <g transform="translate(50, 50) scale(0.8)">
+            <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" />
+            <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" />
+            <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" />
+            <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" />
+            <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" />
+            <circle cx="0" cy="0" r="10" fill="#ffffff" opacity="0.6"/>
+          </g>
+        </svg>
+        <div class="preloader-text">INITIALIZING</div>
+        <div class="preloader-bar">
+          <div class="preloader-progress"></div>
+        </div>
+      </div>
+    </div>
+    
     <div id="app">
       <div id="scroll-container">
         <!-- Pinned Viewport for continuous cinematic scroll -->

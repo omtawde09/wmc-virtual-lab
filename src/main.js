@@ -17,6 +17,17 @@ window.sakuraWind = {
 
 // Wrap initialization in window load event to ensure all styles, images, and DOM structures are fully resolved
 window.addEventListener('load', () => {
+  // Preloader Logic
+  setTimeout(() => {
+    const preloader = document.getElementById('preloader');
+    if (preloader) {
+      preloader.classList.add('fade-out');
+      setTimeout(() => {
+        preloader.style.display = 'none';
+      }, 800); // Wait for transition
+    }
+  }, 1500); // 1.5s loading animation
+
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Start Canvas Particle Systems (only if elements exist)

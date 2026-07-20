@@ -3027,7 +3027,7 @@ html.reduce-motion .classroom-container-scene5 {
   width: min(100vw, 75rem);
   height: auto;
   opacity: 1;
-  animation: gentlePulse 10s ease-in-out infinite alternate;
+  animation: gentlePulse 10s ease-in-out infinite alternate, floatDrift 8s ease-in-out infinite;
 }
 
 @keyframes gentlePulse {
@@ -3039,4 +3039,77 @@ html.reduce-motion .classroom-container-scene5 {
   0% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-16px) rotate(2deg); }
   100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* --- Preloader --- */
+#preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+#preloader.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.preloader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.preloader-lotus {
+  width: 80px;
+  height: 80px;
+  animation: lotusSpinPulse 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes lotusSpinPulse {
+  0% { transform: scale(0.9) rotate(0deg); opacity: 0.7; }
+  50% { transform: scale(1.1) rotate(180deg); opacity: 1; filter: drop-shadow(0 0 15px rgba(244,114,182,0.6)); }
+  100% { transform: scale(0.9) rotate(360deg); opacity: 0.7; }
+}
+
+.preloader-text {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.3em;
+  color: #1a1a2e;
+  animation: textPulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes textPulse {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; text-shadow: 0 0 10px rgba(244,114,182,0.4); }
+}
+
+.preloader-bar {
+  width: 150px;
+  height: 3px;
+  background-color: rgba(244,114,182,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.preloader-progress {
+  width: 0%;
+  height: 100%;
+  background-color: #f472b6;
+  border-radius: 4px;
+  animation: barProgress 1.5s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+@keyframes barProgress {
+  0% { width: 0%; }
+  100% { width: 100%; }
 }
