@@ -1584,7 +1584,7 @@ html, body {
   animation: floatDrift 14s ease-in-out infinite alternate;
 }
 
-/* Central Light-Themed Transparent Glass Hero Card */
+/* Central Light-Themed Transparent Hero Card (No Blur - Completely Clear Vectors) */
 .cta-glass-card.light-theme {
   position: relative;
   z-index: 5;
@@ -1594,74 +1594,84 @@ html, body {
   align-items: center;
   opacity: 0;
   transform: scale(0.9);
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(244, 114, 182, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1.5px solid rgba(244, 114, 182, 0.4);
   border-radius: 28px;
   padding: 3rem 4rem;
-  box-shadow: 0 20px 50px rgba(244, 114, 182, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 40px rgba(244, 114, 182, 0.08);
   max-width: 760px;
 }
 
-/* Side Widgets (Interactive Spectrum & Constellation) */
+/* 4-Corner Telemetry Side Widgets */
 .cta-side-widget {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 4;
-  width: min(280px, 22vw);
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(244, 114, 182, 0.3);
-  border-radius: 24px;
-  padding: 1.5rem;
-  box-shadow: 0 15px 40px rgba(244, 114, 182, 0.1);
-  transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  z-index: 6;
+  width: min(240px, 19vw);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(244, 114, 182, 0.35);
+  border-radius: 20px;
+  padding: 1.15rem;
+  box-shadow: 0 12px 35px rgba(244, 114, 182, 0.12);
+  transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
 .cta-side-widget:hover {
-  transform: translateY(calc(-50% - 6px)) scale(1.03);
-  border-color: rgba(244, 114, 182, 0.6);
-  box-shadow: 0 20px 50px rgba(244, 114, 182, 0.2);
+  transform: scale(1.04) translateY(-4px);
+  border-color: rgba(244, 114, 182, 0.65);
+  box-shadow: 0 18px 45px rgba(244, 114, 182, 0.22);
 }
 
-.widget-left {
-  left: 3%;
+.widget-top-left {
+  top: 8%;
+  left: 2.5%;
 }
 
-.widget-right {
-  right: 3%;
+.widget-bottom-left {
+  bottom: 12%;
+  left: 2.5%;
+}
+
+.widget-top-right {
+  top: 8%;
+  right: 2.5%;
+}
+
+.widget-bottom-right {
+  bottom: 12%;
+  right: 2.5%;
 }
 
 .widget-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
+  gap: 8px;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(244, 114, 182, 0.2);
 }
 
 .widget-status-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background-color: #22c55e;
 }
 
 .pulse-dot {
   background-color: #f472b6;
-  box-shadow: 0 0 10px #f472b6;
+  box-shadow: 0 0 8px #f472b6;
   animation: dotPulse 2s infinite;
 }
 
 .widget-title {
   font-family: var(--font-sans);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: #1a1a2e;
 }
 
@@ -1670,21 +1680,38 @@ html, body {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  height: 80px;
-  margin-bottom: 1.25rem;
-  padding: 8px 12px;
-  background: rgba(255, 250, 252, 0.7);
-  border-radius: 12px;
+  height: 55px;
+  margin-bottom: 0.85rem;
+  padding: 6px 10px;
+  background: rgba(255, 250, 252, 0.85);
+  border-radius: 10px;
   border: 1px stroke rgba(244, 114, 182, 0.15);
 }
 
 .spec-bar {
-  width: 6px;
+  width: 5px;
   height: var(--h);
   background: linear-gradient(180deg, #f472b6, #fb7185);
-  border-radius: 4px;
+  border-radius: 3px;
   animation: barBounce 1.4s ease-in-out infinite alternate;
   animation-delay: var(--d);
+}
+
+/* Beamforming Diagram */
+.beam-diagram {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+  background: rgba(255, 250, 252, 0.85);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.beam-diagram svg {
+  width: 100%;
+  height: 100%;
 }
 
 /* Constellation Matrix Grid */
@@ -1693,27 +1720,26 @@ html, body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 12px;
-  height: 120px;
-  margin-bottom: 1.25rem;
-  padding: 14px;
-  background: rgba(255, 250, 252, 0.7);
-  border-radius: 12px;
+  gap: 8px;
+  height: 75px;
+  margin-bottom: 0.85rem;
+  padding: 8px;
+  background: rgba(255, 250, 252, 0.85);
+  border-radius: 10px;
   place-items: center;
 }
 
 .c-point {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: rgba(244, 114, 182, 0.4);
-  transition: all 0.3s ease;
 }
 
 .c-point.highlight {
   background-color: #f472b6;
-  box-shadow: 0 0 12px #f472b6;
-  transform: scale(1.4);
+  box-shadow: 0 0 10px #f472b6;
+  transform: scale(1.3);
   animation: pointPulse 2s ease-in-out infinite alternate;
 }
 
@@ -1725,36 +1751,72 @@ html, body {
 
 .axis-x {
   top: 50%;
-  left: 10px;
-  right: 10px;
+  left: 8px;
+  right: 8px;
   height: 1px;
 }
 
 .axis-y {
   left: 50%;
-  top: 10px;
-  bottom: 10px;
+  top: 8px;
+  bottom: 8px;
   width: 1px;
+}
+
+/* Protocol Packet Stream */
+.packet-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 0.85rem;
+  padding: 8px;
+  background: rgba(255, 250, 252, 0.85);
+  border-radius: 10px;
+}
+
+.pkt-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.62rem;
+  font-family: monospace;
+}
+
+.pkt-layer {
+  background: rgba(244, 114, 182, 0.15);
+  color: #f472b6;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.pkt-msg {
+  color: #4b5563;
+}
+
+.pkt-line.active .pkt-msg {
+  color: #1a1a2e;
+  font-weight: 700;
 }
 
 /* Widget Metrics */
 .widget-metrics {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .metric-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 700;
 }
 
 .m-label {
   color: #6b7280;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .m-val {

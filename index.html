@@ -993,14 +993,12 @@
               </svg>
             </div>
 
-            <!-- Left Interactive Widget: Live RF Spectrum Analyzer -->
-            <div class="cta-side-widget widget-left">
+            <!-- Top-Left Widget: Live RF Spectrum Analyzer -->
+            <div class="cta-side-widget widget-top-left">
               <div class="widget-header">
                 <div class="widget-status-dot"></div>
                 <span class="widget-title">RF SPECTRUM ANALYZER</span>
               </div>
-              
-              <!-- Animated Frequency Waveform Bars -->
               <div class="spectrum-visualizer">
                 <div class="spec-bar" style="--h: 40%; --d: 0.1s"></div>
                 <div class="spec-bar" style="--h: 75%; --d: 0.3s"></div>
@@ -1013,20 +1011,40 @@
                 <div class="spec-bar" style="--h: 50%; --d: 0.55s"></div>
                 <div class="spec-bar" style="--h: 85%; --d: 0.25s"></div>
               </div>
-
-              <!-- Signal Telemetry Stats -->
               <div class="widget-metrics">
                 <div class="metric-row">
                   <span class="m-label">CARRIER FREQ</span>
                   <span class="m-val">3.5 GHz (n78)</span>
                 </div>
                 <div class="metric-row">
-                  <span class="m-label">FRESNEL ZONE</span>
-                  <span class="m-val text-pink">98.4% CLEAR</span>
+                  <span class="m-label">TX POWER</span>
+                  <span class="m-val text-pink">+23 dBm</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom-Left Widget: Beamforming Radiation Vector -->
+            <div class="cta-side-widget widget-bottom-left">
+              <div class="widget-header">
+                <div class="widget-status-dot pulse-dot"></div>
+                <span class="widget-title">BEAMFORMING VECTOR</span>
+              </div>
+              <div class="beam-diagram">
+                <svg viewBox="0 0 160 80" fill="none">
+                  <path d="M 80 75 Q 40 10, 80 5 Q 120 10, 80 75 Z" fill="rgba(244,114,182,0.2)" stroke="#f472b6" stroke-width="1.5"/>
+                  <path d="M 80 75 Q 60 35, 80 30 Q 100 35, 80 75 Z" fill="rgba(251,207,232,0.4)"/>
+                  <line x1="80" y1="75" x2="80" y2="5" stroke="#f472b6" stroke-width="1.5" stroke-dasharray="3 3"/>
+                  <circle cx="80" cy="75" r="4" fill="#be123c"/>
+                </svg>
+              </div>
+              <div class="widget-metrics">
+                <div class="metric-row">
+                  <span class="m-label">PHASE SHIFT</span>
+                  <span class="m-val">45.0° STEER</span>
                 </div>
                 <div class="metric-row">
-                  <span class="m-label">TX POWER</span>
-                  <span class="m-val">+23 dBm</span>
+                  <span class="m-label">BEAM GAIN</span>
+                  <span class="m-val text-pink">+18.2 dBi</span>
                 </div>
               </div>
             </div>
@@ -1079,25 +1097,20 @@
               </div>
             </div>
 
-            <!-- Right Interactive Widget: Constellation Matrix -->
-            <div class="cta-side-widget widget-right">
+            <!-- Top-Right Widget: Constellation Matrix -->
+            <div class="cta-side-widget widget-top-right">
               <div class="widget-header">
                 <div class="widget-status-dot pulse-dot"></div>
                 <span class="widget-title">CONSTELLATION MATRIX</span>
               </div>
-              
-              <!-- 4x4 IQ Constellation Points Grid -->
               <div class="constellation-grid">
                 <div class="c-point p1"></div><div class="c-point p2"></div><div class="c-point p3"></div><div class="c-point p4"></div>
                 <div class="c-point p5"></div><div class="c-point p6 highlight"></div><div class="c-point p7"></div><div class="c-point p8"></div>
                 <div class="c-point p9"></div><div class="c-point p10"></div><div class="c-point p11 highlight"></div><div class="c-point p12"></div>
                 <div class="c-point p13"></div><div class="c-point p14"></div><div class="c-point p15"></div><div class="c-point p16"></div>
-                <!-- Crosshair Axes -->
                 <div class="const-axis axis-x"></div>
                 <div class="const-axis axis-y"></div>
               </div>
-
-              <!-- Signal Telemetry Stats -->
               <div class="widget-metrics">
                 <div class="metric-row">
                   <span class="m-label">MODULATION</span>
@@ -1105,11 +1118,30 @@
                 </div>
                 <div class="metric-row">
                   <span class="m-label">EVM ERROR</span>
-                  <span class="m-val text-pink">0.84% (EXCELLENT)</span>
+                  <span class="m-val text-pink">0.84% (OK)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom-Right Widget: Protocol Packet Stream -->
+            <div class="cta-side-widget widget-bottom-right">
+              <div class="widget-header">
+                <div class="widget-status-dot"></div>
+                <span class="widget-title">PROTOCOL DECODER</span>
+              </div>
+              <div class="packet-stream">
+                <div class="pkt-line active"><span class="pkt-layer">PHY</span><span class="pkt-msg">5G NR MIB Rx</span></div>
+                <div class="pkt-line"><span class="pkt-layer">MAC</span><span class="pkt-msg">RRC_CONN_REQ</span></div>
+                <div class="pkt-line active"><span class="pkt-layer">RLC</span><span class="pkt-msg">ACK_SN_0x8F</span></div>
+              </div>
+              <div class="widget-metrics">
+                <div class="metric-row">
+                  <span class="m-label">LATENCY</span>
+                  <span class="m-val text-pink">1.2 ms</span>
                 </div>
                 <div class="metric-row">
-                  <span class="m-label">SNR METRIC</span>
-                  <span class="m-val">34.2 dB</span>
+                  <span class="m-label">CRC STATUS</span>
+                  <span class="m-val">PASS ✦ 100%</span>
                 </div>
               </div>
             </div>
