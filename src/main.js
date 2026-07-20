@@ -466,20 +466,14 @@ window.addEventListener('load', () => {
       // Let the radar spin while the user scrolls
       .to({}, { duration: 6.0 })
 
-    // ========== SCENE 5: FINAL CTA FRAME ==========
+    // ========== SCENE 5: FINAL CTA FRAME (LIGHT SAKURA PORTAL) ==========
     masterTL
       .to("#scene-radar", { autoAlpha: 0, duration: 0.8 })
-      .to(".classroom-container-scene5", { opacity: 1, duration: 0.8 }, "<")
-      .to(".viewport", { backgroundColor: "#07050e", duration: 0.8 }, "<")
+      .to(".viewport", { backgroundColor: "#fff0f5", duration: 0.8 }, "<")
       .to("#scene-5", { autoAlpha: 1, duration: 0.4 }, "-=0.4")
-      .to(".obj-tower", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=0.4")
-      .to(".obj-dish", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
-      .to(".obj-router", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
-      .to(".obj-cables", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
-      .to(".obj-mobile", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
-      .to(".obj-sim", { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" }, "-=1.0")
-      .to(".cta-wrapper", { opacity: 1, scale: 1, duration: 1.2, ease: "power2.out" }, "-=1.0")
-      .to(".bottom-features-bar", { opacity: 1, y: 0, duration: 1.0, ease: "power2.out" }, "-=0.8")
+      .from(".cta-sakura-svg", { opacity: 0, scale: 0.9, duration: 1.2, ease: "power2.out" }, "-=0.4")
+      .to(".cta-wrapper", { opacity: 1, scale: 1, duration: 1.0, ease: "power2.out" }, "-=0.8")
+      .to(".bottom-features-bar", { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, "-=0.6")
 
     ScrollTrigger.refresh()
   }

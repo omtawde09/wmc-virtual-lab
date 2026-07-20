@@ -1562,8 +1562,30 @@ html, body {
   filter: drop-shadow(0 0 15px rgba(244, 114, 182, 0.4));
 }
 
-/* Central Hero Glass Card & Portal */
-.cta-glass-card {
+#scene-5 {
+  background-color: #fff0f5;
+  background-image: radial-gradient(circle at center, #ffffff 0%, #fff0f5 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.cta-sakura-bg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cta-sakura-svg {
+  width: min(100vw, 85rem);
+  height: auto;
+  opacity: 1;
+  animation: floatDrift 14s ease-in-out infinite alternate;
+}
+
+/* Central Light-Themed Hero Glass Card */
+.cta-glass-card.light-theme {
   position: relative;
   z-index: 5;
   text-align: center;
@@ -1572,12 +1594,12 @@ html, body {
   align-items: center;
   opacity: 0;
   transform: scale(0.9);
-  background: rgba(7, 5, 14, 0.76);
+  background: rgba(255, 250, 252, 0.94);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(244, 114, 182, 0.35);
   border-radius: 32px;
   padding: 3rem 4.5rem;
-  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 65px rgba(244, 114, 182, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
   max-width: 760px;
 }
 
@@ -1599,13 +1621,12 @@ html, body {
 
 .cta-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-size: clamp(2.5rem, 5vw, 4.2rem);
   font-weight: 900;
   line-height: 1.1;
-  color: #ffffff;
+  color: #1a1a2e;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   margin-bottom: 24px;
 }
 
@@ -1621,7 +1642,7 @@ html, body {
 .cta-separator .sep-line {
   flex-grow: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(244,114,182,0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(244,114,182,0.35), transparent);
 }
 .cta-separator .sep-flower {
   width: 24px;
@@ -1632,7 +1653,7 @@ html, body {
 .cta-desc {
   font-size: clamp(0.95rem, 2vw, 1.1rem);
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
+  color: #4b5563;
   margin-bottom: 3rem;
 }
 
@@ -1690,7 +1711,7 @@ html, body {
   transform: translateX(4px);
 }
 
-/* Bottom features bar */
+/* Bottom features bar (Light Mode) */
 .bottom-features-bar {
   position: absolute;
   bottom: 40px;
@@ -1700,21 +1721,21 @@ html, body {
   display: flex;
   align-items: center;
   gap: 2.5rem;
-  background: rgba(10, 10, 10, 0.6);
+  background: rgba(255, 250, 252, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 20px 48px;
   border-radius: 60px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  opacity: 0; /* GSAP animates this */
+  border: 1px solid rgba(244, 114, 182, 0.3);
+  box-shadow: 0 10px 40px rgba(244, 114, 182, 0.14);
+  opacity: 0;
 }
 
 .feature-item {
   display: flex;
   align-items: center;
   gap: 16px;
-  color: #ffffff;
+  color: #1a1a2e;
 }
 
 .feature-icon {

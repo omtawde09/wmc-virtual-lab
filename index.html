@@ -927,49 +927,74 @@
             </div>
           </div>
 
-          <!-- Scene 5: Final CTA Frame -->
+          <!-- Scene 5: Final CTA Frame (Light Sakura & Wireless Portal) -->
           <div id="scene-5" class="scene">
-            <!-- Looping classroom background in Scene 5 -->
-            <div class="classroom-container-scene5">
-              <video class="classroom-foreground" src="/resources/girl_sitting_in_classroom_hero_1st_section_new_final.mp4" autoplay loop muted playsinline preload="auto"></video>
-              <div class="classroom-vignette"></div>
-            </div>
-            
-            <!-- Wireless Hardware Command Dock (4 Symmetrical Pedestals) -->
-            <div class="command-dock-container" id="collage-container">
-              <!-- Left Pedestals -->
-              <div class="hardware-pedestal ped-top-left">
-                <img class="collage-item obj-tower" src="/resources/cell_tower_objects_3.webp" alt="Cell Tower">
-                <div class="pedestal-glow"></div>
-                <div class="pedestal-tag">BASE STATION TOWER</div>
-              </div>
-              <div class="hardware-pedestal ped-bottom-left">
-                <img class="collage-item obj-dish" src="/resources/dish_antenna_objects_2.webp" alt="Dish Antenna">
-                <div class="pedestal-glow"></div>
-                <div class="pedestal-tag">SATELLITE DISH</div>
-              </div>
+            <!-- Light Theme Sakura & Wireless Signal Background Vector Artwork -->
+            <div class="sakura-bg-layer cta-sakura-bg" aria-hidden="true">
+              <svg class="cta-sakura-svg" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Left Cherry Blossom Tree Branch -->
+                <path d="M-40 850 C 120 650, 220 500, 320 380 C 400 280, 480 200, 540 80" stroke="rgba(244,114,182,0.6)" stroke-width="4.5" stroke-linecap="round"/>
+                <path d="M220 500 C 270 430, 330 310, 370 250" stroke="rgba(244,114,182,0.45)" stroke-width="3" stroke-linecap="round"/>
+                <path d="M320 380 C 390 380, 460 420, 520 440" stroke="rgba(244,114,182,0.4)" stroke-width="2.5" stroke-linecap="round"/>
+                
+                <!-- Left Flower Clusters -->
+                <g transform="translate(320, 380) scale(0.95)" opacity="0.9">
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" fill="#fbcfe8"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" fill="#fbcfe8"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" fill="#f472b6"/>
+                  <circle cx="0" cy="0" r="8" fill="#e11d48"/>
+                </g>
 
-              <!-- Right Pedestals -->
-              <div class="hardware-pedestal ped-top-right">
-                <div class="router-group">
-                  <img class="collage-item obj-router" src="/resources/router_transparent_objects_1.webp" alt="Router">
-                  <img class="collage-item obj-cables" src="/resources/router_and_ethernet_cables_objects_6.webp" alt="Cables">
-                </div>
-                <div class="pedestal-glow"></div>
-                <div class="pedestal-tag">5G CORE ROUTER</div>
-              </div>
-              <div class="hardware-pedestal ped-bottom-right">
-                <div class="phone-sim-group">
-                  <img class="collage-item obj-mobile" src="/resources/mobile_objects_4.webp" alt="Mobile">
-                  <img class="collage-item obj-sim" src="/resources/sim_card_objects_5.webp" alt="SIM Card">
-                </div>
-                <div class="pedestal-glow"></div>
-                <div class="pedestal-tag">MOBILE & SIM NODE</div>
-              </div>
+                <g transform="translate(480, 200) scale(1.1)" opacity="0.9">
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" fill="#fb7185"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" fill="#fb7185"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" fill="#fb7185"/>
+                  <circle cx="0" cy="0" r="9" fill="#be123c"/>
+                </g>
+
+                <!-- Right Cherry Blossom Tree Branch -->
+                <path d="M1240 850 C 1080 650, 980 500, 880 380 C 800 280, 720 200, 660 80" stroke="rgba(244,114,182,0.6)" stroke-width="4.5" stroke-linecap="round"/>
+                <path d="M980 500 C 930 430, 870 310, 830 250" stroke="rgba(244,114,182,0.45)" stroke-width="3" stroke-linecap="round"/>
+                <path d="M880 380 C 810 380, 740 420, 680 440" stroke="rgba(244,114,182,0.4)" stroke-width="2.5" stroke-linecap="round"/>
+
+                <!-- Right Flower Clusters -->
+                <g transform="translate(880, 380) scale(0.95)" opacity="0.9">
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" fill="#fbcfe8"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" fill="#fbcfe8"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" fill="#f472b6"/>
+                  <circle cx="0" cy="0" r="8" fill="#e11d48"/>
+                </g>
+
+                <g transform="translate(720, 200) scale(1.1)" opacity="0.9">
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" fill="#fbcfe8"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(72)" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(144)" fill="#fbcfe8"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(216)" fill="#f472b6"/>
+                  <path d="M0 0 C 15 -15, 20 -40, 5 -45 L 0 -38 L -5 -45 C -20 -40, -15 -15, 0 0" transform="rotate(288)" fill="#fbcfe8"/>
+                  <circle cx="0" cy="0" r="9" fill="#be123c"/>
+                </g>
+
+                <!-- Central Radiant Signal Aura Rings -->
+                <circle cx="600" cy="400" r="340" stroke="rgba(244,114,182,0.35)" stroke-width="2.5" stroke-dasharray="12 8"/>
+                <circle cx="600" cy="400" r="260" stroke="rgba(244,114,182,0.25)" stroke-width="2"/>
+                <circle cx="600" cy="400" r="180" stroke="rgba(244,114,182,0.2)" stroke-width="1.5"/>
+
+                <!-- Falling Petals Drift -->
+                <path d="M 280 260 C 260 230 300 190 320 220 C 340 250 300 290 280 260 Z" fill="#f472b6" opacity="0.8"/>
+                <path d="M 920 260 C 900 230 940 190 960 220 C 980 250 940 290 920 260 Z" fill="#f472b6" opacity="0.8"/>
+                <path d="M 450 620 C 430 590 470 550 490 580 C 510 610 470 650 450 620 Z" fill="#fbcfe8" opacity="0.85" transform="rotate(20 470 600)"/>
+                <path d="M 750 620 C 730 590 770 550 790 580 C 810 610 770 650 750 620 Z" fill="#fb7185" opacity="0.85" transform="rotate(-20 770 600)"/>
+              </svg>
             </div>
 
-            <!-- Centered Hero Glass Card & Portal -->
-            <div class="cta-wrapper cta-glass-card">
+            <!-- Centered Light-Themed Hero Glass Card & Portal -->
+            <div class="cta-wrapper cta-glass-card light-theme">
               <div class="cta-top-icon">
                 <svg viewBox="0 0 100 100" fill="none" stroke="#f472b6" stroke-width="3">
                   <circle cx="50" cy="50" r="45" stroke-opacity="0.6"/>
@@ -1003,8 +1028,8 @@
               
               <div class="cta-portal-halo">
                 <svg class="portal-ring-svg" viewBox="0 0 300 120" fill="none">
-                  <ellipse cx="150" cy="60" rx="140" ry="50" stroke="rgba(244,114,182,0.4)" stroke-width="2" stroke-dasharray="8 6"/>
-                  <ellipse cx="150" cy="60" rx="140" ry="50" stroke="rgba(244,114,182,0.7)" stroke-width="1.5"/>
+                  <ellipse cx="150" cy="60" rx="140" ry="50" stroke="rgba(244,114,182,0.5)" stroke-width="2" stroke-dasharray="8 6"/>
+                  <ellipse cx="150" cy="60" rx="140" ry="50" stroke="rgba(244,114,182,0.8)" stroke-width="1.5"/>
                 </svg>
                 <a href="https://github.com/Parth/aether-lab" class="cta-btn-pill" id="launch-button">
                   <span>ENTER AETHER WEB LAB</span>
