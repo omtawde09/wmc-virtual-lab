@@ -50,6 +50,8 @@ from bleak import BleakClient, BleakScanner
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from bluetooth_scanner import _discovered_devices
+
 router = APIRouter()
 
 # One BleakClient per address at a time - a real lab session connects to
@@ -121,7 +123,23 @@ async def connect_device(req: ConnectRequest):
             _active_client = None
             _active_address = None
 
-    client = BleakClient(req.address, timeout=req.timeout, pair=req.pair, disconnected_callback=on_disconnect)
+    # Retrieve the cached BLEDevice object to prevent "Device was not found" error on Windows
+    device_to_connect = _discovered_devices.get(req.address.upper())
+
+    if device_to_connect is not None:
+        client = BleakClient(
+            device_to_connect,
+            timeout=req.timeout,
+            pair=req.pair,
+            disconnected_callback=on_disconnect
+        )
+    else:
+        client = BleakClient(
+            req.address,
+            timeout=req.timeout,
+            pair=req.pair,
+            disconnected_callback=on_disconnect
+        )
 
     try:
         await client.connect()

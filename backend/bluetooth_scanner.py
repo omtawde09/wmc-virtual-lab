@@ -54,6 +54,7 @@ range_readings: List[dict] = []
 # Cache of last-seen advertisement data per address, used by the live RSSI
 # stream so the frontend can show "last seen Xs ago" instead of nothing.
 _last_seen: Dict[str, dict] = {}
+_discovered_devices: Dict[str, BLEDevice] = {}
 
 
 class RangeReadingInput(BaseModel):
@@ -145,6 +146,9 @@ async def scan_devices(timeout: float = 5.0):
                    "Windows Settings and try again.",
         )
 
+    for dev, adv in devices.values():
+        _discovered_devices[dev.address.upper()] = dev
+
     results = [_to_public_device(dev, adv) for dev, adv in devices.values()]
     # Strongest signal first - most relevant for range testing / triage.
     results.sort(key=lambda d: (d["rssi"] is None, -(d["rssi"] or -999)))
@@ -169,6 +173,8 @@ async def bluetooth_stream(ws: WebSocket):
     queue: asyncio.Queue = asyncio.Queue()
 
     def detection_callback(device: BLEDevice, adv: AdvertisementData):
+        # Store the actual BLEDevice object so we can connect to it later
+        _discovered_devices[device.address.upper()] = device
         # bleak calls this synchronously from its own backend thread/loop
         # context; hand off to the websocket's loop via a thread-safe queue
         # put so we never touch the websocket from the wrong task.
@@ -232,6 +238,7 @@ async def add_reading(data: RangeReadingInput):
             detail="Bluetooth radio is not powered on. Turn on Bluetooth and try again.",
         )
     for dev, adv in devices.values():
+        _discovered_devices[dev.address.upper()] = dev
         if dev.address.lower() == data.address.lower():
             found = _to_public_device(dev, adv)
             break
