@@ -1,13 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import axios from 'axios'
 import {
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
+  Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Line, ComposedChart
 } from 'recharts'
 
 const API = '/api/bluetooth'
 const CONN_API = '/api/bluetooth/conn'
 const ANALYSIS_API = '/api/bluetooth/analysis'
+
+/* A BLE scan never emits a "device left" event - you infer departure from the
+   absence of advertisement packets. Devices advertise on a duty cycle (commonly
+   every 0.1-2s), so if we haven't heard from one in this window we treat it as
+   gone and drop it from the live list, keeping the view real-time. */
+const DEVICE_TTL_MS = 10000
 
 /* ── Helpers (same thresholds as Practical4's Wi-Fi page, since RSSI in
    dBm means the same thing regardless of radio - only the raw range
@@ -77,6 +83,7 @@ export default function Practical8() {
   const [connecting, setConnecting] = useState(false)
   const [connErr, setConnErr] = useState(null)
   const [pairedDevices, setPairedDevices] = useState([])
+  const [fetchingPaired, setFetchingPaired] = useState(false)
 
   const wsRef = useRef(null)
 
@@ -92,10 +99,39 @@ export default function Practical8() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
       if (data.error) { setLiveErr(true); return }
-      setDevices(prev => ({ ...prev, [data.address]: data }))
+      setDevices(prev => {
+        const existing = prev[data.address]
+        // A device's name arrives in a separate scan-response packet from its
+        // RSSI advertisements, so never let a later nameless packet blank out a
+        // name we've already learned. RSSI/fields still take the latest values.
+        const merged = existing
+          ? { ...existing, ...data, name: data.name || existing.name }
+          : data
+        // Record when we last heard from this device so stale entries can expire.
+        return { ...prev, [data.address]: { ...merged, _seenAt: Date.now() } }
+      })
     }
 
     return () => ws.close()
+  }, [])
+
+  /* ── Expire devices we haven't heard from recently, so the list reflects
+     what's actually advertising right now (e.g. earphones that were switched
+     off drop out instead of lingering forever). ── */
+  useEffect(() => {
+    const id = setInterval(() => {
+      const cutoff = Date.now() - DEVICE_TTL_MS
+      setDevices(prev => {
+        let changed = false
+        const next = {}
+        for (const [addr, dev] of Object.entries(prev)) {
+          if ((dev._seenAt ?? 0) >= cutoff) next[addr] = dev
+          else changed = true
+        }
+        return changed ? next : prev
+      })
+    }, 2000)
+    return () => clearInterval(id)
   }, [])
 
   /* ── Fetch stored range readings ── */
@@ -143,11 +179,28 @@ export default function Practical8() {
     } catch {}
   }, [])
 
+  const fetchPairedDevices = useCallback(async () => {
+    setFetchingPaired(true)
+    setConnErr(null)
+    try {
+      const res = await axios.get(`${CONN_API}/paired-devices`)
+      setPairedDevices(res.data)
+    } catch (err) {
+      setConnErr(err.response?.data?.detail || 'Could not read Windows paired-device list.')
+    } finally {
+      setFetchingPaired(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchConnStatus()
     const id = setInterval(fetchConnStatus, 4000)
     return () => clearInterval(id)
   }, [fetchConnStatus])
+
+  useEffect(() => {
+    fetchPairedDevices()
+  }, [fetchPairedDevices])
 
   /* ── Actions ── */
   async function handleAddReading() {
@@ -195,16 +248,10 @@ export default function Practical8() {
   async function handleDisconnect() {
     try {
       await axios.post(`${CONN_API}/disconnect`)
+    } catch {
+      // Swallowed but status updated in finally
+    } finally {
       await fetchConnStatus()
-    } catch {}
-  }
-
-  async function fetchPairedDevices() {
-    try {
-      const res = await axios.get(`${CONN_API}/paired-devices`)
-      setPairedDevices(res.data)
-    } catch (err) {
-      setConnErr(err.response?.data?.detail || 'Could not read Windows paired-device list.')
     }
   }
 
@@ -214,7 +261,6 @@ export default function Practical8() {
   )
   const chartData = [...readings].sort((a, b) => a.distance - b.distance)
   const selected = selectedAddress ? devices[selectedAddress] : null
-  const qual = selected ? signalLabel(selected.rssi) : null
 
   // Build the fitted curve as a line overlay across the observed distance range
   const fittedCurve = fit && chartData.length
@@ -310,6 +356,19 @@ export default function Practical8() {
               </table>
             </div>
           )}
+
+          {deviceList.length > 0 && (
+            <p className="section-desc" style={{ marginTop: '14px', fontSize: '12px' }}>
+              ℹ️ Most rows show <em>(no name)</em> — and that is correct BLE behaviour, not
+              a bug. Phones and many gadgets use randomised BLE addresses and deliberately
+              omit their friendly name from advertisement packets for privacy, so your
+              phone is probably in this list but unnamed and unidentifiable. A name only
+              appears when a device actually broadcasts one (e.g. fitness bands, smart
+              tags, or a phone running a BLE-beacon/advertiser app). To confirm a phone
+              by its Bluetooth <em>name</em>, pair it through Windows Settings → Bluetooth
+              &amp; devices and use “Refresh Windows Paired List” below.
+            </p>
+          )}
         </div>
 
         {/* ── CONNECTION & PAIRING PANEL ── */}
@@ -347,8 +406,12 @@ export default function Practical8() {
             >
               Disconnect
             </button>
-            <button className="btn btn-outline" onClick={fetchPairedDevices}>
-              Refresh Windows Paired List
+            <button
+              className="btn btn-outline"
+              onClick={fetchPairedDevices}
+              disabled={fetchingPaired}
+            >
+              {fetchingPaired ? 'Querying Windows...' : 'Refresh Windows Paired List'}
             </button>
           </div>
 
@@ -379,7 +442,44 @@ export default function Practical8() {
             </div>
           </div>
 
-          {pairedDevices.length > 0 && (
+          {connStatus.connected && connStatus.services && connStatus.services.length > 0 && (
+            <div style={{
+              marginTop: '16px',
+              marginBottom: '20px',
+              background: 'rgba(255,255,255,0.02)',
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid var(--border)'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--cyan)', marginBottom: '10px' }}>
+                Discovered GATT Services
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '20px', listStyleType: 'disc', color: 'var(--muted)' }}>
+                {connStatus.services.map((svc, idx) => (
+                  <li key={idx} style={{ marginBottom: '6px', fontSize: '13px' }}>
+                    <strong style={{ color: 'var(--foreground)' }}>{svc.name}</strong>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', marginLeft: '8px', opacity: 0.7 }}>
+                      ({svc.uuid})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {fetchingPaired && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', color: 'var(--cyan)' }}>
+              <style>{`
+                @keyframes spin {
+                  to { transform: rotate(360deg); }
+                }
+              `}</style>
+              <div style={{ width: '1.2rem', height: '1.2rem', border: '2px solid currentColor', borderRightColor: 'transparent', borderRadius: '50%', animation: 'spin .75s linear infinite' }} />
+              <span style={{ fontSize: '13px' }}>Querying Windows Bluetooth paired devices...</span>
+            </div>
+          )}
+
+          {!fetchingPaired && pairedDevices.length > 0 && (
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead><tr><th>Name</th><th>Status</th></tr></thead>
@@ -389,6 +489,12 @@ export default function Practical8() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {!fetchingPaired && pairedDevices.length === 0 && (
+            <div style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', padding: '16px', border: '1px dashed var(--border)', borderRadius: '8px' }}>
+              No paired Bluetooth devices found in Windows. Pair a device in Windows Settings first.
             </div>
           )}
         </div>

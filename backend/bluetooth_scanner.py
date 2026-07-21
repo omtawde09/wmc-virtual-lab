@@ -88,6 +88,37 @@ def _to_public_device(device: BLEDevice, adv: AdvertisementData) -> dict:
     }
 
 
+def _merge_device(prev: Optional[dict], new: dict) -> dict:
+    """
+    Coalesces successive advertisement packets from the same device.
+
+    A single BLE device emits two packet types on a duty cycle: the
+    advertisement (ADV_IND) which frequently carries NO name, and the scan
+    response (SCAN_RSP) which carries the Complete Local Name. If we simply
+    kept the most recent packet, the name would flicker to None every time a
+    nameless advertisement arrived after a named scan response - which is
+    exactly why devices showed "(no name)" even when they do broadcast one.
+
+    So: name is *sticky* once seen; rssi/tx_power always take the freshest
+    non-null value; service/manufacturer identifiers accumulate as a union.
+    We still never invent a name that was never broadcast.
+    """
+    if not prev:
+        return dict(new)
+    return {
+        "address": new["address"],
+        # Keep the name once any packet has revealed it.
+        "name": new.get("name") or prev.get("name"),
+        # RSSI/tx_power are point-in-time measurements: prefer the newest,
+        # but don't overwrite a real value with a missing one.
+        "rssi": new.get("rssi") if new.get("rssi") is not None else prev.get("rssi"),
+        "tx_power": new.get("tx_power") if new.get("tx_power") is not None else prev.get("tx_power"),
+        # Different packets can advertise different UUIDs/IDs - union them.
+        "service_uuids": sorted(set(prev.get("service_uuids") or []) | set(new.get("service_uuids") or [])),
+        "manufacturer_ids": sorted(set(prev.get("manufacturer_ids") or []) | set(new.get("manufacturer_ids") or [])),
+    }
+
+
 @router.get("/scan", response_model=List[DiscoveredDevice])
 async def scan_devices(timeout: float = 5.0):
     """
@@ -152,8 +183,12 @@ async def bluetooth_stream(ws: WebSocket):
         while True:
             data = await queue.get()
             seq += 1
-            _last_seen[data["address"]] = {**data, "timestamp": datetime.now().isoformat()}
-            await ws.send_json({**data, "seq": seq, "timestamp": datetime.now().isoformat()})
+            # Merge with what we already know about this address so a nameless
+            # advertisement packet can't wipe out a name a scan response gave us.
+            merged = _merge_device(_last_seen.get(data["address"]), data)
+            now = datetime.now().isoformat()
+            _last_seen[data["address"]] = {**merged, "timestamp": now}
+            await ws.send_json({**merged, "seq": seq, "timestamp": now})
     except WebSocketDisconnect:
         pass
     except BleakBluetoothNotAvailableError:

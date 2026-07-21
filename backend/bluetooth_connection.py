@@ -72,11 +72,18 @@ class PairedDevice(BaseModel):
     instance_id: str
 
 
+class GATTServiceInfo(BaseModel):
+    uuid: str
+    name: str
+
+
 class ConnectionState(BaseModel):
     address: Optional[str]
     connected: bool
     paired: Optional[bool]     # None when the platform can't report this
     services_count: Optional[int]
+    services: Optional[List[GATTServiceInfo]] = None
+
 
 
 @router.post("/connect", response_model=ConnectionState)
@@ -92,15 +99,29 @@ async def connect_device(req: ConnectRequest):
     global _active_client, _active_address
 
     if _active_client is not None:
-        raise HTTPException(
-            status_code=409,
-            detail=f"Already connected to {_active_address}. Disconnect first.",
-        )
+        if _active_client.is_connected:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Already connected to {_active_address}. Disconnect first.",
+            )
+        else:
+            try:
+                await _active_client.disconnect()
+            except Exception:
+                pass
+            _active_client = None
+            _active_address = None
 
     if not (5.0 <= req.timeout <= 60.0):
         raise HTTPException(status_code=400, detail="timeout must be between 5 and 60 seconds")
 
-    client = BleakClient(req.address, timeout=req.timeout, pair=req.pair)
+    def on_disconnect(client: BleakClient):
+        global _active_client, _active_address
+        if _active_address == req.address:
+            _active_client = None
+            _active_address = None
+
+    client = BleakClient(req.address, timeout=req.timeout, pair=req.pair, disconnected_callback=on_disconnect)
 
     try:
         await client.connect()
@@ -138,9 +159,18 @@ async def connect_device(req: ConnectRequest):
             raise HTTPException(status_code=502, detail=f"Pairing failed or was declined: {exc}")
 
     services_count = None
+    services_list = None
     try:
         services = client.services
-        services_count = len(list(services)) if services else 0
+        if services:
+            services_count = len(list(services))
+            services_list = [
+                GATTServiceInfo(uuid=s.uuid, name=s.description or "Unknown Service")
+                for s in services
+            ]
+        else:
+            services_count = 0
+            services_list = []
     except Exception:
         pass
 
@@ -152,20 +182,36 @@ async def connect_device(req: ConnectRequest):
         connected=client.is_connected,
         paired=is_paired,
         services_count=services_count,
+        services=services_list,
     )
 
 
 @router.get("/status", response_model=ConnectionState)
 async def connection_status():
     """Reports the current live connection state - never cached/assumed."""
+    global _active_client, _active_address
     if _active_client is None:
-        return ConnectionState(address=None, connected=False, paired=None, services_count=None)
+        return ConnectionState(address=None, connected=False, paired=None, services_count=None, services=None)
 
     connected = _active_client.is_connected
+    if not connected:
+        _active_client = None
+        _active_address = None
+        return ConnectionState(address=None, connected=False, paired=None, services_count=None, services=None)
+
     services_count = None
+    services_list = None
     try:
         services = _active_client.services
-        services_count = len(list(services)) if services else 0
+        if services:
+            services_count = len(list(services))
+            services_list = [
+                GATTServiceInfo(uuid=s.uuid, name=s.description or "Unknown Service")
+                for s in services
+            ]
+        else:
+            services_count = 0
+            services_list = []
     except Exception:
         pass
 
@@ -174,6 +220,7 @@ async def connection_status():
         connected=connected,
         paired=None,
         services_count=services_count,
+        services=services_list,
     )
 
 
@@ -183,10 +230,13 @@ async def disconnect_device():
     global _active_client, _active_address
 
     if _active_client is None:
-        raise HTTPException(status_code=409, detail="No active connection to disconnect.")
+        return {"message": "Already disconnected", "timestamp": datetime.now().isoformat()}
 
     try:
-        await _active_client.disconnect()
+        if _active_client.is_connected:
+            await _active_client.disconnect()
+    except Exception:
+        pass
     finally:
         addr = _active_address
         _active_client = None
@@ -251,11 +301,16 @@ def list_paired_devices():
     if isinstance(parsed, dict):
         parsed = [parsed]
 
-    return [
-        PairedDevice(
-            name=item.get("FriendlyName") or "(unnamed)",
-            status=str(item.get("Status") or "Unknown"),
-            instance_id=item.get("InstanceId") or "",
-        )
-        for item in parsed
-    ]
+    devices = []
+    for item in parsed:
+        instance_id = item.get("InstanceId") or ""
+        # Filter for actual physical paired devices (prefix BTHENUM\DEV_)
+        if instance_id.upper().startswith("BTHENUM\\DEV_"):
+            devices.append(
+                PairedDevice(
+                    name=item.get("FriendlyName") or "(unnamed)",
+                    status=str(item.get("Status") or "Unknown"),
+                    instance_id=instance_id,
+                )
+            )
+    return devices
