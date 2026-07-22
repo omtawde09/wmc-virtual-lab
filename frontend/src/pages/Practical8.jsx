@@ -189,7 +189,7 @@ export default function Practical8() {
           {connected && (
             <div className="four-col">
               <div className="stat-pill">
-                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--cyan)', marginBottom: '4px', fontFamily: 'var(--font-mono)' }}>{liveWifi.ssid}</div>
+                <div className="stat-value" title={liveWifi.ssid} style={{ color: 'var(--cyan)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{liveWifi.ssid}</div>
                 <div className="stat-label">Active SSID</div>
               </div>
               <div className="stat-pill">
