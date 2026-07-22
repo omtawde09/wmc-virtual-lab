@@ -66,10 +66,34 @@ class RangeReadingInput(BaseModel):
 class DiscoveredDevice(BaseModel):
     address: str
     name: Optional[str]
+    vendor: Optional[str] = None
     rssi: Optional[int]
     tx_power: Optional[int]
     service_uuids: List[str]
     manufacturer_ids: List[int]
+
+
+# Bluetooth SIG "Company Identifiers" (the 16-bit id in an advertisement's
+# manufacturer data). When a device broadcasts no friendly name — very common
+# for phones, which use randomised addresses and omit the name for privacy — we
+# can still show WHO made it from this real advertised value. Not fabricated:
+# it's read straight from the packet, we only translate the number to a label.
+COMPANY_IDS = {
+    0x004C: "Apple", 0x0075: "Samsung", 0x0006: "Microsoft", 0x00E0: "Google",
+    0x0087: "Garmin", 0x000F: "Broadcom", 0x0059: "Nordic", 0x001D: "Qualcomm",
+    0x0157: "Huami (Amazfit/Mi)", 0x038F: "Xiaomi", 0x0A12: "OnePlus/Oppo",
+    0x00D2: "Realtek", 0x0499: "Ruuvi", 0x0131: "Cypress", 0x02E5: "Espressif",
+    0x004F: "APT (Qualcomm/aptX)", 0x0110: "Sony", 0x0201: "GN (Jabra)",
+    0x00C4: "LG", 0x0072: "Logitech",
+}
+
+
+def _vendor_from_ids(manufacturer_ids) -> Optional[str]:
+    """First recognised vendor name from the advertised company ids, or None."""
+    for cid in (manufacturer_ids or []):
+        if cid in COMPANY_IDS:
+            return COMPANY_IDS[cid]
+    return None
 
 
 def _to_public_device(device: BLEDevice, adv: AdvertisementData) -> dict:
@@ -78,13 +102,15 @@ def _to_public_device(device: BLEDevice, adv: AdvertisementData) -> dict:
     the frontend expects. Only ever reports values bleak actually gave us -
     RSSI/tx_power are None if the platform didn't supply them, never guessed.
     """
+    manufacturer_ids = list((adv.manufacturer_data or {}).keys())
     return {
         "address": device.address,
         "name": device.name or adv.local_name,
+        "vendor": _vendor_from_ids(manufacturer_ids),
         "rssi": adv.rssi,
         "tx_power": adv.tx_power,
         "service_uuids": list(adv.service_uuids or []),
-        "manufacturer_ids": list((adv.manufacturer_data or {}).keys()),
+        "manufacturer_ids": manufacturer_ids,
     }
 
 
@@ -105,17 +131,20 @@ def _merge_device(prev: Optional[dict], new: dict) -> dict:
     """
     if not prev:
         return dict(new)
+    merged_ids = sorted(set(prev.get("manufacturer_ids") or []) | set(new.get("manufacturer_ids") or []))
     return {
         "address": new["address"],
         # Keep the name once any packet has revealed it.
         "name": new.get("name") or prev.get("name"),
+        # Vendor is derived from the (unioned) company ids seen so far.
+        "vendor": _vendor_from_ids(merged_ids),
         # RSSI/tx_power are point-in-time measurements: prefer the newest,
         # but don't overwrite a real value with a missing one.
         "rssi": new.get("rssi") if new.get("rssi") is not None else prev.get("rssi"),
         "tx_power": new.get("tx_power") if new.get("tx_power") is not None else prev.get("tx_power"),
         # Different packets can advertise different UUIDs/IDs - union them.
         "service_uuids": sorted(set(prev.get("service_uuids") or []) | set(new.get("service_uuids") or [])),
-        "manufacturer_ids": sorted(set(prev.get("manufacturer_ids") or []) | set(new.get("manufacturer_ids") or [])),
+        "manufacturer_ids": merged_ids,
     }
 
 
@@ -134,7 +163,7 @@ async def scan_devices(timeout: float = 5.0):
         raise HTTPException(status_code=400, detail="timeout must be between 1 and 30 seconds")
 
     try:
-        devices = await BleakScanner.discover(timeout=timeout, return_adv=True)
+        devices = await BleakScanner.discover(timeout=timeout, return_adv=True, scanning_mode="active")
     except BleakBluetoothNotAvailableError:
         # This is an expected, recoverable condition (radio off / no
         # adapter) - not a server bug, so it gets a clean 503 rather than
@@ -174,7 +203,7 @@ async def bluetooth_stream(ws: WebSocket):
         # put so we never touch the websocket from the wrong task.
         loop.call_soon_threadsafe(queue.put_nowait, _to_public_device(device, adv))
 
-    scanner = BleakScanner(detection_callback=detection_callback)
+    scanner = BleakScanner(detection_callback=detection_callback, scanning_mode="active")
     started = False
 
     try:
@@ -224,7 +253,7 @@ async def scan_for_address(address: str, timeout: float = 4.0) -> Optional[dict]
     rather than each re-implementing the scan-and-match loop.
     Raises BleakBluetoothNotAvailableError if the radio is off (caller handles).
     """
-    devices = await BleakScanner.discover(timeout=timeout, return_adv=True)
+    devices = await BleakScanner.discover(timeout=timeout, return_adv=True, scanning_mode="active")
     for dev, adv in devices.values():
         if dev.address.lower() == address.lower():
             return _to_public_device(dev, adv)
