@@ -26,7 +26,7 @@ export default function Navbar() {
           </li>
           <li>
             <NavLink to="/practical5" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'rgba(124,58,237,0.2)', color: '#4f46e5' }}>P5</span>
+              <span className="nav-badge">P5</span>
               <span className="nav-text">Network Test</span>
             </NavLink>
           </li>
