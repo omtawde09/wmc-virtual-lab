@@ -11,14 +11,14 @@ export default function Home() {
         </div>
         <div className="container hero-content">
           <div className="hero-eyebrow">
-            📡 Mobile &amp; Data Management Lab &nbsp;·&nbsp; 2026–27
+            📡 Wireless &amp; Mobile Communication &nbsp;·&nbsp; Virtual Lab · 2026–27
           </div>
           <h1 className="hero-title">
-            Wireless Network<br />
-            <span className="gradient-text">Analysis Suite</span>
+            Wireless &amp; Mobile<br />
+            <span className="gradient-text">Communication Lab</span>
           </h1>
           <p className="hero-subtitle">
-            Real-time Wi-Fi signal measurement and network throughput analysis.
+            Real-time Wi-Fi signal, throughput, multipath and interference experiments.
             Live data captured from your system — no simulation needed.
           </p>
         </div>
@@ -69,10 +69,48 @@ export default function Home() {
               <span className="card-cta violet">Launch Experiment →</span>
             </Link>
 
+            {/* Practical 6 */}
+            <Link to="/practical6" className="practical-card cyan">
+              <div className="card-icon-wrap cyan">🔵</div>
+              <div className="card-label cyan">Practical 6 · MDL501.4</div>
+              <h2 className="card-title">Bluetooth Communication</h2>
+              <p className="card-desc">
+                Discover nearby BLE devices, study pairing and connection behaviour, and range-test
+                the link — fitting how the Bluetooth signal falls with distance.
+              </p>
+              <div className="card-tags">
+                <span className="tag">BLE Discovery</span>
+                <span className="tag">Pairing</span>
+                <span className="tag">Range Test</span>
+                <span className="tag">RSSI vs Distance</span>
+                <span className="tag">Path-Loss Fit</span>
+              </div>
+              <span className="card-cta cyan">Launch Experiment →</span>
+            </Link>
+
+            {/* Practical 7 */}
+            <Link to="/practical7" className="practical-card violet">
+              <div className="card-icon-wrap violet">🧱</div>
+              <div className="card-label violet">Practical 7 · MDL501.5</div>
+              <h2 className="card-title">Path Loss vs Obstacles</h2>
+              <p className="card-desc">
+                Log the Bluetooth RSSI as walls, doors and bodies are added between the devices, and
+                measure the per-obstacle attenuation and indoor path-loss exponent.
+              </p>
+              <div className="card-tags">
+                <span className="tag">RSSI vs Obstacles</span>
+                <span className="tag">Attenuation (dB)</span>
+                <span className="tag">Per-Obstacle Loss</span>
+                <span className="tag">Path-Loss Exponent</span>
+                <span className="tag">Indoor Model</span>
+              </div>
+              <span className="card-cta violet">Launch Experiment →</span>
+            </Link>
+
             {/* Practical 8 */}
-            <Link to="/practical8" className="practical-card amber">
-              <div className="card-icon-wrap amber" style={{ background: 'var(--amber-dim)', boxShadow: '0 0 20px var(--amber)' }}>🌊</div>
-              <div className="card-label amber" style={{ color: 'var(--amber)' }}>Practical 8 · MDL501.5</div>
+            <Link to="/practical8" className="practical-card cyan">
+              <div className="card-icon-wrap cyan" style={{ background: 'var(--cyan-dim)', boxShadow: '0 0 20px var(--cyan-glow)' }}>🌊</div>
+              <div className="card-label cyan" style={{ color: 'var(--cyan)' }}>Practical 8 · MDL501.5</div>
               <h2 className="card-title">Analysis of Multipath Effects</h2>
               <p className="card-desc">
                 Record live Wi-Fi signal fluctuation (fading) caused by multipath propagation. Test stationary vs moving scenarios and compare the amplitude distribution to a Rayleigh model fitted to your own data.
@@ -84,13 +122,13 @@ export default function Home() {
                 <span className="tag">Coherence Time</span>
                 <span className="tag">Rayleigh Fit</span>
               </div>
-              <span className="card-cta amber" style={{ color: 'var(--amber)' }}>Launch Experiment →</span>
+              <span className="card-cta cyan" style={{ color: 'var(--cyan)' }}>Launch Experiment →</span>
             </Link>
 
             {/* Practical 9 */}
-            <Link to="/practical9" className="practical-card green">
-              <div className="card-icon-wrap green" style={{ background: 'var(--green-dim)', boxShadow: '0 0 20px var(--green)' }}>📻</div>
-              <div className="card-label green" style={{ color: 'var(--green)' }}>Practical 9 · MDL501.6</div>
+            <Link to="/practical9" className="practical-card cyan">
+              <div className="card-icon-wrap cyan" style={{ background: 'var(--cyan-dim)', boxShadow: '0 0 20px var(--cyan-glow)' }}>📻</div>
+              <div className="card-label cyan" style={{ color: 'var(--cyan)' }}>Practical 9 · MDL501.6</div>
               <h2 className="card-title">Noise &amp; Interference Analysis</h2>
               <p className="card-desc">
                 Scan the real access points around you to analyze channel congestion. Quantify Signal-to-Noise (SNR) and Signal-to-Interference (SIR/SINR) ratios, and compute the theoretical Shannon capacity.
@@ -102,32 +140,8 @@ export default function Home() {
                 <span className="tag">Shannon Capacity</span>
                 <span className="tag">Channel Spectrum</span>
               </div>
-              <span className="card-cta green" style={{ color: 'var(--green)' }}>Launch Experiment →</span>
+              <span className="card-cta cyan" style={{ color: 'var(--cyan)' }}>Launch Experiment →</span>
             </Link>
-          </div>
-
-          {/* Info Row */}
-          <div className="two-col" style={{ marginTop: '8px' }}>
-            <div className="glass-card">
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.8' }}>
-                <strong style={{ color: 'var(--cyan)', display: 'block', marginBottom: '8px' }}>
-                  🔬 How it works
-                </strong>
-                The backend reads live data from your system using <code style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.08)', padding: '1px 6px', borderRadius: '4px' }}>netsh wlan</code> for Wi-Fi 
-                and the Windows <code style={{ fontFamily: 'var(--font-mono)', background: 'rgba(255,255,255,0.08)', padding: '1px 6px', borderRadius: '4px' }}>ping</code> command for latency. 
-                Results are visualized in real-time through interactive charts.
-              </div>
-            </div>
-            <div className="glass-card">
-              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.8' }}>
-                <strong style={{ color: '#a78bfa', display: 'block', marginBottom: '8px' }}>
-                  🚀 Stack
-                </strong>
-                <span style={{ color: 'var(--cyan)' }}>FastAPI</span> (Python) backend running on port 8000 · 
-                <span style={{ color: '#a78bfa' }}> React + Vite</span> frontend on port 5173 · 
-                <span style={{ color: 'var(--amber)' }}> Recharts</span> for interactive data visualization
-              </div>
-            </div>
           </div>
         </div>
       </section>

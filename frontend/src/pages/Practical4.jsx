@@ -5,18 +5,15 @@ import {
   ResponsiveContainer, ReferenceLine, Line, ComposedChart, Area, Legend
 } from 'recharts'
 
-const API = '/api/wifi'
+import { resetAllOnce } from '../resetOnLoad'
 
-// Reset the stored readings once per full page load (a browser reload re-runs
-// this module, so the flag goes back to false). It stays true across in-app
-// navigation, so switching tabs and returning does NOT wipe your readings.
-let didInitReset = false
+const API = '/api/wifi'
 
 /* ── Helpers ── */
 function signalColor(rssi) {
-  if (rssi >= -50) return '#10b981'  // excellent
-  if (rssi >= -60) return '#00d4ff'  // good
-  if (rssi >= -70) return '#f59e0b'  // fair
+  if (rssi >= -50) return '#059669'  // excellent
+  if (rssi >= -60) return '#2563eb'  // good
+  if (rssi >= -70) return '#d97706'  // fair
   return '#ef4444'                    // poor
 }
 
@@ -55,12 +52,12 @@ function CustomTooltip({ active, payload }) {
   if (!d) return null
   return (
     <div style={{
-      background: 'rgba(8,13,32,0.95)', border: '1px solid rgba(0,212,255,0.3)',
+      background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(37,99,235,0.3)',
       borderRadius: '10px', padding: '12px 16px', fontSize: '13px'
     }}>
-      <div style={{ color: '#94a3b8', marginBottom: '4px' }}>Distance: <strong style={{ color: '#f1f5f9' }}>{d.distance} m</strong></div>
+      <div style={{ color: '#94a3b8', marginBottom: '4px' }}>Distance: <strong style={{ color: '#0f2444' }}>{d.distance} m</strong></div>
       <div style={{ color: '#94a3b8', marginBottom: '4px' }}>RSSI: <strong style={{ color: signalColor(d.rssi) }}>{d.rssi} dBm</strong></div>
-      <div style={{ color: '#94a3b8' }}>Signal: <strong style={{ color: '#f1f5f9' }}>{d.signal_pct}%</strong></div>
+      <div style={{ color: '#94a3b8' }}>Signal: <strong style={{ color: '#0f2444' }}>{d.signal_pct}%</strong></div>
     </div>
   )
 }
@@ -93,16 +90,10 @@ export default function Practical4() {
 
   /* ── Live Wi-Fi via WebSocket — pushes as fast as the OS produces a reading ── */
   useEffect(() => {
-    // On a full page reload, clear any readings left over from a previous
-    // session so the observation table starts empty; then load (now empty).
-    const init = async () => {
-      if (!didInitReset) {
-        didInitReset = true
-        try { await axios.delete(`${API}/clear`) } catch {}
-      }
-      fetchReadings()
-    }
-    init()
+    // On a full page reload, all practicals' stored results are cleared first,
+    // then we load the (now empty) readings. Across in-app navigation the reset
+    // is a no-op, so readings persist while you switch tabs.
+    resetAllOnce().then(fetchReadings)
     let stopped = false
     let ws = null
     let reconnectTimer = null
@@ -212,7 +203,7 @@ export default function Practical4() {
         </div>
 
         {/* ── LIVE PANEL ── */}
-        <div className="glass-card" style={{ marginBottom: '24px', borderColor: liveWifi ? 'rgba(0,212,255,0.2)' : 'var(--border)' }}>
+        <div className="glass-card" style={{ marginBottom: '24px', borderColor: liveWifi ? 'rgba(37,99,235,0.2)' : 'var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <div className="live-dot" />
             <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--cyan)' }}>Live Wi-Fi Status</span>
@@ -331,7 +322,7 @@ export default function Practical4() {
                 disabled={recording || !distance || !liveWifi}
                 style={{ height: '46px' }}
               >
-                {recording ? <><div className="spinner" style={{ borderTopColor: '#050a18' }} /> Capturing…</> : '📍 Record'}
+                {recording ? <><div className="spinner" style={{ borderTopColor: '#ffffff' }} /> Capturing…</> : '📍 Record'}
               </button>
             </div>
 
@@ -354,7 +345,7 @@ export default function Practical4() {
                 onClick={handleCalibrate}
                 disabled={!liveWifi || !distance}
                 title="Type your real current distance, then calibrate so estimates match your setup"
-                style={{ borderColor: 'rgba(16,185,129,0.4)', color: 'var(--green)' }}
+                style={{ borderColor: 'rgba(37,99,235,0.4)', color: 'var(--cyan)' }}
               >
                 🎯 Calibrate to {distance ? `${distance} m` : '…'}
               </button>
@@ -457,7 +448,7 @@ export default function Practical4() {
           ) : chartMode === 'percent' ? (
             <ResponsiveContainer width="100%" height={360}>
               <ComposedChart margin={{ top: 10, right: 30, left: 0, bottom: 16 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+                <CartesianGrid stroke="rgba(15,36,68,0.08)" strokeDasharray="4 4" />
                 <XAxis type="number" dataKey="distance" domain={[0, 'dataMax']} allowDecimals
                   label={{ value: 'Distance (m)', position: 'insideBottom', offset: -8, fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
@@ -465,15 +456,15 @@ export default function Practical4() {
                   label={{ value: 'Signal Strength (%)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
                 <Tooltip
-                  contentStyle={{ background: 'rgba(8,13,32,0.95)', border: '1px solid rgba(0,212,255,0.3)', borderRadius: '10px', fontSize: '13px' }}
+                  contentStyle={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '10px', fontSize: '13px' }}
                   formatter={(v, name) => [`${v}%`, name]} labelFormatter={(l) => `Distance: ${l} m`} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Line data={theoretical} dataKey="theo" name="Theoretical decay (100/√d)"
-                  stroke="#f59e0b" strokeDasharray="5 4" strokeWidth={1.5} dot={false} />
+                  stroke="#d97706" strokeDasharray="5 4" strokeWidth={1.5} dot={false} />
                 <Line data={chartData} dataKey="signal_pct" name="Measured (your Wi-Fi)"
-                  stroke="#00d4ff" strokeWidth={2.5}
-                  dot={{ fill: '#00d4ff', r: 5, strokeWidth: 2, stroke: '#050a18' }}
-                  activeDot={{ r: 7, fill: '#00d4ff', stroke: '#fff', strokeWidth: 2 }} />
+                  stroke="#2563eb" strokeWidth={2.5}
+                  dot={{ fill: '#2563eb', r: 5, strokeWidth: 2, stroke: '#ffffff' }}
+                  activeDot={{ r: 7, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }} />
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
@@ -481,11 +472,11 @@ export default function Practical4() {
               <ComposedChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
                 <defs>
                   <linearGradient id="rssiGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#00d4ff" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
+                    <stop offset="5%"  stopColor="#2563eb" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+                <CartesianGrid stroke="rgba(15,36,68,0.08)" strokeDasharray="4 4" />
                 <XAxis dataKey="distance" name="Distance"
                   label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
@@ -493,13 +484,13 @@ export default function Practical4() {
                   label={{ value: 'RSSI (dBm)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
                 <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine y={-50} stroke="#10b981" strokeDasharray="5 3" label={{ value: 'Excellent', fill: '#10b981', fontSize: 10, position: 'right' }} />
-                <ReferenceLine y={-60} stroke="#00d4ff" strokeDasharray="5 3" label={{ value: 'Good',      fill: '#00d4ff', fontSize: 10, position: 'right' }} />
-                <ReferenceLine y={-70} stroke="#f59e0b" strokeDasharray="5 3" label={{ value: 'Fair',      fill: '#f59e0b', fontSize: 10, position: 'right' }} />
+                <ReferenceLine y={-50} stroke="#059669" strokeDasharray="5 3" label={{ value: 'Excellent', fill: '#059669', fontSize: 10, position: 'right' }} />
+                <ReferenceLine y={-60} stroke="#2563eb" strokeDasharray="5 3" label={{ value: 'Good',      fill: '#2563eb', fontSize: 10, position: 'right' }} />
+                <ReferenceLine y={-70} stroke="#d97706" strokeDasharray="5 3" label={{ value: 'Fair',      fill: '#d97706', fontSize: 10, position: 'right' }} />
                 <Area type="monotone" dataKey="rssi" fill="url(#rssiGrad)" stroke="transparent" />
-                <Line type="monotone" dataKey="rssi" stroke="#00d4ff" strokeWidth={2.5}
-                  dot={{ fill: '#00d4ff', r: 5, strokeWidth: 2, stroke: '#050a18' }}
-                  activeDot={{ r: 7, fill: '#00d4ff', stroke: '#fff', strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="rssi" stroke="#2563eb" strokeWidth={2.5}
+                  dot={{ fill: '#2563eb', r: 5, strokeWidth: 2, stroke: '#ffffff' }}
+                  activeDot={{ r: 7, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }} />
               </ComposedChart>
             </ResponsiveContainer>
           )}

@@ -4,3 +4,5 @@ pydantic
 requests
 speedtest-cli
 python-multipart
+bleak
+numpy

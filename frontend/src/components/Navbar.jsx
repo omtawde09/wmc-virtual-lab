@@ -6,7 +6,10 @@ export default function Navbar() {
       <div className="navbar-inner">
         <NavLink to="/" className="navbar-logo">
           <div className="navbar-logo-icon">📡</div>
-          <span className="navbar-logo-text">MDM <span>Practicals</span></span>
+          <span className="navbar-logo-text">
+            <span className="brand-l1">Wireless &amp; Mobile</span>
+            <span className="brand-l2">Communication</span>
+          </span>
         </NavLink>
 
         <ul className="navbar-links">
@@ -23,19 +26,31 @@ export default function Navbar() {
           </li>
           <li>
             <NavLink to="/practical5" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'rgba(124,58,237,0.2)', color: '#a78bfa' }}>P5</span>
+              <span className="nav-badge" style={{ background: 'rgba(124,58,237,0.2)', color: '#4f46e5' }}>P5</span>
               <span className="nav-text">Network Test</span>
             </NavLink>
           </li>
           <li>
+            <NavLink to="/practical6" className={({ isActive }) => isActive ? 'active' : ''}>
+              <span className="nav-badge">P6</span>
+              <span className="nav-text">Bluetooth</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/practical7" className={({ isActive }) => isActive ? 'active' : ''}>
+              <span className="nav-badge">P7</span>
+              <span className="nav-text">Path Loss</span>
+            </NavLink>
+          </li>
+          <li>
             <NavLink to="/practical8" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'var(--amber-dim)', color: 'var(--amber)' }}>P8</span>
+              <span className="nav-badge">P8</span>
               <span className="nav-text">Multipath</span>
             </NavLink>
           </li>
           <li>
             <NavLink to="/practical9" className={({ isActive }) => isActive ? 'active' : ''}>
-              <span className="nav-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)' }}>P9</span>
+              <span className="nav-badge">P9</span>
               <span className="nav-text">Noise &amp; Interf.</span>
             </NavLink>
           </li>

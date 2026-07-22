@@ -5,6 +5,8 @@ import {
   ResponsiveContainer, Legend
 } from 'recharts'
 
+import { resetAllOnce } from '../resetOnLoad'
+
 const API = '/api/interference'
 
 function congestionBadge(level) {
@@ -14,15 +16,15 @@ function congestionBadge(level) {
 }
 function metricColor(v, good, ok) {
   if (v == null) return 'var(--text-muted)'
-  if (v >= good) return '#10b981'
-  if (v >= ok) return '#f59e0b'
+  if (v >= good) return '#059669'
+  if (v >= ok) return '#d97706'
   return '#ef4444'
 }
 function channelCenterMHz(ch, band) {
   if (band && band.includes('2.4')) return 2412 + (ch - 1) * 5     // ch 1..13
   return 5000 + ch * 5                                             // 5 GHz
 }
-const PALETTE = ['#00d4ff', '#f59e0b', '#a78bfa', '#ef4444', '#34d399', '#f472b6', '#facc15', '#60a5fa']
+const PALETTE = ['#2563eb', '#d97706', '#4f46e5', '#ef4444', '#34d399', '#f472b6', '#facc15', '#60a5fa']
 
 export default function Practical9() {
   const [loading, setLoading] = useState(false)
@@ -36,7 +38,7 @@ export default function Practical9() {
     } catch {}
   }, [])
 
-  useEffect(() => { fetchHistory() }, [fetchHistory])
+  useEffect(() => { resetAllOnce().then(fetchHistory) }, [fetchHistory])
 
   const runScan = async () => {
     setLoading(true)
@@ -64,7 +66,7 @@ export default function Practical9() {
     const keys = bandNets.map((n, i) => ({
       key: `${n.ssid}__${n.bssid}`,
       label: `${n.ssid} [Ch ${n.channel}]${n.interference_type === 'Connected' ? ' (You)' : ''}`,
-      color: n.interference_type === 'Connected' ? '#00d4ff' : PALETTE[(i + 1) % PALETTE.length],
+      color: n.interference_type === 'Connected' ? '#2563eb' : PALETTE[(i + 1) % PALETTE.length],
       connected: n.interference_type === 'Connected',
     }))
     const sigma = 9 // ~20 MHz mask
@@ -100,14 +102,14 @@ export default function Practical9() {
         <div className="two-col" style={{ marginBottom: '24px' }}>
           {/* ── Active Connection Summary ── */}
           <div className="glass-card">
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '18px', color: 'var(--green)' }}>📊 Active Connection Summary</div>
+            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '18px', color: 'var(--cyan)' }}>📊 Active Connection Summary</div>
             {connected ? (
               <>
                 <SummaryRow label="SSID"><strong style={{ fontFamily: 'var(--font-mono)' }}>{connected.ssid}</strong></SummaryRow>
                 <SummaryRow label="BSSID"><strong style={{ fontFamily: 'var(--font-mono)' }}>{connected.bssid}</strong></SummaryRow>
                 <SummaryRow label="Operating Band"><span className="badge badge-cyan">{connected.band}</span></SummaryRow>
                 <SummaryRow label="Connected Channel"><strong>Ch {connected.channel}</strong></SummaryRow>
-                <SummaryRow label="Signal strength"><strong style={{ color: 'var(--green)' }}>{connected.rssi_dbm} dBm</strong></SummaryRow>
+                <SummaryRow label="Signal strength"><strong style={{ color: 'var(--cyan)' }}>{connected.rssi_dbm} dBm</strong></SummaryRow>
               </>
             ) : (
               <div className="empty-state" style={{ padding: '20px 0' }}>
@@ -116,15 +118,15 @@ export default function Practical9() {
               </div>
             )}
             <button className="btn btn-primary" onClick={runScan} disabled={loading}
-              style={{ width: '100%', marginTop: '18px', background: 'var(--green)', color: '#050a18' }}>
-              {loading ? <><div className="spinner" style={{ borderTopColor: '#050a18' }} /> Scanning…</> : '🔍 Scan RF Environment'}
+              style={{ width: '100%', marginTop: '18px', background: 'var(--cyan)', color: '#ffffff' }}>
+              {loading ? <><div className="spinner" style={{ borderTopColor: '#ffffff' }} /> Scanning…</> : '🔍 Scan RF Environment'}
             </button>
           </div>
 
           {/* ── Measured Channel Metrics ── */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--green)' }}>📶 Measured Channel Metrics</div>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--cyan)' }}>📶 Measured Channel Metrics</div>
               {metrics && (
                 <span className={`badge ${congestionBadge(metrics.congestion_level)}`}>{metrics.congestion_level} Congestion</span>
               )}
@@ -135,11 +137,11 @@ export default function Practical9() {
                   <Tile value={`${metrics.snr_db} dB`} label="SNR (Signal-to-Noise)" color={metricColor(metrics.snr_db, 25, 15)} />
                   <Tile value={`${metrics.sir_db} dB`} label="SIR (Signal-to-Interf.)" color={metricColor(metrics.sir_db, 20, 5)} />
                   <Tile value={`${metrics.sinr_db} dB`} label="SINR (Effective Link)" color={metricColor(metrics.sinr_db, 20, 5)} />
-                  <Tile value={`${metrics.co_channel_count} APs`} label="Co-channel Overlaps" color={metrics.co_channel_count === 0 ? '#10b981' : '#f59e0b'} />
+                  <Tile value={`${metrics.co_channel_count} APs`} label="Co-channel Overlaps" color={metrics.co_channel_count === 0 ? '#059669' : '#d97706'} />
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '14px' }}>
                   * Thermal noise floor model: <strong>{metrics.noise_floor_dbm} dBm</strong>. Adjacent-channel interferers: {metrics.adj_channel_count}.
-                  Shannon capacity limit: <strong style={{ color: 'var(--green)' }}>{metrics.shannon_capacity_mbps} Mbps</strong>.
+                  Shannon capacity limit: <strong style={{ color: 'var(--cyan)' }}>{metrics.shannon_capacity_mbps} Mbps</strong>.
                 </div>
               </>
             ) : (
@@ -158,7 +160,7 @@ export default function Practical9() {
             <div style={{ display: 'flex', gap: '8px' }}>
               {['2.4 GHz', '5 GHz'].map(b => (
                 <button key={b} className={`btn btn-sm ${band === b ? 'btn-primary' : 'btn-outline'}`}
-                  style={band === b ? { background: 'var(--green)', color: '#050a18' } : {}}
+                  style={band === b ? { background: 'var(--cyan)', color: '#ffffff' } : {}}
                   onClick={() => setBand(b)}>{b} Band</button>
               ))}
             </div>
@@ -173,13 +175,13 @@ export default function Practical9() {
           ) : (
             <ResponsiveContainer width="100%" height={340}>
               <AreaChart data={spectrum.data} margin={{ top: 10, right: 20, left: 0, bottom: 16 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+                <CartesianGrid stroke="rgba(15,36,68,0.08)" strokeDasharray="4 4" />
                 <XAxis dataKey="freq" type="number" domain={['dataMin', 'dataMax']}
                   tick={{ fill: '#94a3b8', fontSize: 11 }} stroke="#334155"
                   label={{ value: 'Frequency (MHz)', position: 'insideBottom', offset: -8, fill: '#94a3b8', fontSize: 12 }} />
                 <YAxis domain={[-100, -30]} tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155"
                   label={{ value: 'RSSI (dBm)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }} />
-                <Tooltip contentStyle={{ background: 'rgba(8,13,32,0.95)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', fontSize: '12px' }}
+                <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '10px', fontSize: '12px' }}
                   labelFormatter={(l) => `${l} MHz`} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 {spectrum.keys.map(k => (
