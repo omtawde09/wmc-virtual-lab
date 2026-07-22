@@ -165,7 +165,9 @@ export default function Practical7() {
                         style={{ cursor: 'pointer', background: selectedAddress === d.address ? 'rgba(37,99,235,0.08)' : 'transparent' }}>
                         <td><input type="radio" checked={selectedAddress === d.address} onChange={() => setSelectedAddress(d.address)} /></td>
                         <td style={{ fontFamily: 'var(--font-mono)' }}>{d.address}</td>
-                        <td>{d.name || <span style={{ color: 'var(--text-muted)' }}>(no name)</span>}</td>
+                        <td>{d.name || (d.vendor
+                          ? <span style={{ color: 'var(--text-secondary)' }}>~ {d.vendor} device</span>
+                          : <span style={{ color: 'var(--text-muted)' }}>(no name)</span>)}</td>
                         <td style={{ color: signalColor(d.rssi), fontFamily: 'var(--font-mono)' }}>{d.rssi ?? '—'}</td>
                         <td><span className={`badge ${q.cls}`}>{q.text}</span></td>
                       </tr>
