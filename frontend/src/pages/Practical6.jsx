@@ -273,11 +273,11 @@ export default function Practical6() {
               <div className="stat-label">Connection State</div>
             </div>
             <div className="stat-pill">
-              <div className="stat-value" style={{ fontSize: '13px', fontFamily: 'var(--font-mono)' }}>{connStatus.address || '—'}</div>
+              <div className="stat-value" title={connStatus.address || ''} style={{ fontSize: '15px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{connStatus.address || '—'}</div>
               <div className="stat-label">Active Address</div>
             </div>
             <div className="stat-pill">
-              <div className="stat-value">{connStatus.services_count ?? '—'}</div>
+              <div className="stat-value" style={{ fontSize: '18px' }}>{connStatus.services_count ?? '—'}</div>
               <div className="stat-label">GATT Services</div>
             </div>
             <div className="stat-pill">
