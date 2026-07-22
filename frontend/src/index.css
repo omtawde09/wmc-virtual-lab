@@ -112,12 +112,13 @@ body::before {
 
 .navbar-inner {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 }
 
 .navbar-logo {
@@ -125,6 +126,7 @@ body::before {
   align-items: center;
   gap: 12px;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .navbar-logo-icon {
@@ -161,41 +163,65 @@ body::before {
 .navbar-links {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   list-style: none;
+  flex-wrap: nowrap;
+  overflow-x: auto;            /* graceful horizontal scroll before it ever wraps */
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* legacy Edge */
 }
+.navbar-links::-webkit-scrollbar { display: none; }
 
 .navbar-links a {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 10px;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--text-secondary);
-  transition: all var(--transition);
+  white-space: nowrap;         /* KEY: labels stay on one line */
+  transition: color var(--transition), background var(--transition);
 }
 
-.navbar-links a:hover,
-.navbar-links a.active {
+.navbar-links a:hover {
   color: var(--text-primary);
-  background: #e8f0fc;
+  background: #eef4fc;
 }
 
 .navbar-links a.active {
   color: var(--cyan);
   background: var(--cyan-dim);
+  font-weight: 600;
 }
 
 .nav-badge {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 20px;
+  background: #eaf1fb;
+  color: var(--text-muted);
+  transition: background var(--transition), color var(--transition);
+  flex-shrink: 0;
+}
+
+.navbar-links a:hover .nav-badge,
+.navbar-links a.active .nav-badge {
   background: var(--cyan-dim);
   color: var(--cyan);
+}
+
+/* Tighten to icons+badges when horizontal space runs low */
+@media (max-width: 1100px) {
+  .navbar-logo-text { display: none; }
+  .navbar-links a { padding: 8px 10px; gap: 5px; }
+}
+@media (max-width: 860px) {
+  .navbar-links .nav-text { display: none; }
+  .navbar-links a { padding: 8px; }
 }
 
 /* --- Home Page --- */
@@ -968,20 +994,7 @@ body::before {
 .glass-card { will-change: transform; }
 .glass-card:hover { transform: translateY(-3px); }
 
-/* ---- Navbar active indicator + hover slide ---- */
-.navbar-links a { position: relative; }
-.navbar-links a::after {
-  content: '';
-  position: absolute;
-  left: 16px; right: 16px; bottom: 4px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--cyan);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.navbar-links a.active::after { transform: scaleX(1); }
+/* ---- Navbar logo hover ---- */
 .navbar-logo-icon { transition: transform var(--transition), box-shadow var(--transition); }
 .navbar-logo:hover .navbar-logo-icon { transform: rotate(-6deg) scale(1.05); box-shadow: 0 6px 18px var(--cyan-glow); }
 
