@@ -28,7 +28,17 @@ export default function App() {
       </Routes>
       <footer className="footer">
         <div className="container">
-          Wireless &amp; Mobile Communication &nbsp;·&nbsp; 2026-27 &nbsp;·&nbsp; Experiments 4–9
+          <div className="footer-brand">
+            <span className="footer-dot" />
+            Wireless &amp; Mobile Communication
+          </div>
+          <div className="footer-meta">Virtual Lab &nbsp;·&nbsp; 2026–27 &nbsp;·&nbsp; Experiments 4–9</div>
+          <div className="footer-credits">
+            Built with <span className="footer-heart">❤️</span> by{' '}
+            <a href="https://github.com/omtawde09" target="_blank" rel="noopener noreferrer" className="footer-link">Om Tawde</a>,{' '}
+            <a href="https://github.com/parthvarekar" target="_blank" rel="noopener noreferrer" className="footer-link">Parth Varekar</a>{' '}&amp;{' '}
+            <a href="https://github.com/ishwar-prog" target="_blank" rel="noopener noreferrer" className="footer-link">Ishwar Suthar</a>
+          </div>
         </div>
       </footer>
     </div>
