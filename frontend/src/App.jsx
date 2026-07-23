@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import PrivacyModal from './components/PrivacyModal'
 import Home from './pages/Home'
 import Practical4 from './pages/Practical4'
 import Practical5 from './pages/Practical5'
@@ -8,10 +9,11 @@ import Practical6 from './pages/Practical6'
 import Practical7 from './pages/Practical7'
 import Practical8 from './pages/Practical8'
 import Practical9 from './pages/Practical9'
-import Privacy from './pages/Privacy'
 import { resetAllOnce } from './resetOnLoad'
 
 export default function App() {
+  const [showPrivacy, setShowPrivacy] = useState(false)
+
   // On every full page load (refresh), wipe all practicals' stored results.
   useEffect(() => { resetAllOnce() }, [])
 
@@ -26,7 +28,6 @@ export default function App() {
         <Route path="/practical7" element={<Practical7 />} />
         <Route path="/practical8" element={<Practical8 />} />
         <Route path="/practical9" element={<Practical9 />} />
-        <Route path="/privacy" element={<Privacy />} />
       </Routes>
       <footer className="footer">
         <div className="container">
@@ -54,10 +55,14 @@ export default function App() {
             📘 This project is an academic work, built and shared for <strong>educational purposes only</strong>,
             and is provided “as is” without warranty of any kind.
             <br />
-            <Link to="/privacy" className="footer-link">Privacy Policy &amp; Disclaimer</Link>
+            <button type="button" className="footer-link footer-link-btn" onClick={() => setShowPrivacy(true)}>
+              Privacy Policy &amp; Disclaimer
+            </button>
           </div>
         </div>
       </footer>
+
+      <PrivacyModal open={showPrivacy} onClose={() => setShowPrivacy(false)} />
     </div>
   )
 }
