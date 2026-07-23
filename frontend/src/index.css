@@ -314,7 +314,7 @@ body::before {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  padding: 40px 0;
+  padding: 40px 0 0;
 }
 
 @media (max-width: 768px) {
@@ -913,7 +913,7 @@ body::before {
 /* --- Footer --- */
 .footer {
   border-top: 1px solid var(--border);
-  margin-top: 48px;
+  margin-top: 0;
   padding: 32px 0 36px;
   text-align: center;
   font-size: 13px;
@@ -1226,7 +1226,9 @@ body::before {
   to { background-position: 200% center; }
 }
 
-/* ---- Entrance animations ---- */
+/* ---- Entrance animations (pure CSS, staggered) ----
+   Deliberately CSS-only: JS class-mutation reveal was tried and rejected because
+   React re-renders reset className, which can leave content stuck invisible. */
 .section-header { animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 .practical-page .glass-card { animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
@@ -1235,18 +1237,47 @@ body::before {
 .practical-page .glass-card:nth-of-type(4) { animation-delay: 0.21s; }
 .practical-page .glass-card:nth-of-type(5) { animation-delay: 0.28s; }
 
-/* Home hero + card reveal (staggered) */
-.hero-eyebrow  { animation: fadeInUp 0.6s ease both; }
-.hero-title    { animation: fadeInUp 0.6s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.hero-subtitle { animation: fadeInUp 0.6s 0.16s ease both; }
-
 .practical-card { animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .practical-card:nth-child(1) { animation-delay: 0.06s; }
 .practical-card:nth-child(2) { animation-delay: 0.14s; }
 .practical-card:nth-child(3) { animation-delay: 0.22s; }
 .practical-card:nth-child(4) { animation-delay: 0.30s; }
+.practical-card:nth-child(5) { animation-delay: 0.38s; }
+.practical-card:nth-child(6) { animation-delay: 0.46s; }
 
 .stat-pill { animation: fadeInScale 0.45s ease both; }
+
+/* ---- Extra micro-interactions (all CSS, zero risk) ---- */
+.stat-pill:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(30, 58, 110, 0.10); }
+
+.data-table tbody tr { transition: background var(--transition), transform var(--transition); }
+.data-table tbody tr:hover { transform: translateX(2px); }
+
+.input-field:focus { transform: translateY(-1px); }
+
+.badge { transition: transform var(--transition); }
+.badge:hover { transform: scale(1.06); }
+
+.empty-state-icon { animation: floatY 3.2s ease-in-out infinite; }
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+.section-eyebrow { transition: transform var(--transition), box-shadow var(--transition); }
+.section-eyebrow:hover { transform: translateY(-1px); box-shadow: 0 4px 12px var(--cyan-glow); }
+
+/* Hero still animates on load — it's above the fold */
+.hero-eyebrow  { animation: fadeInUp 0.6s ease both; }
+.hero-title    { animation: fadeInUp 0.6s 0.08s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.hero-subtitle { animation: fadeInUp 0.6s 0.16s ease both; }
+
+/* ---- Route change fade ---- */
+.route-fade { animation: routeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes routeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
 
 /* ---- Animated gradient hero headline ---- */
 .hero-title .gradient-text {

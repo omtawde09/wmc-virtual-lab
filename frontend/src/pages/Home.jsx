@@ -25,7 +25,7 @@ export default function Home() {
       </section>
 
       {/* ── PRACTICAL CARDS ── */}
-      <section style={{ paddingBottom: '60px' }}>
+      <section style={{ paddingBottom: '40px' }}>
         <div className="container">
           <div className="practical-cards">
 

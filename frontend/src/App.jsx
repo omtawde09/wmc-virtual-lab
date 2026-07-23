@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import PrivacyModal from './components/PrivacyModal'
 import Home from './pages/Home'
@@ -13,6 +13,7 @@ import { resetAllOnce } from './resetOnLoad'
 
 export default function App() {
   const [showPrivacy, setShowPrivacy] = useState(false)
+  const location = useLocation()
 
   // On every full page load (refresh), wipe all practicals' stored results.
   useEffect(() => { resetAllOnce() }, [])
@@ -20,6 +21,7 @@ export default function App() {
   return (
     <div className="page-wrapper">
       <Navbar />
+      <div className="route-fade" key={location.pathname}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/practical4" element={<Practical4 />} />
@@ -29,6 +31,7 @@ export default function App() {
         <Route path="/practical8" element={<Practical8 />} />
         <Route path="/practical9" element={<Practical9 />} />
       </Routes>
+      </div>
       <footer className="footer">
         <div className="container">
           <div className="footer-brand">
