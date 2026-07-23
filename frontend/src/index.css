@@ -974,6 +974,93 @@ body::before {
   30%      { transform: scale(1); }
 }
 
+.footer-legal {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  max-width: 720px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text-muted);
+}
+.footer-legal strong { color: var(--text-secondary); }
+.footer-legal .footer-link { font-size: 12.5px; }
+
+/* --- Privacy / policy page --- */
+.policy-section { margin-bottom: 26px; }
+.policy-section:last-of-type { margin-bottom: 8px; }
+
+.policy-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.policy-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 7px;
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.policy-section p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.policy-list {
+  margin: 4px 0 10px 22px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+.policy-list li { margin-bottom: 6px; }
+
+.footer-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 18px;
+  border-radius: 100px;
+  background: var(--cyan-dim);
+  border: 1px solid var(--border-glow);
+  color: var(--cyan);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+.footer-star:hover {
+  background: rgba(37, 99, 235, 0.16);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--cyan-glow);
+}
+.footer-star-icon {
+  display: inline-block;
+  transition: transform var(--transition);
+}
+.footer-star:hover .footer-star-icon {
+  transform: rotate(72deg) scale(1.2);
+}
+
 .footer-link {
   color: var(--cyan);
   font-weight: 700;
