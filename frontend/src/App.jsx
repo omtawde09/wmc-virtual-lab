@@ -9,6 +9,7 @@ import Practical6 from './pages/Practical6'
 import Practical7 from './pages/Practical7'
 import Practical8 from './pages/Practical8'
 import Practical9 from './pages/Practical9'
+import NotFound from './pages/NotFound'
 import { resetAllOnce } from './resetOnLoad'
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/practical7" element={<Practical7 />} />
         <Route path="/practical8" element={<Practical8 />} />
         <Route path="/practical9" element={<Practical9 />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       </div>
       <footer className="footer">

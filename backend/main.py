@@ -1,9 +1,13 @@
 """
-MDM Practicals API
-==================
+Wireless & Mobile Communication — Virtual Lab API
+=================================================
 FastAPI backend serving:
-  - Practical 4: Wi-Fi Signal Strength vs Distance  (/api/wifi/*)
-  - Practical 5: Throughput & Latency Measurement   (/api/network/*)
+  - Practical 4: Wi-Fi Signal Strength vs Distance   (/api/wifi/*)
+  - Practical 5: Throughput & Latency Measurement    (/api/network/*)
+  - Practical 6: Bluetooth Discovery & Pairing       (/api/bluetooth/*)
+  - Practical 7: Path Loss vs Obstacles              (/api/pathloss/*)
+  - Practical 8: Multipath Fading Effects            (/api/multipath/*)
+  - Practical 9: Noise & Interference Analysis       (/api/interference/*)
 """
 
 from fastapi import FastAPI
@@ -19,8 +23,13 @@ from bluetooth_analyzer import router as bluetooth_analysis_router
 from bluetooth_pathloss import router as pathloss_router
 
 app = FastAPI(
-    title="MDM Practicals API",
-    description="Backend for MDM Practical 4 (Wi-Fi RSSI), Practical 5 (Network Throughput), Practical 8 (Multipath Effects), and Practical 9 (Noise & Interference)",
+    title="Wireless & Mobile Communication — Virtual Lab API",
+    description=(
+        "Backend for the WMC Virtual Lab: Practical 4 (Wi-Fi RSSI vs Distance), "
+        "Practical 5 (Throughput & Latency), Practical 6 (Bluetooth Discovery & Pairing), "
+        "Practical 7 (Path Loss vs Obstacles), Practical 8 (Multipath Effects), "
+        "and Practical 9 (Noise & Interference)."
+    ),
     version="1.0.0",
 )
 
@@ -47,7 +56,7 @@ app.include_router(interference_router, prefix="/api/interference", tags=["Pract
 def root():
     return {
         "status": "running",
-        "message": "MDM Practicals API is live",
+        "message": "Wireless & Mobile Communication Virtual Lab API is live",
         "practicals": {
             "4": "/api/wifi",
             "5": "/api/network",

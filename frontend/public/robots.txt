@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# The API is data-only and has no indexable content.
+Disallow: /api/
+
+Sitemap: https://wmc-virtual-lab.vercel.app/sitemap.xml

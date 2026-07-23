@@ -6,6 +6,8 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
+import { useSEO, experimentSchema } from '../useSEO'
+import ExperimentInfo from '../components/ExperimentInfo'
 
 const WSWIFI_URL = '/api/wifi/ws'
 const API = '/api/multipath'
@@ -25,6 +27,14 @@ function rssiColor(r) {
 }
 
 export default function Practical8() {
+  useSEO({
+    title: 'Multipath Fading Analysis — Signal Fluctuation & Rayleigh Distribution | WMC Virtual Lab',
+    description: 'Record live RSSI and measure multipath fading: fading depth (sigma), level crossing rate and coherence time, then compare your amplitude distribution to a fitted Rayleigh model.',
+    path: '/practical8',
+    keywords: 'multipath fading, rayleigh fading experiment, coherence time, level crossing rate, signal fluctuation, fading depth',
+    jsonLd: experimentSchema({ name: 'Analysis of Multipath Effects', description: 'Record RSSI over time and measure multipath fading statistics against a Rayleigh model.', path: '/practical8', teaches: 'Multipath propagation, Rayleigh fading, fading depth, coherence time, level crossing rate' }),
+  })
+
   const [liveWifi, setLiveWifi] = useState(null)
   const [liveErr, setLiveErr]   = useState(false)
   const [updateMs, setUpdateMs] = useState(null)
@@ -160,7 +170,7 @@ export default function Practical8() {
         {/* ── Header ── */}
         <div className="section-header">
           <div className="section-eyebrow">📶 Practical 8 · MDL501.5</div>
-          <h1 className="section-title">Analysis of Multipath Effects</h1>
+          <h1 className="section-title">Multipath Fading Analysis — Signal Fluctuation &amp; the Rayleigh Distribution</h1>
           <p className="section-desc">
             Observe how the received signal fluctuates (fades) due to multipath propagation.
             Record the live RSSI while stationary or moving, then measure the fading depth,
@@ -212,7 +222,7 @@ export default function Practical8() {
         <div className="two-col" style={{ marginBottom: '24px' }}>
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'var(--cyan)' }}>🧪 Multipath Experiment Setup</div>
+              <h2 className="card-section-title accent">🧪 Multipath Experiment Setup</h2>
               <div className="input-group" style={{ marginBottom: '18px' }}>
                 <label className="input-label">Select Environmental Scenario</label>
                 <select className="input-field" value={scenario} onChange={e => setScenario(e.target.value)} disabled={recording}
@@ -242,7 +252,7 @@ export default function Practical8() {
 
           {/* Latest analysis */}
           <div className="glass-card">
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'var(--cyan)' }}>📊 Fading Statistics</div>
+            <h2 className="card-section-title accent">📊 Fading Statistics</h2>
             {latest ? (
               <>
                 <div className="three-col" style={{ marginBottom: '14px' }}>
@@ -336,7 +346,7 @@ export default function Practical8() {
         {sessions.length > 0 && (
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700' }}>📋 Recorded Sessions</div>
+              <h2 className="card-section-title">📋 Recorded Sessions</h2>
               <button className="btn btn-danger btn-sm" onClick={clearSessions}>🗑 Clear All</button>
             </div>
             <div className="data-table-wrap">
@@ -372,6 +382,43 @@ export default function Practical8() {
             </div>
           </div>
         )}
+
+        <ExperimentInfo
+          heading="About this experiment: multipath fading"
+          faqs={[
+            { q: 'What is multipath fading?', a: 'It is the fluctuation in received signal strength caused by reflected copies of the same transmission arriving at slightly different times and adding constructively or destructively at the receiver.' },
+            { q: 'What is Rayleigh fading?', a: 'Rayleigh fading is the statistical model for a channel with no dominant line-of-sight path, where the signal envelope follows a Rayleigh distribution. When a strong direct path exists, the Rician model applies instead.' },
+            { q: 'What is coherence time?', a: 'Coherence time is the interval over which the channel stays approximately constant. If it is shorter than the time needed to transmit a packet, the channel changes mid-transmission and errors rise.' },
+          ]}
+          related={[
+            { to: '/practical7', title: 'Indoor Path Loss vs Obstacles', blurb: 'Path loss sets the average level; multipath causes the variation around it.' },
+            { to: '/practical9', title: 'Noise and Interference Analysis', blurb: 'Fading is your own signal varying; interference is other networks.' },
+            { to: '/practical4', title: 'Wi-Fi Signal Strength vs Distance', blurb: 'Establish the baseline signal level before studying its fluctuation.' },
+          ]}
+        >
+            <p>
+              A radio signal rarely reaches you by one path. It reflects off walls, floors and furniture,
+              and those copies arrive at slightly different times. When they add <strong>in phase</strong>
+              the signal strengthens; <strong>out of phase</strong> they cancel. The result is
+              <strong>multipath fading</strong> — the received level fluctuates by 10–20 dB even when
+              nothing appears to move.
+            </p>
+            <p>
+              Three statistics characterise it. <strong>Fading depth (sigma)</strong> is the standard
+              deviation of RSSI — how violently the level swings. The <strong>level crossing rate</strong>
+              counts how often the signal dips below a fade threshold each second, indicating how rapidly
+              conditions change. <strong>Coherence time</strong> estimates how long the channel stays
+              roughly constant; a short coherence time means the link is changing faster than a packet can
+              be sent.
+            </p>
+            <p>
+              When there is <strong>no dominant line-of-sight path</strong>, the amplitude follows a
+              <strong>Rayleigh distribution</strong>. With a strong direct path present it follows a
+              <strong>Rician</strong> distribution instead. This page fits a Rayleigh curve to your own
+              measured samples so you can judge which case your environment actually matches.
+            </p>
+        </ExperimentInfo>
+
       </div>
     </main>
   )

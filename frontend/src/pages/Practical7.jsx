@@ -4,6 +4,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 import { resetAllOnce } from '../resetOnLoad'
+import { useSEO, experimentSchema } from '../useSEO'
+import ExperimentInfo from '../components/ExperimentInfo'
 
 const BT_API = '/api/bluetooth'          // shared BLE discovery
 const API = '/api/pathloss'              // Exp 7's own obstacle store + analysis
@@ -26,6 +28,14 @@ function signalLabel(rssi) {
 }
 
 export default function Practical7() {
+  useSEO({
+    title: 'Indoor Path Loss — RSSI vs Obstacles & Path-Loss Exponent (n) | WMC Virtual Lab',
+    description: 'Measure how many dB each wall, door or body costs your wireless link. Log RSSI at varying obstacle counts and fit the indoor path-loss exponent using the log-distance model.',
+    path: '/practical7',
+    keywords: 'path loss exponent, indoor path loss, rssi vs obstacles, log distance path loss model, wall attenuation dB',
+    jsonLd: experimentSchema({ name: 'Path Loss in an Indoor Environment (RSSI vs Obstacles)', description: 'Measure obstacle attenuation in dB and fit the indoor path-loss exponent.', path: '/practical7', teaches: 'Log-distance path loss model, path-loss exponent n, obstacle attenuation, indoor propagation' }),
+  })
+
   /* ── Discovery ── */
   const [devices, setDevices] = useState({})
   const [scanning, setScanning] = useState(false)
@@ -130,7 +140,7 @@ export default function Practical7() {
         {/* ── Header ── */}
         <div className="section-header">
           <div className="section-eyebrow">🧱 Practical 7 · MDL501.5</div>
-          <h1 className="section-title">Path Loss in an Indoor Environment (RSSI vs Obstacles)</h1>
+          <h1 className="section-title">Indoor Path Loss — RSSI vs Obstacles &amp; the Path-Loss Exponent (n)</h1>
           <p className="section-desc">
             Keep the Bluetooth device at a roughly fixed distance and log its RSSI as you add
             obstacles (walls, doors, a body) between it and the laptop. Measure how many dB each
@@ -181,7 +191,7 @@ export default function Practical7() {
 
         {/* ── OBSTACLE LOGGING ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: 'var(--cyan)' }}>🧱 Log Reading at an Obstacle Level</div>
+          <h2 className="card-section-title accent tight">🧱 Log Reading at an Obstacle Level</h2>
           <p className="section-desc" style={{ marginBottom: '14px', fontSize: '13px' }}>
             Keep <strong>distance roughly constant</strong> and vary the obstacle count (e.g. same 3 m spot: 0 walls, then 1 wall, then 2 walls) so the attenuation reflects obstacles, not distance.
           </p>
@@ -241,7 +251,7 @@ export default function Practical7() {
 
         {/* ── OBSTACLE ATTENUATION CHART ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '4px' }}>📊 Attenuation vs Obstacles</div>
+          <h2 className="card-section-title tight">📊 Attenuation vs Obstacles</h2>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '18px' }}>
             Extra loss (dB) relative to the fewest-obstacle reading, grouped by obstacle count.
           </div>
@@ -270,7 +280,7 @@ export default function Practical7() {
         {/* ── OBSERVATION TABLE ── */}
         {groups.length > 0 && (
           <div className="glass-card">
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>📋 Obstacle Attenuation Table</div>
+            <h2 className="card-section-title">📋 Obstacle Attenuation Table</h2>
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead><tr><th># Obstacles</th><th>Avg RSSI (dBm)</th><th>Attenuation (dB)</th><th>Samples</th></tr></thead>
@@ -294,6 +304,40 @@ export default function Practical7() {
             </div>
           </div>
         )}
+
+
+        <ExperimentInfo
+          heading="About this experiment: indoor path loss and obstacle attenuation"
+          faqs={[
+            { q: 'What is the path-loss exponent (n)?', a: 'It is the rate at which signal power decays with distance in the log-distance model. n=2 is free space, 2.5-3.5 is a typical furnished indoor room, and 4-6 indicates heavy obstruction from walls or floors.' },
+            { q: 'How much signal does a wall block?', a: 'Interior drywall typically costs 3-5 dB, a wooden door 5-8 dB, and a brick or concrete wall 10-15 dB. Metal surfaces and foil-backed insulation can exceed 20 dB, which is enough to block the link entirely.' },
+            { q: 'Why should distance stay constant when testing obstacles?', a: 'Because distance and obstruction both reduce RSSI. If both change at once you cannot tell which caused the drop. Holding distance fixed makes the measured attenuation attributable to the obstacles alone.' },
+          ]}
+          related={[
+            { to: '/practical4', title: 'Wi-Fi Signal Strength vs Distance', blurb: 'Measure the pure distance effect first, with no obstacles.' },
+            { to: '/practical6', title: 'Bluetooth Discovery and Range', blurb: 'Pick and pair the BLE device used for these readings.' },
+            { to: '/practical8', title: 'Multipath Fading Analysis', blurb: 'Path loss explains average loss; multipath explains the fluctuation.' },
+          ]}
+        >
+            <p>
+              Indoor radio propagation is described by the <strong>log-distance path loss model</strong>:
+              <code>RSSI = RSSI(1m) − 10·n·log10(d)</code>. The critical term is <strong>n, the
+              path-loss exponent</strong> — a single number that captures how hostile the environment is.
+              In free space n is 2. A normal room with furniture sits around 2.5–3.5. Once walls, doors or
+              people block the path, n climbs to 4–6.
+            </p>
+            <p>
+              Distance and obstruction are two different effects, and they must be measured separately or
+              they confound each other. To isolate the obstacle effect, keep the distance roughly
+              <strong>constant</strong> and vary only the number of obstacles — same 3 m spot with 0 walls,
+              then 1 wall, then 2. The attenuation you measure is then attributable to the obstacles alone.
+            </p>
+            <p>
+              Typical indoor losses: interior drywall costs about <strong>3–5 dB</strong>, a wooden door
+              5–8 dB, a brick or concrete wall 10–15 dB, and a human body 3–6 dB. Metal and foil-backed
+              insulation can exceed 20 dB and effectively act as a shield.
+            </p>
+        </ExperimentInfo>
 
       </div>
     </main>

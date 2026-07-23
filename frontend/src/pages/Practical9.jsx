@@ -6,6 +6,8 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
+import { useSEO, experimentSchema } from '../useSEO'
+import ExperimentInfo from '../components/ExperimentInfo'
 
 const API = '/api/interference'
 
@@ -27,6 +29,14 @@ function channelCenterMHz(ch, band) {
 const PALETTE = ['#2563eb', '#d97706', '#4f46e5', '#ef4444', '#34d399', '#f472b6', '#facc15', '#60a5fa']
 
 export default function Practical9() {
+  useSEO({
+    title: 'Wi-Fi Noise & Interference — SNR vs SIR vs SINR Explained | WMC Virtual Lab',
+    description: 'Scan nearby access points to measure channel congestion and co-channel overlap, then compute SNR, SIR, SINR and the Shannon capacity limit of your Wi-Fi link.',
+    path: '/practical9',
+    keywords: 'SNR vs SIR vs SINR, wifi interference analysis, co-channel interference, noise floor dBm, shannon capacity, channel congestion',
+    jsonLd: experimentSchema({ name: 'Noise and Interference Analysis in Wireless Communication', description: 'Measure noise, co-channel interference and compute SNR, SIR, SINR and Shannon capacity.', path: '/practical9', teaches: 'Thermal noise floor, SNR, SIR, SINR, co-channel interference, Shannon capacity' }),
+  })
+
   const [loading, setLoading] = useState(false)
   const [scan, setScan]       = useState(null)
   const [band, setBand]       = useState('5 GHz')
@@ -91,7 +101,7 @@ export default function Practical9() {
         {/* ── Header ── */}
         <div className="section-header">
           <div className="section-eyebrow">📻 Practical 9 · MDL501.6</div>
-          <h1 className="section-title">Noise &amp; Interference Analysis</h1>
+          <h1 className="section-title">Wi-Fi Noise &amp; Interference — SNR, SIR and SINR Explained</h1>
           <p className="section-desc">
             Scan your active wireless environment, visualize channel congestion, estimate Signal-to-Noise (SNR)
             and Signal-to-Interference (SIR) ratios, and compute the theoretical Shannon capacity — all from
@@ -102,7 +112,7 @@ export default function Practical9() {
         <div className="two-col" style={{ marginBottom: '24px' }}>
           {/* ── Active Connection Summary ── */}
           <div className="glass-card">
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '18px', color: 'var(--cyan)' }}>📊 Active Connection Summary</div>
+            <h2 className="card-section-title accent">📊 Active Connection Summary</h2>
             {connected ? (
               <>
                 <SummaryRow label="SSID"><strong style={{ fontFamily: 'var(--font-mono)' }}>{connected.ssid}</strong></SummaryRow>
@@ -126,7 +136,7 @@ export default function Practical9() {
           {/* ── Measured Channel Metrics ── */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--cyan)' }}>📶 Measured Channel Metrics</div>
+              <h2 className="card-section-title accent">📶 Measured Channel Metrics</h2>
               {metrics && (
                 <span className={`badge ${congestionBadge(metrics.congestion_level)}`}>{metrics.congestion_level} Congestion</span>
               )}
@@ -156,7 +166,7 @@ export default function Practical9() {
         {/* ── Spectrum Map ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ fontSize: '16px', fontWeight: '700' }}>📡 RF Channel Spectrum Map</div>
+            <h2 className="card-section-title">📡 RF Channel Spectrum Map</h2>
             <div style={{ display: 'flex', gap: '8px' }}>
               {['2.4 GHz', '5 GHz'].map(b => (
                 <button key={b} className={`btn btn-sm ${band === b ? 'btn-primary' : 'btn-outline'}`}
@@ -197,7 +207,7 @@ export default function Practical9() {
         {/* ── Visible APs table ── */}
         {networks.length > 0 && (
           <div className="glass-card">
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>📋 Visible Access Points ({networks.length})</div>
+            <h2 className="card-section-title">📋 Visible Access Points ({networks.length})</h2>
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead>
@@ -235,6 +245,42 @@ export default function Practical9() {
             </div>
           </div>
         )}
+
+        <ExperimentInfo
+          heading="About this experiment: noise, interference, SNR, SIR and SINR"
+          faqs={[
+            { q: 'What is the difference between SNR, SIR and SINR?', a: 'SNR compares your signal to background thermal noise. SIR compares it to interference from other transmitters on your channel. SINR combines both noise and interference, and is the best single predictor of real link performance.' },
+            { q: 'What is a good SNR for Wi-Fi?', a: 'Above 25 dB is excellent and supports the highest data rates. 15-25 dB is good, 10-15 dB is marginal with reduced speed, and below 10 dB the connection becomes unstable.' },
+            { q: 'What causes co-channel interference?', a: 'Other access points transmitting on exactly the same channel. They must take turns with your network, cutting effective throughput. In 2.4 GHz only channels 1, 6 and 11 do not overlap, so congestion is common.' },
+          ]}
+          related={[
+            { to: '/practical8', title: 'Multipath Fading Analysis', blurb: 'Distinguish interference from your own signal fading.' },
+            { to: '/practical4', title: 'Wi-Fi Signal Strength vs Distance', blurb: 'SNR depends directly on your measured RSSI.' },
+            { to: '/practical5', title: 'Throughput and Latency', blurb: 'See how interference translates into lost Mbps.' },
+          ]}
+        >
+            <p>
+              Three ratios describe how cleanly a wireless link can carry data, and they are frequently
+              confused. <strong>SNR (Signal-to-Noise Ratio)</strong> compares your signal against the
+              background <strong>thermal noise floor</strong> — roughly <code>-94 dBm</code> for a 20 MHz
+              Wi-Fi channel. <strong>SIR (Signal-to-Interference Ratio)</strong> compares your signal
+              against <em>other transmitters</em> sharing your channel. <strong>SINR</strong> combines
+              both, and is the figure that actually predicts real-world performance.
+            </p>
+            <p>
+              The practical difference matters. Noise is constant and unavoidable; interference is other
+              networks and can be escaped by changing channel. If your SNR is excellent but SIR is poor,
+              moving to a quieter channel will help enormously. If SNR itself is poor, you need to move
+              closer or remove obstructions — a channel change will not save you.
+            </p>
+            <p>
+              <strong>Co-channel</strong> access points sit on exactly your channel and compete directly.
+              In 2.4 GHz only channels 1, 6 and 11 are non-overlapping, which is why the band congests so
+              easily. Finally, the <strong>Shannon capacity</strong> <code>C = B·log2(1 + SINR)</code>
+              gives the theoretical maximum bit rate your channel could ever support.
+            </p>
+        </ExperimentInfo>
+
       </div>
     </main>
   )

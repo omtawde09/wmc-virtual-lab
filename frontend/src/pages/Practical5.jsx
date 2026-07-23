@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
+import { useSEO, experimentSchema } from '../useSEO'
+import ExperimentInfo from '../components/ExperimentInfo'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -320,6 +322,14 @@ function ResultPanel({ result, onRetest }) {
 }
 
 export default function Practical5() {
+  useSEO({
+    title: 'Network Throughput & Latency — Ping, Jitter & Packet Loss Test | WMC Virtual Lab',
+    description: 'Measure real network performance: download and upload throughput in Mbps, ping round-trip time, jitter and packet loss, using a live speed test and the Windows ping command.',
+    path: '/practical5',
+    keywords: 'throughput and latency measurement, ping test, jitter, packet loss, round trip time, network speed test experiment',
+    jsonLd: experimentSchema({ name: 'Network Throughput and Latency Measurement', description: 'Measure throughput, latency, jitter and packet loss using ping and a live speed test.', path: '/practical5', teaches: 'Round-trip time, jitter, packet loss, download and upload throughput, traceroute' }),
+  })
+
   /* Unified speed test */
   const [testing,  setTesting]  = useState(false)
   const [phase,    setPhase]    = useState('idle')
@@ -417,7 +427,7 @@ export default function Practical5() {
         {/* Header */}
         <div className="section-header">
           <div className="section-eyebrow violet">⚡ Practical 5 · MDL501.4</div>
-          <h1 className="section-title">Throughput &amp; Latency Measurement</h1>
+          <h1 className="section-title">Network Throughput &amp; Latency Measurement — Ping, Jitter, Packet Loss &amp; Speed Test</h1>
           <p className="section-desc">
             Measure real network performance: throughput (download/upload) and latency via a live speed test (Table 2),
             plus a command-line <code>ping</code> test reporting packet loss and RTT (Table 1).
@@ -505,9 +515,9 @@ export default function Practical5() {
 
         {/* ── CLI PING TEST · Table 1 ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: 'var(--cyan)' }}>
+          <h2 className="card-section-title accent tight">
             ⌨ Command-Line Latency Test <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>(Table 1 · real <code>ping</code>)</span>
-          </div>
+          </h2>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
             Runs the actual Windows <code>ping</code> command (4 packets, like <code>ping 8.8.8.8</code>) and reports packets sent/received, packet loss and RTT — exactly the columns in Experiment Table 1.
           </div>
@@ -564,9 +574,9 @@ export default function Practical5() {
 
         {/* ── ADVANCED · TRACEROUTE (optional) ── */}
         <div className="glass-card">
-          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: 'var(--cyan)' }}>
+          <h2 className="card-section-title accent tight">
             🗺 Advanced · Traceroute <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>(optional)</span>
-          </div>
+          </h2>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
             Trace the network path to a host and measure hop-by-hop latency. Takes ~30–90 seconds.
           </div>
@@ -612,6 +622,40 @@ export default function Practical5() {
             <div className="alert alert-warning">⚠️ No hops found — host may be unreachable or traceroute is blocked by firewall.</div>
           )}
         </div>
+
+        <ExperimentInfo
+          heading="About this experiment: throughput and latency"
+          faqs={[
+            { q: 'What is a good ping time?', a: 'Under 20 ms is excellent, 20-60 ms is good, 60-120 ms is acceptable for browsing but noticeable in gaming and calls, and above 150 ms feels laggy in real-time applications.' },
+            { q: 'What is jitter and why does it matter?', a: 'Jitter is the variation between consecutive round-trip times. Voice and video need a steady packet arrival rate, so a link with 40 ms latency and 2 ms jitter feels better than one with 25 ms latency and 30 ms jitter.' },
+            { q: 'What is the difference between bandwidth and throughput?', a: 'Bandwidth is the theoretical maximum capacity of the link. Throughput is what you actually achieve after protocol overhead, congestion, interference and distance are accounted for, and it is always lower than the advertised bandwidth.' },
+          ]}
+          related={[
+            { to: '/practical4', title: 'Wi-Fi Signal Strength vs Distance', blurb: 'Weak RSSI is the usual cause of poor throughput — measure it first.' },
+            { to: '/practical9', title: 'Noise and Interference Analysis', blurb: 'Congested channels cap your achievable speed. Check SNR and SIR.' },
+          ]}
+        >
+            <p>
+              Network quality has two independent pillars. <strong>Latency</strong> is the delay a packet
+              experiences travelling to a destination and back — the <strong>round-trip time (RTT)</strong>,
+              measured in milliseconds. <strong>Throughput</strong> is how much payload data the link can
+              actually move per second, measured in <strong>Mbps</strong>. A connection can have huge
+              throughput and still feel sluggish if latency is high, which is why both are measured here.
+            </p>
+            <p>
+              Two derived metrics matter just as much. <strong>Jitter</strong> is the variation between
+              consecutive round-trip times; steady latency matters more than low latency for voice and
+              video calls. <strong>Packet loss</strong> is the percentage of probes that never came back
+              — anything above 1–2% will noticeably degrade real-time applications.
+            </p>
+            <p>
+              The command-line test runs the real Windows <code>ping</code> command (4 packets, like
+              <code>ping 8.8.8.8</code>) and reports sent, received, loss and min/max/average RTT. The
+              throughput test transfers real data against Cloudflare public speed-test endpoints, so the
+              numbers reflect your actual connection rather than a simulation.
+            </p>
+        </ExperimentInfo>
+
       </div>
     </main>
   )

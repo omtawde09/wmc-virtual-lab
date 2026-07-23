@@ -5,6 +5,8 @@ import {
   ResponsiveContainer, Line, ComposedChart
 } from 'recharts'
 import { resetAllOnce } from '../resetOnLoad'
+import { useSEO, experimentSchema } from '../useSEO'
+import ExperimentInfo from '../components/ExperimentInfo'
 
 const API = '/api/bluetooth'
 const CONN_API = '/api/bluetooth/conn'
@@ -43,6 +45,14 @@ function CustomTooltip({ active, payload }) {
 }
 
 export default function Practical6() {
+  useSEO({
+    title: 'Bluetooth BLE Communication — Discovery, Pairing & Range Testing | WMC Virtual Lab',
+    description: 'Scan nearby Bluetooth Low Energy devices, study pairing and connection behaviour, and measure how BLE signal strength falls with distance using the log-distance path-loss model.',
+    path: '/practical6',
+    keywords: 'bluetooth communication experiment, BLE scanning, bluetooth pairing, BLE RSSI range test, bluetooth range testing',
+    jsonLd: experimentSchema({ name: 'Bluetooth Communication: Pairing and Range Testing', description: 'Discover BLE devices, study pairing and connection, and measure Bluetooth range via RSSI.', path: '/practical6', teaches: 'BLE GAP advertising, device discovery, pairing and bonding, RSSI-based range testing' }),
+  })
+
   /* ── Discovery ── */
   const [devices, setDevices] = useState({})
   const [scanning, setScanning] = useState(false)
@@ -186,7 +196,7 @@ export default function Practical6() {
         {/* ── Header ── */}
         <div className="section-header">
           <div className="section-eyebrow">🔵 Practical 6 · MDL501.4</div>
-          <h1 className="section-title">Bluetooth Communication — Pairing &amp; Range Testing</h1>
+          <h1 className="section-title">Bluetooth (BLE) Communication — Device Discovery, Pairing &amp; Range Testing</h1>
           <p className="section-desc">
             Scan nearby BLE devices, study pairing/connection behaviour, and analyze how the
             Bluetooth signal falls with distance using the log-distance path-loss model.
@@ -249,7 +259,7 @@ export default function Practical6() {
 
         {/* ── CONNECTION & PAIRING ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: 'var(--cyan)' }}>🔗 Connection &amp; Pairing</div>
+          <h2 className="card-section-title accent tight">🔗 Connection &amp; Pairing</h2>
           <p className="section-desc" style={{ marginBottom: '16px', fontSize: '13px' }}>
             Select a device above, then attempt a direct BLE connection. Most phones only act as BLE <em>scanners</em>, not connectable peripherals — a connect attempt against a phone will time out, which is expected. Dedicated BLE peripherals (bands, tags, sensors) accept connections. Phone pairing itself is done in Windows Settings; use "Refresh Windows Paired List" to confirm.
           </p>
@@ -300,7 +310,7 @@ export default function Practical6() {
 
         {/* ── RANGE TEST LOGGING ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: 'var(--cyan)' }}>📍 Range Test — Log Distance → RSSI</div>
+          <h2 className="card-section-title accent">📍 Range Test — Log Distance → RSSI</h2>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
             Selected device: <strong style={{ fontFamily: 'var(--font-mono)' }}>{selectedAddress || 'none — pick one above'}</strong>
             {selected && <> &nbsp;({selected.rssi} dBm)</>}
@@ -326,7 +336,7 @@ export default function Practical6() {
 
         {/* ── DISTANCE vs RSSI FIT ── */}
         <div className="glass-card">
-          <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>📉 Distance vs RSSI — Path-Loss Model Fit</div>
+          <h2 className="card-section-title">📉 Distance vs RSSI — Path-Loss Model Fit</h2>
 
           {fitErr && chartData.length < 2 && <div className="alert alert-warning" style={{ marginBottom: '16px' }}>📊 {fitErr}</div>}
 
@@ -361,6 +371,40 @@ export default function Practical6() {
             </>
           )}
         </div>
+
+
+        <ExperimentInfo
+          heading="About this experiment: Bluetooth discovery, pairing and range"
+          faqs={[
+            { q: 'Why do many Bluetooth devices show as (no name)?', a: 'Phones and many gadgets use randomised Bluetooth addresses and deliberately omit their friendly name from advertisement packets for privacy. A name only appears when a device actually broadcasts one, such as fitness bands, earbuds or beacons.' },
+            { q: 'Why does connecting to a phone over BLE time out?', a: 'Most phones only operate as BLE scanners (central role), not as connectable peripherals. A direct GATT connection attempt to a phone will time out, which is expected behaviour rather than a fault. Dedicated peripherals like bands, tags and sensors accept connections.' },
+            { q: 'What is the typical range of Bluetooth Low Energy?', a: 'BLE class 2 devices reach roughly 10 metres indoors in line of sight. Walls, bodies and metal reduce this sharply, often to just a few metres, which is what the range test on this page quantifies.' },
+          ]}
+          related={[
+            { to: '/practical7', title: 'Indoor Path Loss vs Obstacles', blurb: 'Use the same BLE link to measure how many dB a wall costs.' },
+            { to: '/practical4', title: 'Wi-Fi Signal Strength vs Distance', blurb: 'Compare BLE decay against Wi-Fi over the same distances.' },
+          ]}
+        >
+            <p>
+              <strong>Bluetooth Low Energy (BLE)</strong> devices announce themselves by broadcasting
+              <strong>GAP advertisement packets</strong> on a duty cycle — typically every 100 ms to 2
+              seconds. Scanning is passive listening for those broadcasts, which is why a device can appear
+              and disappear from the list: there is no device-left event in BLE, only the absence of
+              further advertisements.
+            </p>
+            <p>
+              <strong>Pairing</strong> is a separate, security-layer step. Connecting establishes an
+              unencrypted GATT link; pairing exchanges keys and, if bonded, stores them for future
+              sessions. That handshake is deliberately owned by the operating system — the confirmation
+              prompt belongs to the person at the keyboard, not to an automated script.
+            </p>
+            <p>
+              For range testing, BLE RSSI behaves like Wi-Fi RSSI but typically shows a
+              <strong>higher path-loss exponent</strong>, because BLE runs at lower transmit power with
+              simpler antennas. Log readings at several distances to fit the exponent for your own
+              environment.
+            </p>
+        </ExperimentInfo>
 
       </div>
     </main>

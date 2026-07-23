@@ -2,16 +2,99 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Wireless and Mobile Communication – Virtual lab for live Wi-Fi signal, network throughput, multipath and interference experiments." />
-    <title>Wireless and Mobile Communication | Virtual Lab</title>
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="theme-color" content="#2563eb" />
+
+    <!-- Primary meta (per-route values are set at runtime by src/useSEO.js) -->
+    <title>Wireless &amp; Mobile Communication Virtual Lab — Live Wi-Fi, Bluetooth &amp; Signal Experiments</title>
+    <meta name="description" content="Free virtual lab for Wireless &amp; Mobile Communication. Measure Wi-Fi RSSI vs distance, path loss exponent, Bluetooth range, multipath fading and SNR/SIR/SINR interference using live data from your own hardware." />
+    <meta name="author" content="Om Tawde, Parth Varekar, Ishwar Suthar" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <link rel="canonical" href="https://wmc-virtual-lab.vercel.app/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wireless &amp; Mobile Communication Virtual Lab" />
+    <meta property="og:title" content="Wireless &amp; Mobile Communication Virtual Lab" />
+    <meta property="og:description" content="Run real Wi-Fi, Bluetooth, path-loss, multipath and interference experiments from your browser using live data from your own hardware." />
+    <meta property="og:url" content="https://wmc-virtual-lab.vercel.app/" />
+    <meta property="og:image" content="https://wmc-virtual-lab.vercel.app/og-cover.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Wireless &amp; Mobile Communication Virtual Lab" />
+    <meta name="twitter:description" content="Measure Wi-Fi RSSI, path loss, Bluetooth range, multipath fading and interference — live, from your own hardware." />
+    <meta name="twitter:image" content="https://wmc-virtual-lab.vercel.app/og-cover.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Structured data: the application + the site -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://wmc-virtual-lab.vercel.app/#app",
+          "name": "Wireless & Mobile Communication Virtual Lab",
+          "alternateName": "WMC Virtual Lab",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "Windows",
+          "description": "An interactive virtual laboratory for Wireless & Mobile Communication experiments: Wi-Fi RSSI vs distance, network throughput and latency, Bluetooth discovery and range, indoor path loss, multipath fading, and noise & interference analysis.",
+          "url": "https://wmc-virtual-lab.vercel.app/",
+          "codeRepository": "https://github.com/omtawde09/wmc-virtual-lab",
+          "isAccessibleForFree": true,
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "author": [
+            { "@type": "Person", "name": "Om Tawde", "url": "https://github.com/omtawde09" },
+            { "@type": "Person", "name": "Parth Varekar", "url": "https://github.com/parthvarekar" },
+            { "@type": "Person", "name": "Ishwar Suthar", "url": "https://github.com/ishwar-prog" }
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://wmc-virtual-lab.vercel.app/#website",
+          "url": "https://wmc-virtual-lab.vercel.app/",
+          "name": "Wireless & Mobile Communication Virtual Lab",
+          "inLanguage": "en",
+          "publisher": { "@id": "https://wmc-virtual-lab.vercel.app/#app" }
+        }
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Crawler / no-JS fallback so the page is never empty -->
+    <noscript>
+      <div style="max-width:820px;margin:40px auto;padding:0 24px;font-family:system-ui,sans-serif;line-height:1.7;color:#0f2444">
+        <h1>Wireless &amp; Mobile Communication Virtual Lab</h1>
+        <p>An interactive virtual laboratory for Wireless &amp; Mobile Communication experiments, using live measurements from your own Wi-Fi and Bluetooth hardware.</p>
+        <h2>Experiments</h2>
+        <ul>
+          <li><a href="/practical4">Wi-Fi Signal Strength vs Distance — measure RSSI in dBm and path loss</a></li>
+          <li><a href="/practical5">Network Throughput &amp; Latency — ping, jitter, packet loss and speed test</a></li>
+          <li><a href="/practical6">Bluetooth (BLE) Communication — discovery, pairing and range testing</a></li>
+          <li><a href="/practical7">Indoor Path Loss — RSSI vs obstacles and the path-loss exponent</a></li>
+          <li><a href="/practical8">Multipath Fading Analysis — signal fluctuation and Rayleigh distribution</a></li>
+          <li><a href="/practical9">Wi-Fi Noise &amp; Interference — SNR, SIR and SINR</a></li>
+        </ul>
+        <p>This application requires JavaScript. Source code:
+          <a href="https://github.com/omtawde09/wmc-virtual-lab">github.com/omtawde09/wmc-virtual-lab</a>
+        </p>
+      </div>
+    </noscript>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

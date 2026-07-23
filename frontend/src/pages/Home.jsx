@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom'
+import { useSEO } from '../useSEO'
 
 export default function Home() {
+  useSEO({
+    title: 'Wireless & Mobile Communication Virtual Lab — Live Wi-Fi, Bluetooth & Signal Experiments',
+    description: 'Free virtual lab for Wireless & Mobile Communication. Measure Wi-Fi RSSI vs distance, path-loss exponent, Bluetooth range, multipath fading and SNR/SIR/SINR interference using live data from your own hardware.',
+    path: '/',
+    keywords: 'wireless and mobile communication lab, wifi rssi experiment, path loss exponent, bluetooth range test, multipath fading, SNR SIR SINR, virtual lab',
+  })
+
   return (
     <main>
       {/* ── HERO ── */}

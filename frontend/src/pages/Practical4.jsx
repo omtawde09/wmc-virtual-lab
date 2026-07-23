@@ -6,6 +6,8 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
+import { useSEO, experimentSchema } from '../useSEO'
+import ExperimentInfo from '../components/ExperimentInfo'
 
 const API = '/api/wifi'
 
@@ -63,6 +65,14 @@ function CustomTooltip({ active, payload }) {
 }
 
 export default function Practical4() {
+  useSEO({
+    title: 'Wi-Fi Signal Strength vs Distance — Measure RSSI in dBm | WMC Virtual Lab',
+    description: 'Measure real Wi-Fi RSSI at different distances, plot the signal-distance curve and analyse path loss. Live dBm readings from your own Wi-Fi adapter using netsh.',
+    path: '/practical4',
+    keywords: 'wifi rssi vs distance, wifi signal strength dbm, netsh wlan show interfaces, rssi to distance, path loss experiment',
+    jsonLd: experimentSchema({ name: 'Wi-Fi Signal Strength vs Distance', description: 'Measure Wi-Fi RSSI at increasing distances and analyse the signal-distance relationship.', path: '/practical4', teaches: 'Wi-Fi RSSI measurement, dBm scale, log-distance path loss, signal quality classification' }),
+  })
+
   const [liveWifi, setLiveWifi]   = useState(null)
   const [liveErr, setLiveErr]     = useState(false)
   const [readings, setReadings]   = useState([])
@@ -196,7 +206,7 @@ export default function Practical4() {
         {/* ── Header ── */}
         <div className="section-header">
           <div className="section-eyebrow">📶 Practical 4 · MDL501.3</div>
-          <h1 className="section-title">Signal Strength vs Distance</h1>
+          <h1 className="section-title">Wi-Fi Signal Strength vs Distance — Measure RSSI &amp; Path Loss in dBm</h1>
           <p className="section-desc">
             Record Wi-Fi RSSI at different distances from the router and analyze the signal-distance relationship.
           </p>
@@ -420,9 +430,9 @@ export default function Practical4() {
         <div className="glass-card" style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
-              <div style={{ fontSize: '16px', fontWeight: '700' }}>
+              <h2 className="card-section-title" style={{ marginBottom: 0 }}>
                 {chartMode === 'percent' ? '📊 Signal Strength (%) vs Distance' : '📊 RSSI (dBm) vs Distance'}
-              </div>
+              </h2>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                 {chartMode === 'percent'
                   ? 'PC signal strength (%) vs distance, with the theoretical inverse-decay curve (100/√d).'
@@ -499,9 +509,9 @@ export default function Practical4() {
         {/* ── DATA TABLE ── */}
         {readings.length > 0 && (
           <div className="glass-card">
-            <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '20px' }}>
+            <h2 className="card-section-title">
               📋 Observation Table
-            </div>
+            </h2>
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead>
@@ -545,6 +555,42 @@ export default function Practical4() {
             </div>
           </div>
         )}
+
+        <ExperimentInfo
+          heading="About this experiment: Wi-Fi signal strength vs distance"
+          faqs={[
+            { q: 'What is a good Wi-Fi signal strength in dBm?', a: '-30 to -50 dBm is excellent, -50 to -60 dBm is good, -60 to -70 dBm is fair and still usable for browsing, and below -80 dBm the connection becomes unreliable or drops entirely.' },
+            { q: 'Why is Wi-Fi RSSI always negative?', a: 'dBm is a logarithmic ratio against 1 milliwatt. Received Wi-Fi power is far less than 1 mW, so the logarithm is negative. A smaller absolute number (-45) means more power than a larger one (-80).' },
+            { q: 'How do I check Wi-Fi signal strength on Windows?', a: 'Run netsh wlan show interfaces in Command Prompt. It reports Signal as a percentage, and on newer Windows builds an Rssi value in dBm. This lab reads the real dBm value whenever your driver exposes it.' },
+          ]}
+          related={[
+            { to: '/practical7', title: 'Indoor Path Loss vs Obstacles', blurb: 'Add walls between the devices and measure how many dB each one costs.' },
+            { to: '/practical8', title: 'Multipath Fading Analysis', blurb: 'See why the signal fluctuates even when you stand perfectly still.' },
+            { to: '/practical5', title: 'Throughput and Latency', blurb: 'Check what that signal strength actually delivers in Mbps and ping.' },
+          ]}
+        >
+            <p>
+              <strong>RSSI (Received Signal Strength Indicator)</strong> tells you how strong the Wi-Fi
+              signal arriving at your adapter is. It is reported in <strong>dBm</strong> — a logarithmic
+              scale that is always negative for Wi-Fi, because the received power is a tiny fraction of a
+              milliwatt. A value closer to zero is stronger: <code>-45 dBm</code> is excellent,
+              <code>-70 dBm</code> is usable, and below <code>-85 dBm</code> the link usually drops.
+            </p>
+            <p>
+              Signal does not fall off linearly with distance. It follows the <strong>log-distance path
+              loss model</strong>, where received power drops with the logarithm of distance:
+              <code>RSSI = RSSI(1m) − 10·n·log10(d)</code>. That is why the curve is steep near the
+              router and flattens further away — doubling the distance costs roughly the same number of dB
+              every time, not the same number of metres.
+            </p>
+            <p>
+              This page reads your adapter directly with <code>netsh wlan show interfaces</code>, so every
+              point on the chart is a genuine measurement from your own hardware. Record readings at
+              several distances (1 m, 3 m, 6 m, 10 m) with a clear line of sight, then compare your curve
+              against the theoretical decay line.
+            </p>
+        </ExperimentInfo>
+
       </div>
     </main>
   )
