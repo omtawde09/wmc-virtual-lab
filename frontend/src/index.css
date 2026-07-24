@@ -1026,6 +1026,49 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
   margin-top: 4px;
 }
 
+/* --- Backend connection banner (deployed build) --- */
+.backend-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 22px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  animation: fadeInUp 0.5s ease both;
+}
+.backend-banner.offline {
+  background: var(--amber-dim);
+  border: 1px solid rgba(180, 83, 9, 0.28);
+  color: var(--text-secondary);
+}
+.backend-banner.online {
+  background: var(--green-dim);
+  border: 1px solid rgba(4, 120, 87, 0.28);
+  color: var(--green);
+  font-weight: 600;
+}
+.backend-banner-text { flex: 1; min-width: 0; }
+.backend-banner-text strong { color: var(--text-primary); }
+.backend-banner.online .backend-banner-text strong { color: var(--green); }
+.backend-banner-note {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.backend-dl { flex-shrink: 0; white-space: nowrap; }
+.backend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.backend-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+.backend-dot.offline { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: pulse 2s infinite; }
+
+@media (max-width: 640px) {
+  .backend-banner { flex-wrap: wrap; }
+  .backend-dl { width: 100%; }
+}
+
 /* --- Footer --- */
 .footer {
   border-top: 1px solid var(--border);

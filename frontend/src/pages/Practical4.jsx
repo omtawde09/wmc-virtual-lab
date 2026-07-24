@@ -6,8 +6,10 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
+import { wsUrl } from '../config'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import BackendBanner from '../components/BackendBanner'
 
 const API = '/api/wifi'
 
@@ -111,8 +113,7 @@ export default function Practical4() {
 
     const open = () => {
       if (stopped) return
-      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-      ws = new WebSocket(`${proto}://${window.location.host}/api/wifi/ws`)
+      ws = new WebSocket(wsUrl('/api/wifi/ws'))
 
       ws.onopen = () => { backoff = 1000 }
       ws.onmessage = (ev) => {
@@ -211,6 +212,8 @@ export default function Practical4() {
             Record Wi-Fi RSSI at different distances from the router and analyze the signal-distance relationship.
           </p>
         </div>
+
+        <BackendBanner />
 
         {/* ── LIVE PANEL ── */}
         <div className="glass-card" style={{ marginBottom: '24px', borderColor: liveWifi ? 'rgba(37,99,235,0.2)' : 'var(--border)' }}>

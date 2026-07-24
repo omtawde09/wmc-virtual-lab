@@ -4,8 +4,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 import { resetAllOnce } from '../resetOnLoad'
+import { wsUrl } from '../config'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import BackendBanner from '../components/BackendBanner'
 
 const BT_API = '/api/bluetooth'          // shared BLE discovery
 const API = '/api/pathloss'              // Exp 7's own obstacle store + analysis
@@ -59,8 +61,7 @@ export default function Practical7() {
 
   /* ── Live BLE discovery (shared stream) ── */
   useEffect(() => {
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const ws = new WebSocket(`${proto}://${window.location.host}${BT_API}/ws`)
+    const ws = new WebSocket(wsUrl(`${BT_API}/ws`))
     wsRef.current = ws
     ws.onopen = () => { setScanning(true); setLiveErr(false) }
     ws.onerror = () => setLiveErr(true)
@@ -147,6 +148,8 @@ export default function Practical7() {
             obstacle costs and how obstruction raises the path-loss exponent.
           </p>
         </div>
+
+        <BackendBanner />
 
         {/* ── DEVICE PICKER ── */}
         <div className="glass-card" style={{ marginBottom: '24px', borderColor: scanning ? 'rgba(37,99,235,0.2)' : 'var(--border)' }}>

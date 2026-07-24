@@ -8,6 +8,7 @@ import {
 import { resetAllOnce } from '../resetOnLoad'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import BackendBanner from '../components/BackendBanner'
 
 const API = '/api/interference'
 
@@ -108,6 +109,8 @@ export default function Practical9() {
             real measured access points around you.
           </p>
         </div>
+
+        <BackendBanner />
 
         <div className="two-col" style={{ marginBottom: '24px' }}>
           {/* ── Active Connection Summary ── */}

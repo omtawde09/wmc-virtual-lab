@@ -5,8 +5,10 @@ import {
   ResponsiveContainer, Line, ComposedChart
 } from 'recharts'
 import { resetAllOnce } from '../resetOnLoad'
+import { wsUrl } from '../config'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import BackendBanner from '../components/BackendBanner'
 
 const API = '/api/bluetooth'
 const CONN_API = '/api/bluetooth/conn'
@@ -77,8 +79,7 @@ export default function Practical6() {
 
   /* ── Live BLE advertisement stream ── */
   useEffect(() => {
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const ws = new WebSocket(`${proto}://${window.location.host}${API}/ws`)
+    const ws = new WebSocket(wsUrl(`${API}/ws`))
     wsRef.current = ws
     ws.onopen = () => { setScanning(true); setLiveErr(false) }
     ws.onerror = () => setLiveErr(true)
@@ -202,6 +203,8 @@ export default function Practical6() {
             Bluetooth signal falls with distance using the log-distance path-loss model.
           </p>
         </div>
+
+        <BackendBanner />
 
         {/* ── LIVE DISCOVERY ── */}
         <div className="glass-card" style={{ marginBottom: '24px', borderColor: scanning ? 'rgba(37,99,235,0.2)' : 'var(--border)' }}>

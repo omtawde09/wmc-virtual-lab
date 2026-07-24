@@ -6,8 +6,10 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
+import { wsUrl } from '../config'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import BackendBanner from '../components/BackendBanner'
 
 const WSWIFI_URL = '/api/wifi/ws'
 const API = '/api/multipath'
@@ -77,8 +79,7 @@ export default function Practical8() {
 
     const open = () => {
       if (stopped) return
-      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-      ws = new WebSocket(`${proto}://${window.location.host}${WSWIFI_URL}`)
+      ws = new WebSocket(wsUrl(WSWIFI_URL))
       ws.onopen = () => { backoff = 1000 }
       ws.onmessage = (ev) => {
         const data = JSON.parse(ev.data)
@@ -178,6 +179,8 @@ export default function Practical8() {
             model fitted to your own data.
           </p>
         </div>
+
+        <BackendBanner />
 
         {/* ── LIVE PANEL ── */}
         <div className="glass-card" style={{ marginBottom: '24px', borderColor: connected ? 'rgba(37,99,235,0.2)' : 'var(--border)' }}>

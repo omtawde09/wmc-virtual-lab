@@ -33,13 +33,26 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Allow all origins for local development (React dev server on port 5173)
+# CORS + Chrome/Edge Private Network Access.
+#
+# The deployed frontend (an HTTPS site) calls this backend running on the
+# visitor's own machine at http://localhost:8000, so real cross-origin requests
+# happen in production. Two things must be right:
+#   - allow any origin, WITHOUT credentials — the only spec-valid combination
+#     with a "*" origin (this API uses no cookies/auth, so nothing is lost);
+#   - allow_private_network=True — Chrome sends a preflight carrying
+#     `Access-Control-Request-Private-Network: true` when a public page reaches a
+#     loopback resource, and Starlette's CORSMiddleware rejects it with HTTP 400
+#     ("Disallowed CORS private-network") unless this is enabled. With it on, the
+#     preflight returns 200 + `Access-Control-Allow-Private-Network: true`.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    allow_private_network=True,
 )
 
 app.include_router(wifi_router, prefix="/api/wifi", tags=["Practical 4 – Wi-Fi RSSI"])

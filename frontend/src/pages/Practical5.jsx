@@ -2,6 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import BackendBanner from '../components/BackendBanner'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -433,6 +434,8 @@ export default function Practical5() {
             plus a command-line <code>ping</code> test reporting packet loss and RTT (Table 1).
           </p>
         </div>
+
+        <BackendBanner />
 
         {/* ── UNIFIED SPEED TEST ── */}
         <div className="glass-card" style={{ marginBottom: '24px', textAlign: 'center' }}>
