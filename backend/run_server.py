@@ -13,6 +13,20 @@ import sys
 import socket
 
 
+def _pause(msg: str = "Press Enter to exit...") -> None:
+    """
+    Waits for the user before the console window closes.
+
+    Guarded because stdin is not always available: if the exe is launched
+    without a console (or its output is piped/redirected), a bare input() raises
+    EOFError and turns a friendly message into a crash traceback.
+    """
+    try:
+        input(msg)
+    except (EOFError, KeyboardInterrupt, OSError):
+        pass
+
+
 def _port_is_free(host: str, port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex((host, port)) != 0
@@ -31,7 +45,7 @@ def main() -> None:
         print(f"\n[!] Port {port} is already in use.")
         print("    The backend may already be running in another window.")
         print("    Close it first, then run this again.\n")
-        input("Press Enter to exit...")
+        _pause()
         sys.exit(1)
 
     # Import the app only after the port check, so a duplicate launch exits fast.
@@ -53,7 +67,7 @@ def main() -> None:
         pass
     except Exception as exc:  # surface the error instead of the window vanishing
         print(f"\n[!] Server stopped with an error: {exc}\n")
-        input("Press Enter to exit...")
+        _pause()
         sys.exit(1)
 
 

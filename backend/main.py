@@ -21,6 +21,7 @@ from bluetooth_scanner import router as bluetooth_router
 from bluetooth_connection import router as bluetooth_conn_router
 from bluetooth_analyzer import router as bluetooth_analysis_router
 from bluetooth_pathloss import router as pathloss_router
+from doc_export import router as docx_router
 
 app = FastAPI(
     title="Wireless & Mobile Communication — Virtual Lab API",
@@ -63,6 +64,7 @@ app.include_router(bluetooth_analysis_router, prefix="/api/bluetooth/analysis", 
 app.include_router(pathloss_router, prefix="/api/pathloss", tags=["Practical 7 – Path Loss vs Obstacles"])
 app.include_router(multipath_router, prefix="/api/multipath", tags=["Practical 8 – Multipath Effects"])
 app.include_router(interference_router, prefix="/api/interference", tags=["Practical 9 – Noise & Interference"])
+app.include_router(docx_router, prefix="/api/docx", tags=["Experiment Document Export"])
 
 
 @app.get("/", tags=["Health"])

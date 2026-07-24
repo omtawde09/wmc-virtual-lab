@@ -9,6 +9,8 @@ import { resetAllOnce } from '../resetOnLoad'
 import { wsUrl } from '../config'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import ExportToDocument from '../components/ExportToDocument'
+import { findChartSvg } from '../exportDocx'
 import BackendBanner from '../components/BackendBanner'
 
 const API = '/api/wifi'
@@ -91,6 +93,7 @@ export default function Practical4() {
   const [chartMode, setChartMode] = useState('percent') // 'percent' (experiment view) | 'dbm'
 
   const lastFrameAt = useRef(0)
+  const chartRef = useRef(null)   // used to grab the live <svg> when exporting
 
   /* ── Fetch stored readings ── */
   const fetchReadings = useCallback(async () => {
@@ -430,7 +433,7 @@ export default function Practical4() {
         )}
 
         {/* ── CHART ── */}
-        <div className="glass-card" style={{ marginBottom: '24px' }}>
+        <div className="glass-card" style={{ marginBottom: '24px' }} ref={chartRef}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <h2 className="card-section-title" style={{ marginBottom: 0 }}>
@@ -558,6 +561,12 @@ export default function Practical4() {
             </div>
           </div>
         )}
+
+        <ExportToDocument
+          readings={readings}
+          getChartSvg={() => findChartSvg(chartRef.current)}
+          experiment="Experiment 4 - Wi-Fi Signal Strength vs Distance"
+        />
 
         <ExperimentInfo
           heading="About this experiment: Wi-Fi signal strength vs distance"

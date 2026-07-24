@@ -35,7 +35,7 @@ hiddenimports = []
 datas = []
 binaries = []
 
-for pkg in ("bleak",):
+for pkg in ("bleak", "docx"):
     d, b, h = collect_all(pkg)
     datas += d
     binaries += b
@@ -60,6 +60,8 @@ hiddenimports += [
     "bluetooth_connection",
     "bluetooth_analyzer",
     "bluetooth_pathloss",
+    "doc_export",
+    "docx",
 ]
 
 block_cipher = None

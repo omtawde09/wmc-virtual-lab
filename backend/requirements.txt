@@ -6,3 +6,4 @@ speedtest-cli
 python-multipart
 bleak
 numpy
+python-docx

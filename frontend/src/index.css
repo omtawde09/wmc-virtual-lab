@@ -1026,6 +1026,94 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
   margin-top: 4px;
 }
 
+/* --- Export to experiment document --- */
+.export-doc {
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  margin-bottom: 24px;
+  animation: fadeInUp 0.5s ease both;
+}
+.export-doc.locked {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: linear-gradient(180deg, #f7faff, #eef4fc);
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+}
+.export-doc.ready {
+  background: linear-gradient(180deg, #ffffff, #f5f9ff);
+  border: 1px solid var(--border-glow);
+  box-shadow: var(--shadow-card);
+}
+.export-doc-head { display: flex; align-items: flex-start; gap: 14px; }
+.export-doc-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+.export-doc strong { color: var(--text-primary); font-size: 15px; }
+.export-doc-hint {
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+.export-doc-hint code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  background: rgba(15, 36, 68, 0.06);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.export-progress {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+  max-width: 320px;
+}
+.export-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.export-doc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.export-file {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: 12.5px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.export-file::file-selector-button {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  margin-right: 12px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  cursor: pointer;
+}
+.export-file::file-selector-button:hover { background: rgba(37, 99, 235, 0.18); }
+
+@media (max-width: 640px) {
+  .export-doc-row { flex-direction: column; align-items: stretch; }
+}
+
 /* --- Backend connection banner (deployed build) --- */
 .backend-banner {
   display: flex;
