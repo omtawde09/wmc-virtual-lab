@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import PrivacyModal from './components/PrivacyModal'
 import Home from './pages/Home'
+import Onboarding from './pages/Onboarding'
 import Practical4 from './pages/Practical4'
 import Practical5 from './pages/Practical5'
 import Practical6 from './pages/Practical6'
@@ -15,26 +16,38 @@ import { resetAllOnce } from './resetOnLoad'
 export default function App() {
   const [showPrivacy, setShowPrivacy] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+
+  const isOnboarding = location.pathname === '/onboarding'
 
   // On every full page load (refresh), wipe all practicals' stored results.
   useEffect(() => { resetAllOnce() }, [])
 
+  // Redirect first-time visitors to onboarding
+  useEffect(() => {
+    if (!localStorage.getItem('onboardingCompleted') && location.pathname === '/') {
+      navigate('/onboarding', { replace: true })
+    }
+  }, [])
+
   return (
-    <div className="page-wrapper">
-      <Navbar />
-      <div className="route-fade" key={location.pathname}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/practical4" element={<Practical4 />} />
-        <Route path="/practical5" element={<Practical5 />} />
-        <Route path="/practical6" element={<Practical6 />} />
-        <Route path="/practical7" element={<Practical7 />} />
-        <Route path="/practical8" element={<Practical8 />} />
-        <Route path="/practical9" element={<Practical9 />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+    <div className={isOnboarding ? undefined : 'page-wrapper'}>
+      {!isOnboarding && <Navbar />}
+      <div className={isOnboarding ? undefined : 'route-fade'} key={location.pathname}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/practical4" element={<Practical4 />} />
+          <Route path="/practical5" element={<Practical5 />} />
+          <Route path="/practical6" element={<Practical6 />} />
+          <Route path="/practical7" element={<Practical7 />} />
+          <Route path="/practical8" element={<Practical8 />} />
+          <Route path="/practical9" element={<Practical9 />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </div>
-      <footer className="footer">
+      {!isOnboarding && (
+        <footer className="footer">
         <div className="container">
           <div className="footer-brand">
             <span className="footer-dot" />
@@ -66,8 +79,9 @@ export default function App() {
           </div>
         </div>
       </footer>
+      )}
 
-      <PrivacyModal open={showPrivacy} onClose={() => setShowPrivacy(false)} />
+      {!isOnboarding && <PrivacyModal open={showPrivacy} onClose={() => setShowPrivacy(false)} />}
     </div>
   )
 }

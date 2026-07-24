@@ -1,0 +1,325 @@
+/* =============================================================================
+   ONBOARDING — scoped styles
+   =============================================================================
+   The original design was written in Tailwind. Installing Tailwind here would
+   apply its preflight reset to the whole app and restyle every other page, so
+   each utility used by the onboarding markup is reproduced below with the exact
+   value Tailwind would have generated. The class names are kept identical to
+   the source so the JSX is unchanged.
+
+   Breakpoints match Tailwind: sm = 640px, md = 768px.
+   ========================================================================== */
+
+/* --- Root ---------------------------------------------------------------- */
+
+.onboarding-root {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* Light theme — matches the rest of the app (--bg-primary soft light blue). */
+  background-color: var(--bg-primary);
+  font-family: var(--font-main), system-ui, -apple-system, sans-serif;
+}
+
+/* Soft blue/indigo wash, light-theme counterpart of the original dark glow. */
+.onboarding-glow {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    to bottom right,
+    rgba(37, 99, 235, 0.08),
+    transparent,
+    rgba(79, 70, 229, 0.08)
+  );
+  filter: blur(64px);
+}
+
+/* absolute inset-0 overflow-hidden */
+.onboarding-shapes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Light vignette — fades shapes into the page top and bottom. */
+.onboarding-vignette {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    to top,
+    var(--bg-primary),
+    transparent,
+    rgba(238, 244, 252, 0.8)
+  );
+  pointer-events: none;
+}
+
+/* --- ElegantShape -------------------------------------------------------- */
+
+.elegant-shape {
+  position: absolute;
+}
+
+.elegant-shape-inner {
+  position: relative;
+}
+
+/* Light-theme shape: a faint blue-tinted border and soft coloured shadow so the
+   floating pills read on a light background instead of the original white glow. */
+.elegant-shape-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  border: 2px solid rgba(37, 99, 235, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(30, 58, 110, 0.10);
+}
+
+.elegant-shape-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.45),
+    transparent 70%
+  );
+}
+
+/* --- Layout -------------------------------------------------------------- */
+
+/* relative z-10 container mx-auto px-4 md:px-6 */
+.onboarding-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px)  { .onboarding-container { max-width: 640px; } }
+@media (min-width: 768px)  { .onboarding-container { max-width: 768px; padding-left: 1.5rem; padding-right: 1.5rem; } }
+@media (min-width: 1024px) { .onboarding-container { max-width: 1024px; } }
+@media (min-width: 1280px) { .onboarding-container { max-width: 1280px; } }
+@media (min-width: 1536px) { .onboarding-container { max-width: 1536px; } }
+
+/* max-w-3xl mx-auto text-center */
+.onboarding-inner {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+/* --- Title --------------------------------------------------------------- */
+
+/* text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight */
+.onboarding-heading {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .onboarding-heading { font-size: 3.75rem; line-height: 1; }
+}
+
+@media (min-width: 768px) {
+  .onboarding-heading { font-size: 6rem; line-height: 1; margin-bottom: 2rem; }
+}
+
+/* Line 1: dark navy on light, the light-theme counterpart of from-white. */
+.onboarding-title-1 {
+  background-image: linear-gradient(to bottom, var(--text-primary), #24365c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Line 2: the app's blue → indigo brand gradient. */
+.onboarding-title-2 {
+  background-image: linear-gradient(
+    to right,
+    var(--cyan),
+    #4f46e5,
+    #38bdf8
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Description --------------------------------------------------------- */
+
+/* text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed
+   font-light tracking-wide max-w-xl mx-auto px-4 */
+.onboarding-description {
+  font-size: 1rem;
+  line-height: 1.625;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.025em;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) { .onboarding-description { font-size: 1.125rem; } }
+@media (min-width: 768px) { .onboarding-description { font-size: 1.25rem; } }
+
+/* block mb-2 font-medium — brand blue on light. */
+.onboarding-subtitle {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--cyan);
+}
+
+/* --- Navigation ---------------------------------------------------------- */
+
+/* flex items-center justify-center gap-4 mt-8 */
+.onboarding-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* Light card counterpart of the dark glass button. */
+.onboarding-prev-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 9999px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: all 0.15s ease;
+}
+
+.onboarding-prev-btn:hover:not(:disabled) {
+  background-color: var(--bg-card-hover);
+  border-color: var(--border-glow);
+}
+
+.onboarding-prev-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.onboarding-prev-btn:disabled {
+  cursor: not-allowed;
+  background-color: var(--bg-secondary);
+}
+
+/* flex gap-2 */
+.onboarding-dot-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* w-1.5 h-1.5 rounded-full transition-all duration-300 — light-theme track. */
+.onboarding-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: #c3d3ea;
+  transition: all 0.3s ease;
+}
+
+/* Active pill uses the app's blue. */
+.onboarding-dot.is-active {
+  width: 1.5rem;
+  background-color: var(--cyan);
+}
+
+/* Primary action — the app's blue gradient pill with white text. */
+.onboarding-next-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 9999px;
+  background-image: linear-gradient(135deg, var(--cyan), #1d4ed8);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28);
+  transition: box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.onboarding-next-btn:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+}
+
+/* group-hover:translate-x-1 on the arrow */
+.onboarding-next-btn .onboarding-arrow {
+  transition: transform 0.15s ease;
+}
+
+.onboarding-next-btn:hover .onboarding-arrow {
+  transform: translateX(0.25rem);
+}
+
+/* --- Shape positions (Tailwind arbitrary values, kept as written) --------- */
+
+.left-\[-10\%\]  { left: -10%; }
+.left-\[5\%\]    { left: 5%; }
+.left-\[20\%\]   { left: 20%; }
+.right-\[-5\%\]  { right: -5%; }
+.right-\[15\%\]  { right: 15%; }
+.top-\[5\%\]     { top: 5%; }
+.top-\[10\%\]    { top: 10%; }
+.top-\[15\%\]    { top: 15%; }
+.top-\[70\%\]    { top: 70%; }
+.bottom-\[5\%\]  { bottom: 5%; }
+
+@media (min-width: 768px) {
+  .md\:left-\[-5\%\]   { left: -5%; }
+  .md\:left-\[10\%\]   { left: 10%; }
+  .md\:left-\[25\%\]   { left: 25%; }
+  .md\:right-\[0\%\]   { right: 0%; }
+  .md\:right-\[20\%\]  { right: 20%; }
+  .md\:top-\[10\%\]    { top: 10%; }
+  .md\:top-\[15\%\]    { top: 15%; }
+  .md\:top-\[20\%\]    { top: 20%; }
+  .md\:top-\[75\%\]    { top: 75%; }
+  .md\:bottom-\[10\%\] { bottom: 10%; }
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-root *,
+  .onboarding-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
