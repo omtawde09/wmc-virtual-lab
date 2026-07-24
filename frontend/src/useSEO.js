@@ -7,7 +7,7 @@ import { useEffect } from 'react'
  * can be cleanly replaced on the next route.
  */
 
-export const SITE_URL = 'https://wmc-virtual-lab.vercel.app'
+export const SITE_URL = 'https://wmc-virtual-lab.onrender.com'
 export const SITE_NAME = 'Wireless & Mobile Communication Virtual Lab'
 
 function upsertMeta(attr, key, content) {
