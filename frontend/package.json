@@ -2,6 +2,13 @@
   "name": "frontend",
   "private": true,
   "version": "0.0.0",
+  "description": "Wireless & Mobile Communication Virtual Lab - interactive experiments using live Wi-Fi and Bluetooth measurements.",
+  "author": "Om Tawde, Parth Varekar, Ishwar Suthar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/omtawde09/wmc-virtual-lab.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

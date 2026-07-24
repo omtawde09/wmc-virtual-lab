@@ -14,11 +14,16 @@ export const NEEDS_LOCAL_BACKEND = API_BASE !== ''
 /**
  * Polls the local backend's /health endpoint so the UI can show whether the
  * downloadable .exe is running. Returns 'checking' | 'online' | 'offline'.
+ *
+ * `enabled` is a parameter (rather than the caller bailing out early) so this
+ * hook is always called unconditionally — React's rules of hooks forbid calling
+ * it behind an early return. In dev it's disabled, so no pointless polling.
  */
-export function useBackendStatus(intervalMs = 4000) {
+export function useBackendStatus(enabled = true, intervalMs = 4000) {
   const [status, setStatus] = useState('checking')
 
   useEffect(() => {
+    if (!enabled) return
     let alive = true
     const ping = async () => {
       try {
@@ -31,7 +36,7 @@ export function useBackendStatus(intervalMs = 4000) {
     ping()
     const id = setInterval(ping, intervalMs)
     return () => { alive = false; clearInterval(id) }
-  }, [intervalMs])
+  }, [enabled, intervalMs])
 
   return status
 }

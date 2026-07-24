@@ -90,10 +90,17 @@ exe = EXE(
     a.datas,
     [],
     name="WMC-Lab-Backend",
+    # Embeds author/product info into the exe's Windows "Details" tab. Free, no
+    # certificate required. Does NOT suppress SmartScreen/AV warnings.
+    version="version_info.txt",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX packing is a well-known antivirus false-positive amplifier (packed
+    # binaries look like obfuscated malware to heuristic scanners). Explicitly
+    # off so a build machine that happens to have UPX installed cannot silently
+    # produce a more-flagged exe than the one tested here.
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,          # keep the console window so users see the server running

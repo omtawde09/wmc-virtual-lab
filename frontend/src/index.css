@@ -1049,15 +1049,99 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
   color: var(--green);
   font-weight: 600;
 }
+.backend-banner.offline { display: block; }        /* stacked: head row + steps */
+.backend-banner-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
 .backend-banner-text { flex: 1; min-width: 0; }
 .backend-banner-text strong { color: var(--text-primary); }
 .backend-banner.online .backend-banner-text strong { color: var(--green); }
-.backend-banner-note {
-  margin-top: 6px;
-  font-size: 11.5px;
-  color: var(--text-muted);
+.backend-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 .backend-dl { flex-shrink: 0; white-space: nowrap; }
+
+.backend-toggle {
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--amber);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--transition);
+}
+.backend-toggle:hover { opacity: 0.72; }
+
+/* ---- How-to-run steps ---- */
+.backend-steps {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(180, 83, 9, 0.22);
+  animation: fadeInUp 0.35s ease both;
+}
+.backend-steps-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 12px;
+}
+.backend-steps-list {
+  margin: 0 0 14px 20px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+.backend-steps-list li { padding-left: 4px; }
+.backend-steps-list strong { color: var(--text-primary); }
+.backend-steps-list code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: rgba(15, 36, 68, 0.06);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.step-note {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.backend-steps-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.backend-steps-foot p {
+  flex-basis: 100%;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+.backend-steps-foot p strong { color: var(--text-secondary); }
+.backend-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: var(--green-dim);
+  color: var(--green);
+}
 .backend-dot {
   width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
 }
@@ -1066,7 +1150,10 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
 
 @media (max-width: 640px) {
   .backend-banner { flex-wrap: wrap; }
-  .backend-dl { width: 100%; }
+  .backend-banner-head { flex-wrap: wrap; }
+  .backend-banner-actions { width: 100%; }
+  .backend-dl { flex: 1; text-align: center; }
+  .backend-steps-list { margin-left: 18px; }
 }
 
 /* --- Footer --- */
