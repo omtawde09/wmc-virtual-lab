@@ -48,8 +48,8 @@ function CustomTooltip({ active, payload }) {
 
 export default function Practical6() {
   useSEO({
-    title: 'Bluetooth BLE Communication — Discovery, Pairing & Range Testing | WMC Virtual Lab',
-    description: 'Scan nearby Bluetooth Low Energy devices, study pairing and connection behaviour, and measure how BLE signal strength falls with distance using the log-distance path-loss model.',
+    title: 'Bluetooth BLE Communication | WMC Virtual Lab',
+    description: 'Scan nearby Bluetooth Low Energy devices, study pairing, and measure how BLE signal strength falls with distance using the log-distance path-loss model.',
     path: '/practical6',
     keywords: 'bluetooth communication experiment, BLE scanning, bluetooth pairing, BLE RSSI range test, bluetooth range testing',
     jsonLd: experimentSchema({ name: 'Bluetooth Communication: Pairing and Range Testing', description: 'Discover BLE devices, study pairing and connection, and measure Bluetooth range via RSSI.', path: '/practical6', teaches: 'BLE GAP advertising, device discovery, pairing and bonding, RSSI-based range testing' }),

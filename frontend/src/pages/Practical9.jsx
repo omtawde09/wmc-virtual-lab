@@ -31,8 +31,8 @@ const PALETTE = ['#2563eb', '#d97706', '#4f46e5', '#ef4444', '#34d399', '#f472b6
 
 export default function Practical9() {
   useSEO({
-    title: 'Wi-Fi Noise & Interference — SNR vs SIR vs SINR Explained | WMC Virtual Lab',
-    description: 'Scan nearby access points to measure channel congestion and co-channel overlap, then compute SNR, SIR, SINR and the Shannon capacity limit of your Wi-Fi link.',
+    title: 'Wi-Fi Noise & Interference: SNR, SIR, SINR | WMC Lab',
+    description: 'Scan nearby access points to measure channel congestion and co-channel overlap, then compute SNR, SIR, SINR and the Shannon capacity of your Wi-Fi link.',
     path: '/practical9',
     keywords: 'SNR vs SIR vs SINR, wifi interference analysis, co-channel interference, noise floor dBm, shannon capacity, channel congestion',
     jsonLd: experimentSchema({ name: 'Noise and Interference Analysis in Wireless Communication', description: 'Measure noise, co-channel interference and compute SNR, SIR, SINR and Shannon capacity.', path: '/practical9', teaches: 'Thermal noise floor, SNR, SIR, SINR, co-channel interference, Shannon capacity' }),

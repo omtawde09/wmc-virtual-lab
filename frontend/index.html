@@ -14,8 +14,8 @@
     <meta name="theme-color" content="#2563eb" />
 
     <!-- Primary meta (per-route values are set at runtime by src/useSEO.js) -->
-    <title>Wireless &amp; Mobile Communication Virtual Lab — Live Wi-Fi, Bluetooth &amp; Signal Experiments</title>
-    <meta name="description" content="Free virtual lab for Wireless &amp; Mobile Communication. Measure Wi-Fi RSSI vs distance, path loss exponent, Bluetooth range, multipath fading and SNR/SIR/SINR interference using live data from your own hardware." />
+    <title>Wireless &amp; Mobile Communication Virtual Lab</title>
+    <meta name="description" content="Free virtual lab for Wireless &amp; Mobile Communication. Measure Wi-Fi RSSI, path loss, Bluetooth range, multipath fading and interference from live data." />
     <meta name="author" content="Om Tawde, Parth Varekar, Ishwar Suthar" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <link rel="canonical" href="https://wmc-virtual-lab.onrender.com/" />
@@ -77,12 +77,23 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
-
-    <!-- Crawler / no-JS fallback so the page is never empty -->
-    <noscript>
+    <!-- First-paint / SEO fallback. React (createRoot) clears #root on mount, so
+         JS users never see this; crawlers that read the raw HTML get a real,
+         single top-level heading and an intro paragraph. Bing's on-page analyzer
+         does not count a heading placed inside the no-script block, so it lives
+         here instead. -->
+    <div id="root">
       <div style="max-width:820px;margin:40px auto;padding:0 24px;font-family:system-ui,sans-serif;line-height:1.7;color:#0f2444">
         <h1>Wireless &amp; Mobile Communication Virtual Lab</h1>
+        <p>Real-time Wi-Fi signal, throughput, multipath and interference experiments, using live measurements captured from your own Wi-Fi and Bluetooth hardware — no simulation.</p>
+      </div>
+    </div>
+
+    <!-- Full experiment list for no-JS visitors. Uses second-level headings so
+         the raw source keeps exactly one top-level heading (from #root above). -->
+    <noscript>
+      <div style="max-width:820px;margin:40px auto;padding:0 24px;font-family:system-ui,sans-serif;line-height:1.7;color:#0f2444">
+        <h2>Wireless &amp; Mobile Communication Virtual Lab</h2>
         <p>An interactive virtual laboratory for Wireless &amp; Mobile Communication experiments, using live measurements from your own Wi-Fi and Bluetooth hardware.</p>
         <h2>Experiments</h2>
         <ul>

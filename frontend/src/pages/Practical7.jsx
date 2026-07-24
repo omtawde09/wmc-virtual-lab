@@ -31,8 +31,8 @@ function signalLabel(rssi) {
 
 export default function Practical7() {
   useSEO({
-    title: 'Indoor Path Loss — RSSI vs Obstacles & Path-Loss Exponent (n) | WMC Virtual Lab',
-    description: 'Measure how many dB each wall, door or body costs your wireless link. Log RSSI at varying obstacle counts and fit the indoor path-loss exponent using the log-distance model.',
+    title: 'Indoor Path Loss & Path-Loss Exponent | WMC Virtual Lab',
+    description: 'Measure how many dB each wall, door or body costs your link. Log RSSI at varying obstacle counts and fit the indoor path-loss exponent (n).',
     path: '/practical7',
     keywords: 'path loss exponent, indoor path loss, rssi vs obstacles, log distance path loss model, wall attenuation dB',
     jsonLd: experimentSchema({ name: 'Path Loss in an Indoor Environment (RSSI vs Obstacles)', description: 'Measure obstacle attenuation in dB and fit the indoor path-loss exponent.', path: '/practical7', teaches: 'Log-distance path loss model, path-loss exponent n, obstacle attenuation, indoor propagation' }),

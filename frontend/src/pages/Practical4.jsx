@@ -70,8 +70,8 @@ function CustomTooltip({ active, payload }) {
 
 export default function Practical4() {
   useSEO({
-    title: 'Wi-Fi Signal Strength vs Distance — Measure RSSI in dBm | WMC Virtual Lab',
-    description: 'Measure real Wi-Fi RSSI at different distances, plot the signal-distance curve and analyse path loss. Live dBm readings from your own Wi-Fi adapter using netsh.',
+    title: 'Wi-Fi Signal Strength vs Distance | WMC Virtual Lab',
+    description: 'Measure real Wi-Fi RSSI at different distances, plot the signal-distance curve and analyse path loss — live dBm readings from your Wi-Fi adapter.',
     path: '/practical4',
     keywords: 'wifi rssi vs distance, wifi signal strength dbm, netsh wlan show interfaces, rssi to distance, path loss experiment',
     jsonLd: experimentSchema({ name: 'Wi-Fi Signal Strength vs Distance', description: 'Measure Wi-Fi RSSI at increasing distances and analyse the signal-distance relationship.', path: '/practical4', teaches: 'Wi-Fi RSSI measurement, dBm scale, log-distance path loss, signal quality classification' }),

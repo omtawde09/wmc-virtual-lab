@@ -324,8 +324,8 @@ function ResultPanel({ result, onRetest }) {
 
 export default function Practical5() {
   useSEO({
-    title: 'Network Throughput & Latency — Ping, Jitter & Packet Loss Test | WMC Virtual Lab',
-    description: 'Measure real network performance: download and upload throughput in Mbps, ping round-trip time, jitter and packet loss, using a live speed test and the Windows ping command.',
+    title: 'Network Throughput & Latency Test | WMC Virtual Lab',
+    description: 'Measure real network performance — download/upload throughput in Mbps, ping round-trip time, jitter and packet loss, via a live speed test and ping.',
     path: '/practical5',
     keywords: 'throughput and latency measurement, ping test, jitter, packet loss, round trip time, network speed test experiment',
     jsonLd: experimentSchema({ name: 'Network Throughput and Latency Measurement', description: 'Measure throughput, latency, jitter and packet loss using ping and a live speed test.', path: '/practical5', teaches: 'Round-trip time, jitter, packet loss, download and upload throughput, traceroute' }),

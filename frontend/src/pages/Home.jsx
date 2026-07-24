@@ -3,8 +3,8 @@ import { useSEO } from '../useSEO'
 
 export default function Home() {
   useSEO({
-    title: 'Wireless & Mobile Communication Virtual Lab — Live Wi-Fi, Bluetooth & Signal Experiments',
-    description: 'Free virtual lab for Wireless & Mobile Communication. Measure Wi-Fi RSSI vs distance, path-loss exponent, Bluetooth range, multipath fading and SNR/SIR/SINR interference using live data from your own hardware.',
+    title: 'Wireless & Mobile Communication Virtual Lab',
+    description: 'Free virtual lab for Wireless & Mobile Communication. Measure Wi-Fi RSSI, path loss, Bluetooth range, multipath fading and interference from live data.',
     path: '/',
     keywords: 'wireless and mobile communication lab, wifi rssi experiment, path loss exponent, bluetooth range test, multipath fading, SNR SIR SINR, virtual lab',
   })

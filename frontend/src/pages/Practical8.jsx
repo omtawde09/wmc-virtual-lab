@@ -30,8 +30,8 @@ function rssiColor(r) {
 
 export default function Practical8() {
   useSEO({
-    title: 'Multipath Fading Analysis — Signal Fluctuation & Rayleigh Distribution | WMC Virtual Lab',
-    description: 'Record live RSSI and measure multipath fading: fading depth (sigma), level crossing rate and coherence time, then compare your amplitude distribution to a fitted Rayleigh model.',
+    title: 'Multipath Fading & Rayleigh Analysis | WMC Virtual Lab',
+    description: 'Record live RSSI and measure multipath fading — fading depth (sigma), level crossing rate and coherence time — versus a fitted Rayleigh distribution.',
     path: '/practical8',
     keywords: 'multipath fading, rayleigh fading experiment, coherence time, level crossing rate, signal fluctuation, fading depth',
     jsonLd: experimentSchema({ name: 'Analysis of Multipath Effects', description: 'Record RSSI over time and measure multipath fading statistics against a Rayleigh model.', path: '/practical8', teaches: 'Multipath propagation, Rayleigh fading, fading depth, coherence time, level crossing rate' }),
