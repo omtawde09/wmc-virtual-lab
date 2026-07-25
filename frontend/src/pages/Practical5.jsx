@@ -17,13 +17,6 @@ function latencyColor(ms) {
   if (ms <= 120) return '#d97706'
   return '#ef4444'
 }
-function latencyLabel(ms) {
-  if (ms <= 20)  return { text: 'Excellent', cls: 'badge-green' }
-  if (ms <= 60)  return { text: 'Good',      cls: 'badge-cyan'  }
-  if (ms <= 120) return { text: 'Fair',      cls: 'badge-amber' }
-  return               { text: 'Poor',       cls: 'badge-red'   }
-}
-
 const PHASE_COLOR = { ping: '#059669', download: '#2563eb', upload: '#4f46e5', done: '#2563eb', idle: '#2563eb' }
 const PHASE_LABEL = { ping: 'Ping', download: 'Download', upload: 'Upload', done: 'Complete', idle: 'Ready' }
 
@@ -328,7 +321,7 @@ export default function Practical5() {
     description: 'Measure real network performance — download/upload throughput in Mbps, ping round-trip time, jitter and packet loss, via a live speed test and ping.',
     path: '/practical5',
     keywords: 'throughput and latency measurement, ping test, jitter, packet loss, round trip time, network speed test experiment',
-    jsonLd: experimentSchema({ name: 'Network Throughput and Latency Measurement', description: 'Measure throughput, latency, jitter and packet loss using ping and a live speed test.', path: '/practical5', teaches: 'Round-trip time, jitter, packet loss, download and upload throughput, traceroute' }),
+    jsonLd: experimentSchema({ name: 'Network Throughput and Latency Measurement', description: 'Measure throughput, latency, jitter and packet loss using ping and a live speed test.', path: '/practical5', teaches: 'Round-trip time, jitter, packet loss, download and upload throughput' }),
   })
 
   /* Unified speed test */
@@ -346,11 +339,6 @@ export default function Practical5() {
   const [pingHost, setPingHost] = useState('8.8.8.8')
   const [pinging,  setPinging]  = useState(false)
   const [cliPing,  setCliPing]  = useState(null)
-
-  /* Traceroute (advanced, optional) */
-  const [traceHost,   setTraceHost]   = useState('8.8.8.8')
-  const [tracing,     setTracing]     = useState(false)
-  const [traceResult, setTraceResult] = useState(null)
 
   async function runFullTest() {
     setTesting(true); setResult(null); setError(''); setSamples([])
@@ -406,17 +394,6 @@ export default function Practical5() {
       setCliPing({ success: false, error: 'Ping request failed. Ensure the backend is running.' })
     }
     setPinging(false)
-  }
-
-  /* Traceroute */
-  async function handleTrace() {
-    if (!traceHost.trim()) return
-    setTracing(true); setTraceResult(null)
-    try {
-      const res = await axios.post(`${API}/traceroute`, { host: traceHost.trim() }, { timeout: 120000 })
-      setTraceResult(res.data)
-    } catch {}
-    setTracing(false)
   }
 
   const gaugeValue = phase === 'done' ? (result?.download_mbps ?? 0) : liveVal
@@ -572,57 +549,6 @@ export default function Practical5() {
                 {cliPing.times?.length > 0 && <> · Per-packet RTT: {cliPing.times.map(t => `${t}ms`).join(', ')}</>}
               </div>
             </div>
-          )}
-        </div>
-
-        {/* ── ADVANCED · TRACEROUTE (optional) ── */}
-        <div className="glass-card">
-          <h2 className="card-section-title accent tight">
-            🗺 Advanced · Traceroute <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>(optional)</span>
-          </h2>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-            Trace the network path to a host and measure hop-by-hop latency. Takes ~30–90 seconds.
-          </div>
-
-          <div className="input-row" style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-            <div className="input-group" style={{ flex: 1 }}>
-              <label className="input-label">Target Host</label>
-              <input id="trace-host" className="input-field" placeholder="e.g. google.com"
-                value={traceHost} onChange={e => setTraceHost(e.target.value)} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button id="trace-btn" className="btn btn-outline" onClick={handleTrace} disabled={tracing}
-                style={{ height: '46px', borderColor: 'rgba(37,99,235,0.4)', color: 'var(--cyan)' }}>
-                {tracing ? <><div className="spinner" style={{ borderTopColor: 'var(--cyan)' }} />&nbsp;Tracing…</> : '🗺 Trace Route'}
-              </button>
-            </div>
-          </div>
-
-          {traceResult && traceResult.hops?.length > 0 && (
-            <div className="data-table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr><th>Hop</th><th>IP Address</th><th>Avg Latency (ms)</th><th>Status</th></tr>
-                </thead>
-                <tbody>
-                  {traceResult.hops.map(hop => (
-                    <tr key={hop.hop} className="hop-row">
-                      <td>{hop.hop}</td>
-                      <td style={{ color: hop.ip === '*' ? 'var(--text-muted)' : 'var(--cyan)' }}>{hop.ip}</td>
-                      <td>{hop.avg_ms !== null
-                        ? <span style={{ color: latencyColor(hop.avg_ms), fontWeight: '700' }}>{hop.avg_ms} ms</span>
-                        : <span style={{ color: 'var(--text-muted)' }}>* * *</span>}</td>
-                      <td>{hop.avg_ms !== null
-                        ? <span className={`badge ${latencyLabel(hop.avg_ms).cls}`}>{latencyLabel(hop.avg_ms).text}</span>
-                        : <span className="badge badge-amber">Filtered</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          {traceResult && traceResult.hops?.length === 0 && (
-            <div className="alert alert-warning">⚠️ No hops found — host may be unreachable or traceroute is blocked by firewall.</div>
           )}
         </div>
 

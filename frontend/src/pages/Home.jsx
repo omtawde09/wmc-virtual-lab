@@ -72,7 +72,6 @@ export default function Home() {
                 <span className="tag">Jitter</span>
                 <span className="tag">Packet Loss</span>
                 <span className="tag">Speedtest</span>
-                <span className="tag">Traceroute</span>
               </div>
               <span className="card-cta violet">Launch Experiment →</span>
             </Link>
