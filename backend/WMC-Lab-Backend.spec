@@ -41,6 +41,11 @@ for pkg in ("bleak", "docx"):
     binaries += b
     hiddenimports += h
 
+# Bundle the fixed experiment template(s) so the export feature works without the
+# student uploading anything. Unpacked to sys._MEIPASS/assets at runtime; see
+# doc_export._assets_dir().
+datas += [("assets/Expt. No. 4.docx", "assets")]
+
 hiddenimports += winrt_modules
 hiddenimports += collect_submodules("uvicorn")
 hiddenimports += collect_submodules("winrt")

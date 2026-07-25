@@ -1,21 +1,23 @@
 """
 Experiment document export
 ==========================
-Takes the student's own experiment .docx, finds its Observation Table, and
-inserts a "Result & Graph" section immediately below it containing:
+Finds the Observation Table of the experiment document and inserts a
+"Result & Graph" section immediately below it containing:
 
   - the readings actually measured in the app (a real Word table), and
   - the chart rendered in the browser (PNG).
 
-The upload/modify/download round-trip is deliberate: every student has their own
-copy of the document, so rather than shipping a template that would drift out of
-sync with the syllabus, we edit the exact file they hand us and give it straight
-back. The original file on disk is never touched — we work on the uploaded bytes
-and return a new document.
+The experiment document is bundled with the backend (see assets/), so the
+student just clicks "Add to Document" and downloads the finished file — no
+upload step. The bundled bytes are read fresh on every request and never
+modified; each export produces a brand-new document. An uploaded .docx is still
+accepted (optional) for flexibility, but the app no longer requires one.
 """
 
 import io
 import json
+import os
+import sys
 from datetime import datetime
 from typing import Optional
 
@@ -31,6 +33,41 @@ router = APIRouter()
 
 # Header text that identifies the Observation Table in the syllabus document.
 _TABLE_MARKERS = ("reading no", "distance", "signal strength")
+
+# Experiment key -> bundled template filename (in assets/). The template is the
+# blank syllabus document; the export inserts the Result & Graph section below
+# its Observation Table, so students never upload anything.
+_TEMPLATES = {
+    "exp4": "Expt. No. 4.docx",
+}
+
+
+def _assets_dir() -> str:
+    """
+    Directory holding the bundled template documents.
+
+    Resolves both when running from source and inside the PyInstaller one-file
+    exe, where data files are unpacked to sys._MEIPASS at runtime.
+    """
+    if getattr(sys, "frozen", False):
+        return os.path.join(sys._MEIPASS, "assets")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+
+
+def _load_template(key: str) -> bytes:
+    """Reads a bundled template's bytes, or raises a clear HTTP error."""
+    fname = _TEMPLATES.get(key)
+    if not fname:
+        raise HTTPException(status_code=400, detail=f"Unknown experiment template '{key}'.")
+    path = os.path.join(_assets_dir(), fname)
+    try:
+        with open(path, "rb") as fh:
+            return fh.read()
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=500,
+            detail="The bundled experiment document is missing from this build of the backend.",
+        )
 
 
 def _find_observation_table(doc: Document):
@@ -158,19 +195,18 @@ def _summary_sentence(readings: list) -> str:
 
 @router.post("/export")
 async def export_to_document(
-    document: UploadFile = File(...),
     readings: str = Form(...),
+    document: Optional[UploadFile] = File(None),
     chart: Optional[UploadFile] = File(None),
     heading: str = Form("Result & Graph"),
     experiment: str = Form("Experiment 4 - Wi-Fi Signal Strength vs Distance"),
+    template: str = Form("exp4"),
 ):
     """
     Inserts a "Result & Graph" section below the Observation Table of the
-    uploaded .docx and returns the modified document.
+    experiment document and returns it. By default the bundled template for the
+    given experiment is used (no upload); an uploaded .docx overrides it.
     """
-    if not document.filename.lower().endswith(".docx"):
-        raise HTTPException(status_code=400, detail="Please upload a .docx file (not .doc or .pdf).")
-
     try:
         rows = json.loads(readings)
     except json.JSONDecodeError:
@@ -178,13 +214,23 @@ async def export_to_document(
     if not isinstance(rows, list) or not rows:
         raise HTTPException(status_code=400, detail="No readings to export.")
 
-    raw = await document.read()
+    # Source bytes + the base filename for the download. Prefer an uploaded file
+    # (back-compat); otherwise fall back to the bundled template.
+    if document is not None and document.filename:
+        if not document.filename.lower().endswith(".docx"):
+            raise HTTPException(status_code=400, detail="Please upload a .docx file (not .doc or .pdf).")
+        raw = await document.read()
+        base = document.filename[:-5]
+    else:
+        raw = _load_template(template)
+        base = _TEMPLATES[template][:-5]  # e.g. "Expt. No. 4"
+
     try:
         doc = Document(io.BytesIO(raw))
     except Exception:
         raise HTTPException(
             status_code=400,
-            detail="Could not open that file as a Word document. Make sure it is a valid .docx.",
+            detail="Could not open the experiment document. Make sure it is a valid .docx.",
         )
 
     anchor_table = _find_observation_table(doc)
@@ -258,7 +304,6 @@ async def export_to_document(
     doc.save(out)
     out.seek(0)
 
-    base = document.filename[:-5] if document.filename.lower().endswith(".docx") else document.filename
     filename = f"{base} - with Results.docx"
 
     return StreamingResponse(

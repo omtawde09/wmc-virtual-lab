@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   MIN_READINGS_FOR_EXPORT, chartSvgToPngBlob, exportToExperimentDoc,
 } from '../exportDocx'
 
 /**
  * Appears once the student has taken enough readings, and writes their
- * observation table + graph into their own experiment .docx.
+ * observation table + graph into the experiment document that is built into the
+ * app — no file upload. The finished document downloads as a new copy.
  *
  * `getChartSvg` is a callback (not an element) so the SVG is read at click time
  * — the chart re-renders as readings are added, so grabbing it early would
@@ -15,13 +16,12 @@ export default function ExportToDocument({
   readings = [],
   getChartSvg,
   experiment = 'Experiment 4 - Wi-Fi Signal Strength vs Distance',
+  template = 'exp4',
   minReadings = MIN_READINGS_FOR_EXPORT,
 }) {
-  const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [done, setDone] = useState(null)
-  const inputRef = useRef(null)
 
   const enough = readings.length >= minReadings
   const remaining = minReadings - readings.length
@@ -32,7 +32,7 @@ export default function ExportToDocument({
       <div className="export-doc locked">
         <span className="export-doc-icon">📄</span>
         <div>
-          <strong>Export to your experiment document</strong>
+          <strong>Export to the experiment document</strong>
           <div className="export-doc-hint">
             Record {remaining} more reading{remaining !== 1 ? 's' : ''} ({readings.length}/{minReadings})
             to unlock adding your observation table and graph straight into the Word document.
@@ -46,7 +46,6 @@ export default function ExportToDocument({
   }
 
   async function handleExport() {
-    if (!file) { setError('Choose your experiment .docx file first.'); return }
     setBusy(true); setError(null); setDone(null)
     try {
       const svg = typeof getChartSvg === 'function' ? getChartSvg() : null
@@ -57,7 +56,7 @@ export default function ExportToDocument({
         // A chart that fails to rasterise must not block the table export.
         chartBlob = null
       }
-      const res = await exportToExperimentDoc({ file, readings, chartBlob, experiment })
+      const res = await exportToExperimentDoc({ readings, chartBlob, experiment, template })
       setDone({ name: res.name, hadChart: !!chartBlob })
     } catch (err) {
       setError(err.message)
@@ -72,22 +71,16 @@ export default function ExportToDocument({
         <div>
           <strong>Add Observation Table &amp; Graph to the Experiment Document</strong>
           <div className="export-doc-hint">
-            Upload your <code>Expt. No. 4.docx</code>. Your {readings.length} readings and the graph are
-            inserted as a <strong>“Result &amp; Graph”</strong> section directly below the Observation Table.
-            The file on your computer is not modified — you get a new copy to download.
+            Your {readings.length} readings and the graph are inserted as a{' '}
+            <strong>“Result &amp; Graph”</strong> section directly below the Observation Table of the
+            experiment document. The document is built into the app — just click below and a
+            ready-to-submit copy downloads to your computer.
           </div>
         </div>
       </div>
 
       <div className="export-doc-row">
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".docx"
-          className="export-file"
-          onChange={e => { setFile(e.target.files?.[0] || null); setError(null); setDone(null) }}
-        />
-        <button className="btn btn-primary btn-sm" onClick={handleExport} disabled={busy || !file}>
+        <button className="btn btn-primary btn-sm" onClick={handleExport} disabled={busy}>
           {busy
             ? <><div className="spinner" style={{ borderTopColor: '#fff' }} /> Building…</>
             : '📥 Add to Document'}

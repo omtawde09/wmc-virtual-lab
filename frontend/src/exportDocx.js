@@ -83,14 +83,15 @@ async function blobErrorMessage(err, fallback) {
 }
 
 /**
- * Uploads the student's experiment .docx along with their readings and chart;
- * the backend inserts a "Result & Graph" section under the Observation Table and
- * returns the modified document, which we then download.
+ * Sends the student's readings and chart to the backend, which inserts a
+ * "Result & Graph" section under the Observation Table of the bundled experiment
+ * document and returns the finished file, which we then download. No upload is
+ * needed — `template` selects which built-in document to use.
  */
-export async function exportToExperimentDoc({ file, readings, chartBlob, experiment }) {
+export async function exportToExperimentDoc({ readings, chartBlob, experiment, template = 'exp4' }) {
   const form = new FormData()
-  form.append('document', file)
   form.append('readings', JSON.stringify(readings))
+  form.append('template', template)
   if (chartBlob) form.append('chart', chartBlob, 'chart.png')
   if (experiment) form.append('experiment', experiment)
 
@@ -100,10 +101,10 @@ export async function exportToExperimentDoc({ file, readings, chartBlob, experim
       timeout: 60000,
     })
 
-    // Prefer the filename the server chose.
+    // Prefer the filename the server chose; fall back to a sensible default.
     const disp = res.headers['content-disposition'] || ''
     const match = /filename="?([^"]+)"?/.exec(disp)
-    const name = match ? match[1] : file.name.replace(/\.docx$/i, '') + ' - with Results.docx'
+    const name = match ? match[1] : 'Experiment - with Results.docx'
 
     const url = URL.createObjectURL(res.data)
     const a = document.createElement('a')
