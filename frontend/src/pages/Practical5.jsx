@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import axios from 'axios'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import BackendBanner from '../components/BackendBanner'
+import ExportNetworkDoc from '../components/ExportNetworkDoc'
+import { findChartSvg } from '../exportDocx'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -340,6 +342,9 @@ export default function Practical5() {
   const [pinging,  setPinging]  = useState(false)
   const [cliPing,  setCliPing]  = useState(null)
 
+  // Throughput chart wrapper — read at export time to embed the graph.
+  const chartRef = useRef(null)
+
   async function runFullTest() {
     setTesting(true); setResult(null); setError(''); setSamples([])
     setPingPart(null); setDlPart(null); setUlPart(null)
@@ -478,7 +483,7 @@ export default function Practical5() {
             const dlData = rebase(samples, 'dl')
             const ulData = rebase(samples, 'ul')
             return (
-              <div style={{ marginTop: '24px' }}>
+              <div style={{ marginTop: '24px' }} ref={chartRef}>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'left', marginBottom: '10px', fontWeight: 600, letterSpacing: '0.5px' }}>
                   THROUGHPUT OVER TIME
                 </div>
@@ -551,6 +556,12 @@ export default function Practical5() {
             </div>
           )}
         </div>
+
+        <ExportNetworkDoc
+          ping={cliPing}
+          speedtest={result}
+          getChartSvg={() => findChartSvg(chartRef.current)}
+        />
 
         <ExperimentInfo
           heading="About this experiment: throughput and latency"

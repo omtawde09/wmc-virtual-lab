@@ -38,6 +38,7 @@ _TABLE_MARKERS = ("reading no", "distance", "signal strength")
 # its Observation Table, so students never upload anything.
 _TEMPLATES = {
     "exp4": "Expt. No. 4.docx",
+    "exp5": "Expt No. 5.docx",
 }
 
 
@@ -222,6 +223,260 @@ def _remove_graph_placeholder(doc: Document) -> None:
             nxt.getparent().remove(nxt)
         el.getparent().remove(el)
         return
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Experiment 5 — Network Throughput & Latency
+#
+# The Exp-5 syllabus document has two observation tables (Table 1: CLI ping,
+# Table 2: online throughput). The measured "Result" section is inserted below
+# the throughput table (the last observation table), before the Conclusion.
+# ────────────────────────────────────────────────────────────────────────────
+
+# Header markers that identify the throughput table (Table 2) — the anchor.
+_EXP5_ANCHOR_MARKERS = ("platform", "download throughput", "upload throughput")
+
+
+def _find_exp5_anchor(doc: Document):
+    """
+    Locates the throughput table (Table 2) so the Result section can be inserted
+    directly beneath it. Matches on header text; falls back to the last table so
+    the result still lands below the observation section if headers were edited.
+    """
+    for table in doc.tables:
+        if not table.rows:
+            continue
+        header = " | ".join(c.text.strip().lower() for c in table.rows[0].cells)
+        if sum(m in header for m in _EXP5_ANCHOR_MARKERS) >= 2:
+            return table
+    return doc.tables[-1] if doc.tables else None
+
+
+def _apply_table_style(table, style_hint=None) -> None:
+    """Applies the document's own table style if available, then draws borders."""
+    for candidate in (style_hint, "Table Grid"):
+        if not candidate:
+            continue
+        try:
+            table.style = candidate
+            break
+        except (KeyError, ValueError):
+            continue
+    _apply_grid_borders(table)
+
+
+def _fill_row(cells, values) -> None:
+    """Writes values into a row and shrinks the font to match the sheet tables."""
+    for cell, value in zip(cells, values):
+        cell.text = "" if value is None else str(value)
+        for p in cell.paragraphs:
+            for run in p.runs:
+                run.font.size = Pt(9)
+
+
+def _build_cli_table(doc: Document, ping: dict, style_hint=None):
+    """Table 1 — the student's real command-line ping measurement."""
+    cols = [
+        "Target Host", "Packets Sent", "Packets Received", "Packet Loss (%)",
+        "Minimum Latency (ms)", "Maximum Latency (ms)", "Average Latency (ms)",
+    ]
+    table = doc.add_table(rows=1, cols=len(cols))
+    _apply_table_style(table, style_hint)
+    hdr = table.rows[0].cells
+    for i, name in enumerate(cols):
+        hdr[i].text = name
+        _style_header_cell(hdr[i])
+    _fill_row(table.add_row().cells, [
+        ping.get("host", ""),
+        _num(ping.get("sent")),
+        _num(ping.get("received")),
+        _num(ping.get("packet_loss")),
+        _num(ping.get("min_rtt")),
+        _num(ping.get("max_rtt")),
+        _num(ping.get("avg_rtt")),
+    ])
+    return table
+
+
+def _build_throughput_table(doc: Document, speed: dict, platform: str, style_hint=None):
+    """Table 2 — the student's real online speed-test measurement."""
+    cols = [
+        "Platform", "Download Throughput (Mbps)",
+        "Upload Throughput (Mbps)", "Latency / Ping (ms)",
+    ]
+    table = doc.add_table(rows=1, cols=len(cols))
+    _apply_table_style(table, style_hint)
+    hdr = table.rows[0].cells
+    for i, name in enumerate(cols):
+        hdr[i].text = name
+        _style_header_cell(hdr[i])
+    _fill_row(table.add_row().cells, [
+        platform,
+        _num(speed.get("download_mbps")),
+        _num(speed.get("upload_mbps")),
+        _num(speed.get("ping_ms")),
+    ])
+    return table
+
+
+def _exp5_summary(ping: Optional[dict], speed: Optional[dict]) -> str:
+    """One-line observation summarising whichever measurements are present."""
+    parts = []
+    if speed:
+        parts.append(
+            f"The live speed test measured {_num(speed.get('download_mbps'))} Mbps download "
+            f"and {_num(speed.get('upload_mbps'))} Mbps upload throughput at a ping of "
+            f"{_num(speed.get('ping_ms'))} ms (jitter {_num(speed.get('jitter_ms'))} ms)."
+        )
+    if ping:
+        parts.append(
+            f"The command-line ping to {ping.get('host', 'the target host')} sent "
+            f"{_num(ping.get('sent'))} packets with {_num(ping.get('packet_loss'))}% loss and an "
+            f"average round-trip time of {_num(ping.get('avg_rtt'))} ms "
+            f"(min {_num(ping.get('min_rtt'))} ms, max {_num(ping.get('max_rtt'))} ms)."
+        )
+    if not parts:
+        return "Measured the network's throughput and latency using real tools."
+    return " ".join(parts) + (
+        " Together these confirm that throughput and latency are independent pillars of "
+        "network quality."
+    )
+
+
+def _sublabel(doc: Document, text: str):
+    """A bold caption above an inserted result table."""
+    p = doc.add_paragraph()
+    r = p.add_run(text)
+    r.bold = True
+    r.font.size = Pt(11)
+    return p
+
+
+@router.post("/export/network")
+async def export_network_document(
+    ping: Optional[str] = Form(None),
+    speedtest: Optional[str] = Form(None),
+    chart: Optional[UploadFile] = File(None),
+    heading: str = Form("Result"),
+    platform: str = Form("PC / Laptop (Browser)"),
+    template: str = Form("exp5"),
+):
+    """
+    Inserts a measured "Result" section below the throughput observation table of
+    the Experiment 5 document and returns it. Accepts the real command-line ping
+    result and/or the live speed-test result (at least one is required); builds a
+    result table for whichever is present.
+    """
+    def _parse(name, raw):
+        if not raw:
+            return None
+        try:
+            obj = json.loads(raw)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail=f"'{name}' payload was not valid JSON.")
+        return obj if isinstance(obj, dict) and obj else None
+
+    ping_data = _parse("ping", ping)
+    speed_data = _parse("speedtest", speedtest)
+    if not ping_data and not speed_data:
+        raise HTTPException(status_code=400, detail="No measured results to export. Run the ping and/or speed test first.")
+
+    raw = _load_template(template)
+    base = _TEMPLATES[template][:-5]  # e.g. "Expt No. 5"
+
+    try:
+        doc = Document(io.BytesIO(raw))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Could not open the experiment document.")
+
+    anchor_table = _find_exp5_anchor(doc)
+    if anchor_table is None:
+        raise HTTPException(
+            status_code=422,
+            detail="No observation table found in the document, so there is nowhere to insert the results.",
+        )
+    try:
+        style_hint = anchor_table.style
+    except Exception:
+        style_hint = None
+
+    built = []
+    built.append(doc.add_paragraph())  # blank before heading
+
+    h = doc.add_paragraph()
+    hr = h.add_run(heading)
+    hr.bold = True
+    hr.font.size = Pt(14)
+    hr.font.color.rgb = RGBColor(0x1F, 0x2A, 0x44)
+    built.append(h)
+
+    built.append(doc.add_paragraph())  # blank after heading
+
+    if ping_data:
+        built.append(_sublabel(doc, "Table 1: Command Line Interface (CLI) Results — Measured"))
+        built.append(_build_cli_table(doc, ping_data, style_hint=style_hint))
+        if ping_data.get("jitter") is not None:
+            note = doc.add_paragraph()
+            nr = note.add_run(f"Jitter (avg RTT variation): {_num(ping_data.get('jitter'))} ms")
+            nr.font.size = Pt(9)
+            nr.italic = True
+            built.append(note)
+        built.append(doc.add_paragraph())  # spacer
+
+    if speed_data:
+        built.append(_sublabel(doc, "Table 2: Online Simulation Results — Measured"))
+        built.append(_build_throughput_table(doc, speed_data, platform, style_hint=style_hint))
+        srv = (speed_data.get("server_name") or "").strip()
+        if srv:
+            note = doc.add_paragraph()
+            nr = note.add_run(f"Test server: {srv}"
+                              + (f", {speed_data.get('server_country')}" if speed_data.get("server_country") else ""))
+            nr.font.size = Pt(9)
+            nr.italic = True
+            built.append(note)
+        built.append(doc.add_paragraph())  # spacer
+
+    if chart is not None:
+        img_bytes = await chart.read()
+        if img_bytes:
+            cap = doc.add_paragraph()
+            cr = cap.add_run("Graph: Throughput over time")
+            cr.bold = True
+            cr.font.size = Pt(10)
+            built.append(cap)
+            built.append(doc.add_paragraph())
+            pic_para = doc.add_paragraph()
+            pic_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            try:
+                pic_para.add_run().add_picture(io.BytesIO(img_bytes), width=Inches(6.0))
+            except Exception:
+                pic_para.add_run("[Chart image could not be embedded]").italic = True
+            built.append(pic_para)
+            built.append(doc.add_paragraph())
+
+    obs = doc.add_paragraph()
+    obs.add_run("Observation: ").bold = True
+    obs.add_run(_exp5_summary(ping_data, speed_data))
+    built.append(obs)
+
+    built.append(doc.add_paragraph())  # trailing blank before Conclusion
+
+    anchor = anchor_table._element
+    for block in built:
+        el = block._element
+        anchor.addnext(el)
+        anchor = el
+
+    out = io.BytesIO()
+    doc.save(out)
+    out.seek(0)
+
+    filename = f"{base} - with Results.docx"
+    return StreamingResponse(
+        out,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.post("/export")

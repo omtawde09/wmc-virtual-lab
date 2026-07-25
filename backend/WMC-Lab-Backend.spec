@@ -45,6 +45,7 @@ for pkg in ("bleak", "docx"):
 # student uploading anything. Unpacked to sys._MEIPASS/assets at runtime; see
 # doc_export._assets_dir().
 datas += [("assets/Expt. No. 4.docx", "assets")]
+datas += [("assets/Expt No. 5.docx", "assets")]
 
 hiddenimports += winrt_modules
 hiddenimports += collect_submodules("uvicorn")

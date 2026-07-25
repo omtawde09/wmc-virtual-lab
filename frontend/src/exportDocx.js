@@ -70,6 +70,48 @@ export async function chartSvgToPngBlob(svgEl, { background = '#ffffff', scale =
   }
 }
 
+/** Triggers a browser download of a blob response, using the server's filename. */
+function downloadBlobResponse(res, fallbackName) {
+  const disp = res.headers['content-disposition'] || ''
+  const match = /filename="?([^"]+)"?/.exec(disp)
+  const name = match ? match[1] : fallbackName
+
+  const url = URL.createObjectURL(res.data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  return name
+}
+
+/**
+ * Experiment 5 export. Sends the student's real command-line ping and/or live
+ * speed-test results (plus an optional throughput chart) to the backend, which
+ * inserts a measured "Result" section below the throughput observation table of
+ * the bundled Exp-5 document and returns the finished file to download.
+ */
+export async function exportExp5Doc({ ping, speedtest, chartBlob, template = 'exp5' }) {
+  const form = new FormData()
+  if (ping) form.append('ping', JSON.stringify(ping))
+  if (speedtest) form.append('speedtest', JSON.stringify(speedtest))
+  form.append('template', template)
+  if (chartBlob) form.append('chart', chartBlob, 'chart.png')
+
+  try {
+    const res = await axios.post('/api/docx/export/network', form, {
+      responseType: 'blob',
+      timeout: 60000,
+    })
+    const name = downloadBlobResponse(res, 'Experiment 5 - with Results.docx')
+    return { ok: true, name }
+  } catch (err) {
+    throw new Error(await blobErrorMessage(err, 'Export failed. Is the local backend running?'))
+  }
+}
+
 /** Reads an error message out of a Blob response (errors arrive as blobs too). */
 async function blobErrorMessage(err, fallback) {
   const data = err?.response?.data
