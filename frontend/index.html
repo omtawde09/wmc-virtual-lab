@@ -77,16 +77,13 @@
     </script>
   </head>
   <body>
-    <!-- First-paint / SEO fallback. React (createRoot) clears #root on mount, so
-         JS users never see this; crawlers that read the raw HTML get a real,
-         single top-level heading and an intro paragraph. Bing's on-page analyzer
-         does not count a heading placed inside the no-script block, so it lives
-         here instead. -->
+    <!-- Visually-hidden top-level heading, kept in the served HTML so crawlers
+         and Bing's raw-HTML on-page analyzer find a real heading. It is clipped
+         to 1px so it never paints — users do not see it flash on refresh — and
+         React (createRoot) removes it when it mounts into #root. No-JS visitors
+         get the full page content from the no-script block below. -->
     <div id="root">
-      <div style="max-width:820px;margin:40px auto;padding:0 24px;font-family:system-ui,sans-serif;line-height:1.7;color:#0f2444">
-        <h1>Wireless &amp; Mobile Communication Virtual Lab</h1>
-        <p>Real-time Wi-Fi signal, throughput, multipath and interference experiments, using live measurements captured from your own Wi-Fi and Bluetooth hardware — no simulation.</p>
-      </div>
+      <h1 style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">Wireless &amp; Mobile Communication Virtual Lab</h1>
     </div>
 
     <!-- Full experiment list for no-JS visitors. Uses second-level headings so
