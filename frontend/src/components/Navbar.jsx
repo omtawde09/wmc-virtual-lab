@@ -1,8 +1,19 @@
 import { NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 
 export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false)
+
+  // Once past a small threshold, the bar collapses into a floating pill.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40)
+    onScroll()  // set correct state on mount (e.g. when loaded already scrolled)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <nav className="navbar">
+    <nav className={`navbar${scrolled ? ' scrolled' : ''}`}>
       <div className="navbar-inner">
         <NavLink to="/" className="navbar-logo">
           <div className="navbar-logo-icon">📡</div>
