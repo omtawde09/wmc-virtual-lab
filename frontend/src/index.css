@@ -1030,6 +1030,9 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
 .export-doc {
   border-radius: var(--radius-lg);
   padding: 20px 22px;
+  /* Top margin too, so the card never touches the one above it — the preceding
+     card sets no bottom margin, and block margins collapse so this stays 24px. */
+  margin-top: 24px;
   margin-bottom: 24px;
   animation: fadeInUp 0.5s ease both;
 }

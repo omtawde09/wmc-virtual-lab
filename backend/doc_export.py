@@ -18,7 +18,6 @@ import io
 import json
 import os
 import sys
-from datetime import datetime
 from typing import Optional
 
 from docx import Document
@@ -144,7 +143,7 @@ def _num(value) -> str:
 
 def _build_readings_table(doc: Document, readings: list, style_hint=None) -> "object":
     """Creates (at the end of the body) a Word table of the measured readings."""
-    cols = ["Reading No.", "Distance (m)", "RSSI (dBm)", "Signal (%)", "Quality", "Network"]
+    cols = ["Reading No.", "Distance (m)", "RSSI (dBm)", "Signal (%)", "Quality"]
     table = doc.add_table(rows=1, cols=len(cols))
 
     # Prefer the document's own Observation-Table style so the inserted table
@@ -171,7 +170,6 @@ def _build_readings_table(doc: Document, readings: list, style_hint=None) -> "ob
         row[2].text = _num(r.get("rssi"))
         row[3].text = _num(r.get("signal_pct"))
         row[4].text = str(r.get("quality") or _quality(r.get("rssi")))
-        row[5].text = str(r.get("ssid", ""))
         for c in row:
             for p in c.paragraphs:
                 for run in p.runs:
@@ -191,6 +189,39 @@ def _summary_sentence(readings: list) -> str:
         f"inverse, non-linear relationship between received signal strength and distance "
         f"described by the log-distance path loss model."
     )
+
+
+# Blank paragraphs between the readings table and the graph. The syllabus
+# document keeps the graph lower on the page (where the "Paste the Graph"
+# placeholder used to sit), so we reproduce that spacing.
+_GRAPH_GAP = 11
+
+# Placeholder in the template that told students to paste their graph by hand.
+# The export inserts the real graph, so this line (and the blank lines around it)
+# are removed.
+_GRAPH_PLACEHOLDER = "paste the graph"
+
+
+def _p_is_empty(el) -> bool:
+    return el.tag.endswith("}p") and not "".join(el.itertext()).strip()
+
+
+def _remove_graph_placeholder(doc: Document) -> None:
+    """
+    Deletes the 'Paste the Graph' placeholder paragraph and one blank paragraph
+    on each side of it, so the auto-inserted graph replaces it cleanly.
+    """
+    for para in list(doc.paragraphs):
+        if para.text.strip().lower() != _GRAPH_PLACEHOLDER:
+            continue
+        el = para._element
+        prev, nxt = el.getprevious(), el.getnext()
+        if prev is not None and _p_is_empty(prev):
+            prev.getparent().remove(prev)
+        if nxt is not None and _p_is_empty(nxt):
+            nxt.getparent().remove(nxt)
+        el.getparent().remove(el)
+        return
 
 
 @router.post("/export")
@@ -243,6 +274,8 @@ async def export_to_document(
     # --- Build the new content at the end of the body, then relocate it ---
     built = []
 
+    built.append(doc.add_paragraph())  # blank line before the heading
+
     h = doc.add_paragraph()
     hr = h.add_run(heading)
     hr.bold = True
@@ -250,14 +283,7 @@ async def export_to_document(
     hr.font.color.rgb = RGBColor(0x1F, 0x2A, 0x44)
     built.append(h)
 
-    meta = doc.add_paragraph()
-    mr = meta.add_run(
-        f"{experiment} · Recorded {len(rows)} live readings · "
-        f"Generated {datetime.now().strftime('%d %B %Y, %H:%M')}"
-    )
-    mr.italic = True
-    mr.font.size = Pt(9)
-    built.append(meta)
+    built.append(doc.add_paragraph())  # blank line after the heading
 
     try:
         style_hint = anchor_table.style
@@ -266,7 +292,9 @@ async def export_to_document(
     tbl = _build_readings_table(doc, rows, style_hint=style_hint)
     built.append(tbl)
 
-    built.append(doc.add_paragraph())  # spacer
+    # Space between the readings table and the graph (matches the syllabus doc).
+    for _ in range(_GRAPH_GAP):
+        built.append(doc.add_paragraph())
 
     if chart is not None:
         img_bytes = await chart.read()
@@ -277,21 +305,25 @@ async def export_to_document(
             cr.font.size = Pt(10)
             built.append(cap)
 
+            built.append(doc.add_paragraph())  # blank line before the image
+
             pic_para = doc.add_paragraph()
             pic_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
             try:
-                pic_para.add_run().add_picture(io.BytesIO(img_bytes), width=Inches(6.0))
+                pic_para.add_run().add_picture(io.BytesIO(img_bytes), width=Inches(6.4))
             except Exception:
                 # A bad/empty image must not lose the table the student just measured.
                 pic_para.add_run("[Chart image could not be embedded]").italic = True
             built.append(pic_para)
+
+            built.append(doc.add_paragraph())  # blank line after the image
 
     obs = doc.add_paragraph()
     obs.add_run("Observation: ").bold = True
     obs.add_run(_summary_sentence(rows))
     built.append(obs)
 
-    built.append(doc.add_paragraph())  # trailing spacer
+    built.append(doc.add_paragraph())  # trailing blank line before Conclusion
 
     # --- Move the built blocks to sit directly beneath the Observation Table ---
     anchor = anchor_table._element
@@ -299,6 +331,10 @@ async def export_to_document(
         el = block._element
         anchor.addnext(el)
         anchor = el
+
+    # The graph now lives in the document, so drop the "Paste the Graph"
+    # placeholder that the template used for a hand-pasted image.
+    _remove_graph_placeholder(doc)
 
     out = io.BytesIO()
     doc.save(out)
