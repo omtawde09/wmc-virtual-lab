@@ -30,6 +30,10 @@ export default function App() {
     }
   }, [])
 
+  // Start every route at the top. Covers in-app navigation between experiments;
+  // reloads are handled by scrollRestoration = 'manual' in main.jsx.
+  useEffect(() => { window.scrollTo(0, 0) }, [location.pathname])
+
   return (
     <div className={isOnboarding ? undefined : 'page-wrapper'}>
       {!isOnboarding && <Navbar />}
