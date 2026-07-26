@@ -13,6 +13,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -36,6 +37,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
 
+    // The splash stays up until the WebView has painted its first page, so the
+    // user never sees a blank/black cold-start window.
+    private var contentReady = false
+
     private val assetLoader: WebViewAssetLoader by lazy {
         WebViewAssetLoader.Builder()
             .addPathHandler("/", WebViewAssetLoader.AssetsPathHandler(this))
@@ -51,7 +56,9 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        splash.setKeepOnScreenCondition { !contentReady }
 
         webView = WebView(this)
         setContentView(webView)
@@ -61,6 +68,9 @@ class MainActivity : AppCompatActivity() {
         attachHardwareBridge()
         registerBackNavigation()
         requestHardwarePermissions()
+
+        // Safety net: never hold the splash more than 3s, even if a load stalls.
+        webView.postDelayed({ contentReady = true }, 3000)
 
         val devUrl = BuildConfig.DEV_SERVER_URL
         val startUrl =
@@ -95,6 +105,10 @@ class MainActivity : AppCompatActivity() {
     private fun configureWebView() {
         if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)
 
+        // Light background matches the app, so the splash → content hand-off has
+        // no white/black flash even before the first frame paints.
+        webView.setBackgroundColor(ContextCompat.getColor(this, R.color.brand_surface))
+
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -124,6 +138,11 @@ class MainActivity : AppCompatActivity() {
                 return assetLoader.shouldInterceptRequest(
                     Uri.parse("https://$APP_HOST/index.html"),
                 )
+            }
+
+            override fun onPageFinished(view: WebView, url: String) {
+                // First page painted — release the splash for a smooth reveal.
+                contentReady = true
             }
         }
 

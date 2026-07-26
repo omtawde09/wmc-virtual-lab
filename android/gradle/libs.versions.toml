@@ -8,6 +8,7 @@ activity = "1.9.3"
 lifecycle = "2.8.7"
 coroutines = "1.9.0"
 webkit = "1.12.1"
+coreSplashscreen = "1.0.1"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 espresso = "3.6.1"
@@ -21,6 +22,7 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }

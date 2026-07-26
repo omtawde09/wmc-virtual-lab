@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.webkit)
+    implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
