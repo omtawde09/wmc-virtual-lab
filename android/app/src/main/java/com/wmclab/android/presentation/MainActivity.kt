@@ -3,6 +3,7 @@ package com.wmclab.android.presentation
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -11,10 +12,16 @@ import android.webkit.WebView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewClientCompat
 import com.wmclab.android.BuildConfig
+import com.wmclab.android.R
 import com.wmclab.android.WmcApplication
 import com.wmclab.android.webview.HardwareBridge
 
@@ -49,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         webView = WebView(this)
         setContentView(webView)
 
+        applyWindowInsets()
         configureWebView()
         attachHardwareBridge()
         registerBackNavigation()
@@ -59,6 +67,28 @@ class MainActivity : AppCompatActivity() {
             if (devUrl.isNotBlank()) devUrl
             else "https://appassets.androidplatform.net/"
         webView.loadUrl(startUrl)
+    }
+
+    /**
+     * Android 15+ (API 35+) forces edge-to-edge, so the WebView would draw behind
+     * the status bar and gesture navigation bar. We keep the app edge-to-edge but
+     * pad the *content root* (the WebView's parent) by the system-bar + cutout
+     * insets, so the WebView is laid out fully inside the safe area. Padding the
+     * parent (rather than the WebView itself) avoids WebView's own internal inset
+     * handling, which otherwise swallows a listener set directly on it.
+     */
+    private fun applyWindowInsets() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val root: View = findViewById(android.R.id.content)
+        root.setBackgroundColor(ContextCompat.getColor(this, R.color.brand_surface))
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
+            )
+            view.updatePadding(bars.left, bars.top, bars.right, bars.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.requestApplyInsets(root)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
