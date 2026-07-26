@@ -359,8 +359,8 @@ export default function Practical4() {
             <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px', color: 'var(--cyan)' }}>
               ➕ Record New Reading
             </div>
-            <div className="input-row" style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              <div className="input-group" style={{ flex: '1 1 180px', minWidth: 0 }}>
+            <div className="input-row" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="input-group">
                 <label className="input-label">Distance from Router (meters)</label>
                 <input
                   id="distance-input"
@@ -379,7 +379,7 @@ export default function Practical4() {
                 className="btn btn-primary"
                 onClick={handleRecord}
                 disabled={recording || !distance || !liveWifi}
-                style={{ height: '46px', flex: '1 1 auto', minWidth: '120px' }}
+                style={{ width: '100%' }}
               >
                 {recording ? <><div className="spinner" style={{ borderTopColor: '#ffffff' }} /> Capturing…</> : '📍 Record'}
               </button>
