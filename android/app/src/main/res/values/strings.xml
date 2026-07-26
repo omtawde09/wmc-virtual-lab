@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">WMC Virtual Lab</string>
+    <string name="perm_rationale_title">Permissions needed</string>
+    <string name="perm_rationale_wifi">Wi-Fi scanning needs location access to read nearby networks (an Android requirement). No location is stored or sent.</string>
+    <string name="perm_rationale_bluetooth">Bluetooth scanning needs the Nearby devices permission to discover and measure nearby devices.</string>
+    <string name="perm_settings">Open settings</string>
+    <string name="webview_load_error">Could not load the lab. Please reopen the app.</string>
+</resources>

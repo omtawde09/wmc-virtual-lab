@@ -5,7 +5,9 @@ import {
   ResponsiveContainer, Line, ComposedChart
 } from 'recharts'
 import { resetAllOnce } from '../resetOnLoad'
-import { wsUrl } from '../config'
+import { wsUrl, IS_ANDROID } from '../config'
+import Hardware from '../hardware'
+import { buildPathLossFit } from '../calc/pathloss'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import BackendBanner from '../components/BackendBanner'
@@ -79,6 +81,35 @@ export default function Practical6() {
 
   /* ── Live BLE advertisement stream ── */
   useEffect(() => {
+    // Android: poll the native LE scanner and merge results into the device map.
+    if (IS_ANDROID) {
+      let stopped = false
+      let timer = null
+      setScanning(true)
+      const poll = async () => {
+        if (stopped) return
+        try {
+          const list = await Hardware.scanBluetooth({ le: true, durationMs: 6000 })
+          setLiveErr(false)
+          setDevices(prev => {
+            const next = { ...prev }
+            for (const d of list) {
+              const existing = next[d.address]
+              next[d.address] = {
+                ...(existing || {}), ...d,
+                name: d.name || existing?.name,
+                _seenAt: Date.now(),
+              }
+            }
+            return next
+          })
+        } catch { setLiveErr(true) }
+        if (!stopped) timer = setTimeout(poll, 1000)
+      }
+      poll()
+      return () => { stopped = true; clearTimeout(timer); setScanning(false) }
+    }
+
     const ws = new WebSocket(wsUrl(`${API}/ws`))
     wsRef.current = ws
     ws.onopen = () => { setScanning(true); setLiveErr(false) }
@@ -114,23 +145,32 @@ export default function Practical6() {
   }, [])
 
   const fetchReadings = useCallback(async () => {
+    if (IS_ANDROID) return   // readings live in local state on Android
     try { setReadings((await axios.get(`${API}/readings`)).data) } catch {}
   }, [])
 
   useEffect(() => { resetAllOnce().then(fetchReadings) }, [fetchReadings])
 
-  const fetchFit = useCallback(async () => {
+  const fetchFit = useCallback(async (rows) => {
+    if (IS_ANDROID) {
+      const f = buildPathLossFit(rows)
+      if (f) { setFit(f); setFitErr(null) }
+      else { setFit(null); setFitErr('Need readings at 2+ distinct distances to fit a model.') }
+      return
+    }
     try { setFit((await axios.get(`${ANALYSIS_API}/fit`)).data); setFitErr(null) }
     catch (err) { setFit(null); setFitErr(err.response?.data?.detail || 'Not enough readings yet.') }
   }, [])
 
-  useEffect(() => { if (readings.length >= 2) fetchFit(); else setFit(null) }, [readings, fetchFit])
+  useEffect(() => { if (readings.length >= 2) fetchFit(readings); else setFit(null) }, [readings, fetchFit])
 
   const fetchConnStatus = useCallback(async () => {
+    if (IS_ANDROID) return   // no persistent native status; tracked locally on connect
     try { setConnStatus((await axios.get(`${CONN_API}/status`)).data) } catch {}
   }, [])
 
   useEffect(() => {
+    if (IS_ANDROID) return
     fetchConnStatus()
     const id = setInterval(fetchConnStatus, 4000)
     return () => clearInterval(id)
@@ -142,6 +182,23 @@ export default function Practical6() {
     if (!selectedAddress) { setFitErr('Select a device from the list first.'); return }
     if (!dist || dist <= 0) return
     setRecording(true)
+    // Android: snapshot the selected device's current RSSI + distance locally.
+    if (IS_ANDROID) {
+      const dev = devices[selectedAddress]
+      if (!dev || dev.rssi == null) {
+        setFitErr('Device not currently advertising — wait for it to reappear in the scan.')
+      } else {
+        const reading = {
+          id: Date.now(), address: selectedAddress, name: dev.name,
+          rssi: dev.rssi, distance: dist, obstacle_count: 0, obstacle_desc: '',
+        }
+        setReadings(r => [...r, reading])
+        setLastAdded(reading)
+        setDistance('')
+      }
+      setRecording(false)
+      return
+    }
     try {
       const res = await axios.post(`${API}/reading`, { address: selectedAddress, distance: dist, obstacle_count: 0, obstacle_desc: '' })
       setLastAdded(res.data)
@@ -155,12 +212,23 @@ export default function Practical6() {
 
   async function handleClear() {
     if (!window.confirm('Clear all Bluetooth range readings?')) return
+    if (IS_ANDROID) { setReadings([]); setLastAdded(null); return }
     try { await axios.delete(`${API}/clear`); await fetchReadings() } catch {}
   }
 
   async function handleConnect(pair) {
     if (!selectedAddress) return
     setConnecting(true); setConnErr(null)
+    if (IS_ANDROID) {
+      try {
+        const res = await Hardware.connect(selectedAddress)
+        if (res.success) {
+          setConnStatus({ address: selectedAddress, connected: true, paired: true, services_count: 0 })
+        } else { setConnErr('Bonding failed or was declined on the device.') }
+      } catch (e) { setConnErr(e?.message || 'Connection failed.') }
+      setConnecting(false)
+      return
+    }
     try {
       const res = await axios.post(`${CONN_API}/connect`, { address: selectedAddress, pair, timeout: 15 })
       setConnStatus(res.data)
@@ -169,10 +237,20 @@ export default function Practical6() {
   }
 
   async function handleDisconnect() {
+    if (IS_ANDROID) {
+      try { await Hardware.disconnect(connStatus?.address || selectedAddress) } catch {}
+      setConnStatus(null)
+      return
+    }
     try { await axios.post(`${CONN_API}/disconnect`); await fetchConnStatus() } catch {}
   }
 
   async function fetchPairedDevices() {
+    if (IS_ANDROID) {
+      try { setPairedDevices(await Hardware.pairedDevices()) }
+      catch (e) { setConnErr(e?.message || 'Could not read paired devices.') }
+      return
+    }
     try { setPairedDevices((await axios.get(`${CONN_API}/paired-devices`)).data) }
     catch (err) { setConnErr(err.response?.data?.detail || 'Could not read Windows paired-device list.') }
   }

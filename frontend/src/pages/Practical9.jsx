@@ -6,6 +6,9 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
+import { IS_ANDROID } from '../config'
+import Hardware from '../hardware'
+import { analyzeInterference } from '../calc/interference'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import BackendBanner from '../components/BackendBanner'
@@ -43,6 +46,7 @@ export default function Practical9() {
   const [band, setBand]       = useState('5 GHz')
 
   const fetchHistory = useCallback(async () => {
+    if (IS_ANDROID) return   // no persistent history on Android; scan on demand
     try {
       const res = await axios.get(`${API}/history`)
       if (res.data.length) setScan(res.data[res.data.length - 1])
@@ -54,11 +58,21 @@ export default function Practical9() {
   const runScan = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${API}/scan`)
-      setScan(res.data)
-      if (res.data.connected?.band) setBand(res.data.connected.band)
+      if (IS_ANDROID) {
+        const [connected, nearby] = await Promise.all([
+          Hardware.currentWifi(),
+          Hardware.scanWifi(),
+        ])
+        const record = analyzeInterference(connected, nearby)
+        setScan(record)
+        if (record.connected?.band) setBand(record.connected.band)
+      } else {
+        const res = await axios.get(`${API}/scan`)
+        setScan(res.data)
+        if (res.data.connected?.band) setBand(res.data.connected.band)
+      }
     } catch (err) {
-      alert('Scan failed. Ensure the backend is running.')
+      alert('Scan failed. ' + (IS_ANDROID ? 'Ensure Wi-Fi and Location are on.' : 'Ensure the backend is running.'))
     }
     setLoading(false)
   }

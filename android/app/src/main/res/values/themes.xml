@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Material 3 base. The UI itself is the WebView; this theme styles the
+         window chrome, splash background and status bar to match the web app. -->
+    <style name="Theme.WmcLab" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_cyan</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:statusBarColor">@color/brand_surface</item>
+        <item name="android:navigationBarColor">@color/brand_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/brand_surface</item>
+    </style>
+</resources>

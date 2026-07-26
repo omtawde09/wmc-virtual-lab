@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { API_BASE } from './config'
+import { API_BASE, IS_ANDROID } from './config'
 
 // Where the backend .exe is downloaded from. Point this at your GitHub Release
 // asset once you publish it (Releases -> upload WMC-Lab-Backend.exe).
 export const BACKEND_DOWNLOAD_URL =
   'https://github.com/omtawde09/wmc-virtual-lab/releases/latest/download/WMC-Lab-Backend.exe'
 
-// Only meaningful in the deployed build, where API_BASE points at localhost.
-// In dev (API_BASE === '') the backend is proxied and always "there".
-export const NEEDS_LOCAL_BACKEND = API_BASE !== ''
+// Only meaningful in the deployed Windows build, where API_BASE points at
+// localhost. In dev (API_BASE === '') the backend is proxied and always "there",
+// and on Android the native bridge replaces the backend — neither needs the .exe.
+export const NEEDS_LOCAL_BACKEND = API_BASE !== '' && !IS_ANDROID
 
 /**
  * Polls the local backend's /health endpoint so the UI can show whether the
@@ -20,9 +21,11 @@ export const NEEDS_LOCAL_BACKEND = API_BASE !== ''
  * it behind an early return. In dev it's disabled, so no pointless polling.
  */
 export function useBackendStatus(enabled = true, intervalMs = 4000) {
-  const [status, setStatus] = useState('checking')
+  const [status, setStatus] = useState(IS_ANDROID ? 'online' : 'checking')
 
   useEffect(() => {
+    // On Android the native hardware bridge is always present — no server to poll.
+    if (IS_ANDROID) { setStatus('online'); return }
     if (!enabled) return
     let alive = true
     const ping = async () => {

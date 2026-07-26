@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   MIN_READINGS_FOR_EXPORT, chartSvgToPngBlob, exportToExperimentDoc,
 } from '../exportDocx'
+import { IS_ANDROID } from '../config'
 
 /**
  * Appears once the student has taken enough readings, and writes their
@@ -22,6 +23,9 @@ export default function ExportToDocument({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [done, setDone] = useState(null)
+
+  // Word export relies on the Windows backend (python-docx); not available on Android.
+  if (IS_ANDROID) return null
 
   const enough = readings.length >= minReadings
   const remaining = minReadings - readings.length

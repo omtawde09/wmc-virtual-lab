@@ -6,7 +6,8 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
-import { wsUrl } from '../config'
+import { wsUrl, IS_ANDROID } from '../config'
+import Hardware from '../hardware'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import ExportToDocument from '../components/ExportToDocument'
@@ -97,6 +98,9 @@ export default function Practical4() {
 
   /* ── Fetch stored readings ── */
   const fetchReadings = useCallback(async () => {
+    // On Android there is no backend store — readings live in component state,
+    // managed by handleRecord / handleClear below.
+    if (IS_ANDROID) return
     try {
       const res = await axios.get(`${API}/readings`)
       setReadings(res.data)
@@ -110,6 +114,29 @@ export default function Practical4() {
     // is a no-op, so readings persist while you switch tabs.
     resetAllOnce().then(fetchReadings)
     let stopped = false
+
+    // ── Android: poll the native Wi-Fi bridge (no backend / WebSocket) ──
+    if (IS_ANDROID) {
+      let timer = null
+      const poll = async () => {
+        if (stopped) return
+        try {
+          const data = await Hardware.currentWifi()
+          const now = performance.now()
+          if (lastFrameAt.current) setUpdateMs(Math.round(now - lastFrameAt.current))
+          lastFrameAt.current = now
+          setLiveWifi(data)
+          setLiveErr(false)
+        } catch {
+          setLiveErr(true)
+        }
+        if (!stopped) timer = setTimeout(poll, 1500)
+      }
+      poll()
+      return () => { stopped = true; clearTimeout(timer) }
+    }
+
+    // ── Web / Windows: live Wi-Fi via WebSocket ──
     let ws = null
     let reconnectTimer = null
     let backoff = 1000
@@ -168,6 +195,21 @@ export default function Practical4() {
     const dist = parseFloat(distance)
     if (isNaN(dist) || dist < 0) return
     setRecording(true)
+    // Android: snapshot the current native reading into local state.
+    if (IS_ANDROID) {
+      if (liveWifi && liveWifi.connected !== false) {
+        const reading = {
+          ...liveWifi,
+          id: Date.now(),
+          seq: readings.length + 1,
+          distance: dist,
+        }
+        setReadings((r) => [...r, reading])
+        setLastAdded(reading)
+      }
+      setRecording(false)
+      return
+    }
     try {
       const res = await axios.post(`${API}/reading`, { distance: dist })
       setLastAdded(res.data)
@@ -180,6 +222,7 @@ export default function Practical4() {
   async function handleClear() {
     if (!window.confirm('Clear all readings?')) return
     setLoading(true)
+    if (IS_ANDROID) { setReadings([]); setLastAdded(null); setLoading(false); return }
     try { await axios.delete(`${API}/clear`); await fetchReadings() } catch {}
     setLoading(false)
   }

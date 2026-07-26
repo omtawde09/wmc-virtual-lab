@@ -6,7 +6,9 @@ import {
 } from 'recharts'
 
 import { resetAllOnce } from '../resetOnLoad'
-import { wsUrl } from '../config'
+import { wsUrl, IS_ANDROID } from '../config'
+import Hardware from '../hardware'
+import { analyzeMultipath } from '../calc/multipath'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import BackendBanner from '../components/BackendBanner'
@@ -62,6 +64,7 @@ export default function Practical8() {
   useEffect(() => { updateMsRef.current = updateMs }, [updateMs])
 
   const fetchSessions = useCallback(async () => {
+    if (IS_ANDROID) return   // sessions live in local state on Android
     try {
       const res = await axios.get(`${API}/sessions`)
       setSessions(res.data)
@@ -69,10 +72,36 @@ export default function Practical8() {
     } catch {}
   }, [])
 
-  /* ── Live RSSI WebSocket ── */
+  /* ── Live RSSI stream ── */
   useEffect(() => {
     resetAllOnce().then(fetchSessions)   // fresh sessions after a full page reload
     let stopped = false
+
+    // Android: poll native currentWifi at a fixed rate; accumulate while recording.
+    if (IS_ANDROID) {
+      const RATE_MS = 250
+      updateMsRef.current = RATE_MS
+      let timer = null
+      const poll = async () => {
+        if (stopped) return
+        try {
+          const data = await Hardware.currentWifi()
+          setLiveWifi(data); setLiveErr(false)
+          setUpdateMs(RATE_MS)
+          if (data.connected !== false && data.rssi != null && recordingRef.current) {
+            samplesRef.current.push(data.rssi)
+            setRolling(prev => {
+              const next = [...prev, { t: new Date().toLocaleTimeString(), rssi: data.rssi }]
+              return next.length > 300 ? next.slice(next.length - 300) : next
+            })
+          }
+        } catch { setLiveErr(true) }
+        if (!stopped) timer = setTimeout(poll, RATE_MS)
+      }
+      poll()
+      return () => { stopped = true; clearTimeout(timer); if (timerRef.current) clearInterval(timerRef.current) }
+    }
+
     let ws = null
     let retry = null
     let backoff = 1000
@@ -123,6 +152,18 @@ export default function Practical8() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
     const samples = [...samplesRef.current]
     if (samples.length < 2) { alert('Not enough live samples were captured. Try again.'); return }
+    if (IS_ANDROID) {
+      try {
+        const record = analyzeMultipath(
+          { scenario: scenarioRef.current, samples, sample_rate_ms: updateMsRef.current || 250.0 },
+          (sessions.length || 0) + 1,
+        )
+        setSessions(s => [...s, record])
+        setLatest(record)
+        setTab('distribution')
+      } catch (e) { alert(e?.message || 'Analysis failed.') }
+      return
+    }
     try {
       const res = await axios.post(`${API}/analyze`, {
         scenario: scenarioRef.current,
@@ -135,7 +176,7 @@ export default function Practical8() {
     } catch (err) {
       alert(err?.response?.data?.detail || 'Analysis failed.')
     }
-  }, [fetchSessions])
+  }, [fetchSessions, sessions])
 
   const startSession = () => {
     if (!liveWifi || liveWifi.connected === false) return
@@ -155,6 +196,7 @@ export default function Practical8() {
 
   const clearSessions = async () => {
     if (!window.confirm('Clear all multipath session history?')) return
+    if (IS_ANDROID) { setSessions([]); setLatest(null); setTab('realtime'); return }
     try {
       await axios.delete(`${API}/sessions`)
       setSessions([]); setLatest(null); setTab('realtime')

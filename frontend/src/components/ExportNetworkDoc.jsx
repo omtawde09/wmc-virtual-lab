@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { chartSvgToPngBlob, exportExp5Doc } from '../exportDocx'
+import { IS_ANDROID } from '../config'
 
 /**
  * Experiment 5 export card. Writes the student's measured Result tables — the
@@ -15,6 +16,9 @@ export default function ExportNetworkDoc({ ping = null, speedtest = null, getCha
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [done, setDone] = useState(null)
+
+  // Word export relies on the Windows backend (python-docx); not available on Android.
+  if (IS_ANDROID) return null
 
   const hasPing = !!(ping && ping.success)
   const hasSpeed = !!speedtest

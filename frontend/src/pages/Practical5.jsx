@@ -5,6 +5,7 @@ import ExperimentInfo from '../components/ExperimentInfo'
 import BackendBanner from '../components/BackendBanner'
 import ExportNetworkDoc from '../components/ExportNetworkDoc'
 import { findChartSvg } from '../exportDocx'
+import Hardware from '../hardware'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -388,15 +389,15 @@ export default function Practical5() {
     setTesting(false)
   }
 
-  /* CLI Ping — runs the real Windows `ping` command on the backend (Table 1) */
+  /* CLI Ping — real ICMP ping (Windows `ping` via backend, or native on Android) */
   async function handlePing() {
     if (!pingHost.trim()) return
     setPinging(true); setCliPing(null)
     try {
-      const res = await axios.post(`${API}/ping`, { host: pingHost.trim(), count: 4 }, { timeout: 60000 })
-      setCliPing(res.data)
-    } catch {
-      setCliPing({ success: false, error: 'Ping request failed. Ensure the backend is running.' })
+      const data = await Hardware.ping(pingHost.trim(), 4)
+      setCliPing(data)
+    } catch (e) {
+      setCliPing({ success: false, error: e?.message || 'Ping request failed.' })
     }
     setPinging(false)
   }

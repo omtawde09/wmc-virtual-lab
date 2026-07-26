@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { IS_ANDROID } from './config'
 
 // Clears every practical's stored results exactly once per full page load.
 // A browser refresh re-runs this module, so `done` resets to false — but during
@@ -8,6 +9,8 @@ let inFlight = null
 
 export function resetAllOnce() {
   if (done) return Promise.resolve()
+  // Android has no backend stores to clear (each page keeps results in state).
+  if (IS_ANDROID) { done = true; return Promise.resolve() }
   if (inFlight) return inFlight
   inFlight = Promise.allSettled([
     axios.delete('/api/wifi/clear'),            // Practical 4 – RSSI readings

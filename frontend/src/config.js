@@ -12,6 +12,15 @@
 
 export const API_BASE = import.meta.env.VITE_API_BASE || ''
 
+/**
+ * True when running inside the Android app's WebView, where the native bridge
+ * (window.AndroidHardware) replaces the FastAPI backend entirely. Pages use this
+ * to source data from the native Hardware layer instead of localhost, and to
+ * skip the "run the backend .exe" prompts that only apply to the Windows build.
+ */
+export const IS_ANDROID =
+  typeof window !== 'undefined' && !!window.AndroidHardware
+
 /** Build a WebSocket URL for a given API path (e.g. '/api/wifi/ws'). */
 export function wsUrl(path) {
   if (API_BASE) {

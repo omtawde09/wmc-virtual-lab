@@ -4,7 +4,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 import { resetAllOnce } from '../resetOnLoad'
-import { wsUrl } from '../config'
+import { wsUrl, IS_ANDROID } from '../config'
+import Hardware from '../hardware'
+import { buildPathLossFit, analyzeObstacles } from '../calc/pathloss'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import BackendBanner from '../components/BackendBanner'
@@ -61,6 +63,28 @@ export default function Practical7() {
 
   /* ── Live BLE discovery (shared stream) ── */
   useEffect(() => {
+    if (IS_ANDROID) {
+      let stopped = false, timer = null
+      setScanning(true)
+      const poll = async () => {
+        if (stopped) return
+        try {
+          const list = await Hardware.scanBluetooth({ le: true, durationMs: 6000 })
+          setLiveErr(false)
+          setDevices(prev => {
+            const next = { ...prev }
+            for (const d of list) {
+              next[d.address] = { ...(next[d.address] || {}), ...d, name: d.name || next[d.address]?.name, _seenAt: Date.now() }
+            }
+            return next
+          })
+        } catch { setLiveErr(true) }
+        if (!stopped) timer = setTimeout(poll, 1000)
+      }
+      poll()
+      return () => { stopped = true; clearTimeout(timer); setScanning(false) }
+    }
+
     const ws = new WebSocket(wsUrl(`${BT_API}/ws`))
     wsRef.current = ws
     ws.onopen = () => { setScanning(true); setLiveErr(false) }
@@ -95,17 +119,23 @@ export default function Practical7() {
   }, [])
 
   const fetchReadings = useCallback(async () => {
+    if (IS_ANDROID) return   // readings live in local state on Android
     try { setReadings((await axios.get(`${API}/readings`)).data) } catch {}
   }, [])
 
   useEffect(() => { resetAllOnce().then(fetchReadings) }, [fetchReadings])
 
-  const fetchAnalysis = useCallback(async () => {
+  const fetchAnalysis = useCallback(async (rows) => {
+    if (IS_ANDROID) {
+      setAnalysis(analyzeObstacles(rows))
+      setFit(buildPathLossFit(rows))
+      return
+    }
     try { setAnalysis((await axios.get(`${API}/obstacles`)).data) } catch { setAnalysis(null) }
     try { setFit((await axios.get(`${API}/fit`)).data) } catch { setFit(null) }
   }, [])
 
-  useEffect(() => { if (readings.length >= 1) fetchAnalysis(); else { setAnalysis(null); setFit(null) } }, [readings, fetchAnalysis])
+  useEffect(() => { if (readings.length >= 1) fetchAnalysis(readings); else { setAnalysis(null); setFit(null) } }, [readings, fetchAnalysis])
 
   /* ── Actions ── */
   async function handleAddReading() {
@@ -114,6 +144,21 @@ export default function Practical7() {
     if (!selectedAddress) { setLogErr('Select a device from the list first.'); return }
     if (!dist || dist <= 0) { setLogErr('Enter a distance in metres.'); return }
     setRecording(true); setLogErr(null)
+    if (IS_ANDROID) {
+      const dev = devices[selectedAddress]
+      if (!dev || dev.rssi == null) {
+        setLogErr('Device not currently advertising — wait for it to reappear in the scan.')
+      } else {
+        const reading = {
+          id: Date.now(), address: selectedAddress, name: dev.name,
+          rssi: dev.rssi, distance: dist, obstacle_count: oc, obstacle_desc: obstacleDesc.trim(),
+        }
+        setReadings(r => [...r, reading])
+        setLastAdded(reading)
+      }
+      setRecording(false)
+      return
+    }
     try {
       const res = await axios.post(`${API}/reading`, { address: selectedAddress, distance: dist, obstacle_count: oc, obstacle_desc: obstacleDesc.trim() })
       setLastAdded(res.data)
@@ -126,6 +171,7 @@ export default function Practical7() {
 
   async function handleClear() {
     if (!window.confirm('Clear all path-loss readings?')) return
+    if (IS_ANDROID) { setReadings([]); setLastAdded(null); return }
     try { await axios.delete(`${API}/clear`); await fetchReadings() } catch {}
   }
 

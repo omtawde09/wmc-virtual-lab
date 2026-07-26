@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mirrors the web app's design tokens so native chrome matches the UI. -->
+    <color name="brand_cyan">#2563EB</color>
+    <color name="brand_violet">#4F46E5</color>
+    <color name="brand_surface">#F5F9FF</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#0F172A</color>
+</resources>
