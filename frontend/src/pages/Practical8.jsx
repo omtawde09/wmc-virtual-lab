@@ -9,6 +9,7 @@ import { resetAllOnce } from '../resetOnLoad'
 import { wsUrl, IS_ANDROID } from '../config'
 import Hardware from '../hardware'
 import { analyzeMultipath } from '../calc/multipath'
+import { fitDomain } from '../calc/chartScale'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import BackendBanner from '../components/BackendBanner'
@@ -206,6 +207,16 @@ export default function Practical8() {
   const connected = liveWifi && liveWifi.connected !== false
   const sessionTrace = latest ? latest.samples.map((rssi, i) => ({ i, rssi })) : []
 
+  // Frame the axis on the samples actually captured. Fading is a few dB, so a
+  // fixed -100..-30 axis rendered every trace as a flat line.
+  const traceDomain = fitDomain(rolling.map(r => r.rssi), { pad: 2, minSpan: 6 })
+  // Colour the trace by the measured fading severity, so the chart itself
+  // reflects the result rather than always drawing in one colour.
+  const traceColor = latest
+    ? (latest.severity === 'Severe' ? '#ef4444'
+      : latest.severity === 'Moderate' ? '#d97706' : '#059669')
+    : '#2563eb'
+
   return (
     <main className="practical-page">
       <div className="container">
@@ -362,11 +373,11 @@ export default function Practical8() {
                 <LineChart data={rolling} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
                   <CartesianGrid stroke="rgba(15,36,68,0.08)" strokeDasharray="4 4" />
                   <XAxis dataKey="t" tick={{ fill: '#94a3b8', fontSize: 10 }} stroke="#334155" minTickGap={40} />
-                  <YAxis domain={[-100, -30]} tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155"
+                  <YAxis domain={traceDomain} allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155"
                     label={{ value: 'RSSI (dBm)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }} />
                   <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '10px', fontSize: '13px' }} />
                   {latest && <ReferenceLine y={latest.mean_rssi} stroke="#64748b" strokeDasharray="4 4" label={{ value: 'mean', fill: '#64748b', fontSize: 10, position: 'right' }} />}
-                  <Line type="monotone" dataKey="rssi" name="Live RSSI" stroke="#d97706" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="rssi" name="Live RSSI" stroke={traceColor} strokeWidth={2} dot={false} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             )

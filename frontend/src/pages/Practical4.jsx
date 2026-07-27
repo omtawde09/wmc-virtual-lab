@@ -12,6 +12,7 @@ import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import ExportToDocument from '../components/ExportToDocument'
 import { findChartSvg } from '../exportDocx'
+import { fitDomain, inDomain } from '../calc/chartScale'
 import BackendBanner from '../components/BackendBanner'
 
 const API = '/api/wifi'
@@ -238,12 +239,35 @@ export default function Practical4() {
   const chartData = [...readings].sort((a, b) => a.distance - b.distance)
   const qual = liveWifi ? signalLabel(liveWifi.rssi) : null
 
-  /* Theoretical inverse-decay curve (100/√d) for the Signal % view, per the experiment. */
-  const maxDist = chartData.length ? Math.max(...chartData.map(r => r.distance), 2) : 20
+  // Frame the RSSI axis on the readings taken. A fixed -100..-30 axis squashed a
+  // real -50..-58 spread into a tenth of the plot, so the curve looked flat.
+  const rssiAxisDomain = fitDomain(rssiValues, { pad: 3, minSpan: 12 })
+  // Trace colour reflects the measured average quality.
+  const rssiTraceColor = avgRssi != null ? signalColor(avgRssi) : '#2563eb'
+
+  /* Theoretical inverse-decay reference for the Signal % view.
+   *
+   * The curve keeps the experiment's 1/√d shape but is ANCHORED to the first
+   * reading actually taken, i.e. theo(d) = p₀·√(d₀/d). A raw 100/√d curve
+   * assumes 100% at 1 m, so it floated far above the measured line and started
+   * to the left of any data — the two were not comparable. Anchoring makes the
+   * comparison about the rate of decay, which is what the experiment asks. */
+  const firstReading = chartData[0]
+  const anchorD = firstReading ? Math.max(0.5, firstReading.distance) : 1
+  const anchorPct = firstReading ? firstReading.signal_pct : 100
+  const measuredMax = chartData.length ? Math.max(...chartData.map(r => r.distance)) : 10
+  // Round the axis up so the last tick is a whole number rather than a stray max.
+  const maxDist = Math.max(Math.ceil(measuredMax), Math.ceil(anchorD) + 1)
+
   const theoretical = []
-  for (let i = 0; i <= 40; i++) {
-    const d = 1 + (maxDist - 1) * i / 40
-    theoretical.push({ distance: +d.toFixed(2), theo: +Math.min(100, 100 / Math.sqrt(d)).toFixed(1) })
+  if (chartData.length) {
+    for (let i = 0; i <= 40; i++) {
+      const d = anchorD + (maxDist - anchorD) * i / 40
+      theoretical.push({
+        distance: +d.toFixed(2),
+        theo: +Math.max(0, Math.min(100, anchorPct * Math.sqrt(anchorD / d))).toFixed(1),
+      })
+    }
   }
 
   return (
@@ -486,7 +510,7 @@ export default function Practical4() {
               </h2>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                 {chartMode === 'percent'
-                  ? 'PC signal strength (%) vs distance, with the theoretical inverse-decay curve (100/√d).'
+                  ? 'Measured signal strength (%) vs distance, against the theoretical 1/√d decay anchored to your first reading.'
                   : 'Raw signal strength (dBm) vs distance from the Wi-Fi router.'}
               </div>
             </div>
@@ -508,19 +532,20 @@ export default function Practical4() {
             </div>
           ) : chartMode === 'percent' ? (
             <ResponsiveContainer width="100%" height={360}>
-              <ComposedChart margin={{ top: 10, right: 30, left: 0, bottom: 16 }}>
+              <ComposedChart margin={{ top: 8, right: 30, left: 0, bottom: 28 }}>
                 <CartesianGrid stroke="rgba(15,36,68,0.08)" strokeDasharray="4 4" />
-                <XAxis type="number" dataKey="distance" domain={[0, 'dataMax']} allowDecimals
-                  label={{ value: 'Distance (m)', position: 'insideBottom', offset: -8, fill: '#94a3b8', fontSize: 12 }}
+                <XAxis type="number" dataKey="distance" domain={[0, maxDist]} allowDecimals={false}
+                  tickCount={Math.min(7, maxDist + 1)}
+                  label={{ value: 'Distance (m)', position: 'insideBottom', offset: -12, fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
-                <YAxis type="number" domain={[0, 110]}
+                <YAxis type="number" domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]}
                   label={{ value: 'Signal Strength (%)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
                 <Tooltip
                   contentStyle={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '10px', fontSize: '13px' }}
                   formatter={(v, name) => [`${v}%`, name]} labelFormatter={(l) => `Distance: ${l} m`} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line data={theoretical} dataKey="theo" name="Theoretical decay (100/√d)"
+                <Legend verticalAlign="top" align="center" height={26} wrapperStyle={{ fontSize: 12 }} />
+                <Line data={theoretical} dataKey="theo" name="Theoretical 1/√d decay"
                   stroke="#d97706" strokeDasharray="5 4" strokeWidth={1.5} dot={false} />
                 <Line data={chartData} dataKey="signal_pct" name="Measured (your Wi-Fi)"
                   stroke="#2563eb" strokeWidth={2.5}
@@ -541,17 +566,17 @@ export default function Practical4() {
                 <XAxis dataKey="distance" name="Distance"
                   label={{ value: 'Distance (m)', position: 'insideBottom', offset: -5, fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
-                <YAxis dataKey="rssi" name="RSSI" domain={[-100, -30]}
+                <YAxis dataKey="rssi" name="RSSI" domain={rssiAxisDomain} allowDecimals={false}
                   label={{ value: 'RSSI (dBm)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }}
                   tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155" />
                 <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine y={-50} stroke="#059669" strokeDasharray="5 3" label={{ value: 'Excellent', fill: '#059669', fontSize: 10, position: 'right' }} />
-                <ReferenceLine y={-60} stroke="#2563eb" strokeDasharray="5 3" label={{ value: 'Good',      fill: '#2563eb', fontSize: 10, position: 'right' }} />
-                <ReferenceLine y={-70} stroke="#d97706" strokeDasharray="5 3" label={{ value: 'Fair',      fill: '#d97706', fontSize: 10, position: 'right' }} />
+                {inDomain(-50, rssiAxisDomain) && <ReferenceLine y={-50} stroke="#059669" strokeDasharray="5 3" label={{ value: 'Excellent', fill: '#059669', fontSize: 10, position: 'right' }} />}
+                {inDomain(-60, rssiAxisDomain) && <ReferenceLine y={-60} stroke="#2563eb" strokeDasharray="5 3" label={{ value: 'Good',      fill: '#2563eb', fontSize: 10, position: 'right' }} />}
+                {inDomain(-70, rssiAxisDomain) && <ReferenceLine y={-70} stroke="#d97706" strokeDasharray="5 3" label={{ value: 'Fair',      fill: '#d97706', fontSize: 10, position: 'right' }} />}
                 <Area type="monotone" dataKey="rssi" fill="url(#rssiGrad)" stroke="transparent" />
-                <Line type="monotone" dataKey="rssi" stroke="#2563eb" strokeWidth={2.5}
-                  dot={{ fill: '#2563eb', r: 5, strokeWidth: 2, stroke: '#ffffff' }}
-                  activeDot={{ r: 7, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }} />
+                <Line type="monotone" dataKey="rssi" stroke={rssiTraceColor} strokeWidth={2.5}
+                  dot={{ fill: rssiTraceColor, r: 5, strokeWidth: 2, stroke: '#ffffff' }}
+                  activeDot={{ r: 7, fill: rssiTraceColor, stroke: '#fff', strokeWidth: 2 }} />
               </ComposedChart>
             </ResponsiveContainer>
           )}

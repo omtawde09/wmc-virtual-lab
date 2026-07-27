@@ -84,7 +84,7 @@ export default function Practical9() {
 
   /* ── Build spectrum-map data from REAL channels/RSSI ── */
   const spectrum = (() => {
-    if (bandNets.length === 0) return { data: [], keys: [] }
+    if (bandNets.length === 0) return { data: [], keys: [], top: -30 }
     const centers = bandNets.map(n => channelCenterMHz(n.channel, n.band))
     const lo = Math.min(...centers) - 40
     const hi = Math.max(...centers) + 40
@@ -106,7 +106,12 @@ export default function Practical9() {
       })
       data.push(row)
     }
-    return { data, keys }
+    // Fit the top of the axis to the strongest AP actually measured, so weak
+    // environments don't render as flat masks in the bottom third of an
+    // otherwise empty -100..-30 plot. The -100 floor is the mask base.
+    const peak = Math.max(...bandNets.map(n => n.rssi_dbm))
+    const top = Math.min(-30, Math.ceil(peak + 6))
+    return { data, keys, top }
   })()
 
   return (
@@ -206,7 +211,7 @@ export default function Practical9() {
                 <XAxis dataKey="freq" type="number" domain={['dataMin', 'dataMax']}
                   tick={{ fill: '#94a3b8', fontSize: 11 }} stroke="#334155"
                   label={{ value: 'Frequency (MHz)', position: 'insideBottom', offset: -8, fill: '#94a3b8', fontSize: 12 }} />
-                <YAxis domain={[-100, -30]} tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155"
+                <YAxis domain={[-100, spectrum.top]} allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 12 }} stroke="#334155"
                   label={{ value: 'RSSI (dBm)', angle: -90, position: 'insideLeft', fill: '#94a3b8', fontSize: 12 }} />
                 <Tooltip contentStyle={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '10px', fontSize: '12px' }}
                   labelFormatter={(l) => `${l} MHz`} />
