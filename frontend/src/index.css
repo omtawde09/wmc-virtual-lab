@@ -1801,6 +1801,93 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     justify-content: center;
   }
 
+  /* ── Home page: compact, app-like layout ──
+     On desktop the hero is a full-bleed statement piece. On a phone that same
+     spacing pushed the first experiment below the fold (hero alone was 54% of
+     the viewport, followed by a 70px gap), so the page opened on empty space.
+     Tighten the hero and turn each card into a compact row. */
+  .hero { padding: 24px 0 16px; }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.4px;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+
+  .hero-title {
+    font-size: 30px;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+  }
+
+  .hero-subtitle {
+    font-size: 14.5px;
+    line-height: 1.6;
+    margin-bottom: 0;
+  }
+
+  .practical-cards { padding: 20px 0 0; gap: 14px; }
+
+  /* Icon sits beside the label + title (like a native list row), with the
+     description, tags and CTA spanning the full width beneath. */
+  .practical-card {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding: 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .card-icon-wrap {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 44px; height: 44px;
+    font-size: 20px;
+    margin-bottom: 0;
+  }
+
+  .card-label {
+    grid-column: 2; grid-row: 1;
+    font-size: 10px;
+    letter-spacing: 0.6px;
+    margin-bottom: 0;
+  }
+
+  .card-title {
+    grid-column: 2; grid-row: 2;
+    font-size: 17px;
+    letter-spacing: -0.3px;
+    margin-bottom: 0;
+  }
+
+  .card-desc {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 10px 0 0;
+    /* Keep every card the same height regardless of copy length. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-tags {
+    grid-column: 1 / -1;
+    gap: 6px;
+    margin: 10px 0 0;
+  }
+  .card-tags .tag { font-size: 10px; padding: 3px 8px; }
+
+  .card-cta {
+    grid-column: 1 / -1;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+
   .section-header { margin-bottom: 24px; padding-bottom: 18px; }
   .section-title { font-size: 22px; letter-spacing: -0.5px; }
   .section-desc { font-size: 14px; }
