@@ -209,7 +209,7 @@ export default function Practical7() {
             )}
           </div>
 
-          {liveErr && <div className="alert alert-warning">⚠️ Could not connect to the Bluetooth scan stream. Ensure the backend is running and Bluetooth is on.</div>}
+          {liveErr && <div className="alert alert-warning">⚠️ {IS_ANDROID ? 'Could not start the Bluetooth scan. Make sure Bluetooth and Location are turned on.' : 'Could not connect to the Bluetooth scan stream. Ensure the backend is running and Bluetooth is on.'}</div>}
           {!liveErr && deviceList.length === 0 && <div className="alert alert-warning">📡 No BLE advertisements seen yet — wait a few seconds.</div>}
 
           {deviceList.length > 0 && (

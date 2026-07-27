@@ -236,7 +236,7 @@ export default function Practical8() {
             )}
           </div>
 
-          {liveErr && <div className="alert alert-error">⚠️ Connection error. Ensure backend FastAPI is running on port 8000.</div>}
+          {liveErr && <div className="alert alert-error">⚠️ {IS_ANDROID ? 'Could not read the Wi-Fi adapter. Make sure Wi-Fi and Location are turned on.' : 'Connection error. Ensure backend FastAPI is running on port 8000.'}</div>}
           {liveWifi && liveWifi.connected === false && !liveErr && (
             <div className="alert alert-warning">📡 No active Wi-Fi connection detected. Connect to a network to monitor fading.</div>
           )}

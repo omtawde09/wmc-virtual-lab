@@ -6,6 +6,7 @@ import BackendBanner from '../components/BackendBanner'
 import ExportNetworkDoc from '../components/ExportNetworkDoc'
 import { findChartSvg } from '../exportDocx'
 import Hardware from '../hardware'
+import { IS_ANDROID } from '../config'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
@@ -505,7 +506,7 @@ export default function Practical5() {
             ⌨ Command-Line Latency Test <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)' }}>(Table 1 · real <code>ping</code>)</span>
           </h2>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-            Runs the actual Windows <code>ping</code> command (4 packets, like <code>ping 8.8.8.8</code>) and reports packets sent/received, packet loss and RTT — exactly the columns in Experiment Table 1.
+            Runs the device&apos;s real {IS_ANDROID ? 'ICMP' : 'Windows'} <code>ping</code> command (4 packets, like <code>ping 8.8.8.8</code>) and reports packets sent/received, packet loss and RTT — exactly the columns in Experiment Table 1.
           </div>
 
           <div className="input-row" style={{ marginBottom: '16px', flexWrap: 'wrap' }}>
@@ -590,7 +591,7 @@ export default function Practical5() {
               — anything above 1–2% will noticeably degrade real-time applications.
             </p>
             <p>
-              The command-line test runs the real Windows <code>ping</code> command (4 packets, like
+              The command-line test runs a real {IS_ANDROID ? 'ICMP' : 'Windows'} <code>ping</code> (4 packets, like
               <code>ping 8.8.8.8</code>) and reports sent, received, loss and min/max/average RTT. The
               throughput test transfers real data against Cloudflare public speed-test endpoints, so the
               numbers reflect your actual connection rather than a simulation.

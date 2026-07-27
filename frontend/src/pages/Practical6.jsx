@@ -252,7 +252,7 @@ export default function Practical6() {
       return
     }
     try { setPairedDevices((await axios.get(`${CONN_API}/paired-devices`)).data) }
-    catch (err) { setConnErr(err.response?.data?.detail || 'Could not read Windows paired-device list.') }
+    catch (err) { setConnErr(err.response?.data?.detail || 'Could not read the paired-device list.') }
   }
 
   /* ── Derived ── */
@@ -298,7 +298,9 @@ export default function Practical6() {
 
           {liveErr && (
             <div className="alert alert-warning">
-              ⚠️ Could not connect to the Bluetooth scan stream. Make sure the backend is running and Bluetooth is turned on in Windows Settings.
+              ⚠️ {IS_ANDROID
+                ? 'Could not start the Bluetooth scan. Make sure Bluetooth and Location are turned on.'
+                : 'Could not connect to the Bluetooth scan stream. Make sure the backend is running and Bluetooth is turned on in Windows Settings.'}
             </div>
           )}
           {!liveErr && deviceList.length === 0 && (
@@ -332,7 +334,7 @@ export default function Practical6() {
                 </tbody>
               </table>
               <p className="section-desc" style={{ marginTop: '14px', fontSize: '12px' }}>
-                ℹ️ Rows showing <em>(no name)</em> are normal BLE behaviour — phones use randomised addresses and omit their name from advertisements for privacy. A name only appears when a device broadcasts one (fitness bands, smart tags, beacons). To confirm a phone, pair it via Windows Settings → Bluetooth &amp; devices and use "Refresh Windows Paired List".
+                ℹ️ Rows showing <em>(no name)</em> are normal BLE behaviour — phones use randomised addresses and omit their name from advertisements for privacy. A name only appears when a device broadcasts one (fitness bands, smart tags, beacons). To confirm a phone, pair it in {IS_ANDROID ? <>Android Settings → Connected devices</> : <>Windows Settings → Bluetooth &amp; devices</>} and use &quot;Refresh Paired Devices&quot;.
               </p>
             </div>
           )}
@@ -342,7 +344,7 @@ export default function Practical6() {
         <div className="glass-card" style={{ marginBottom: '24px' }}>
           <h2 className="card-section-title accent tight">🔗 Connection &amp; Pairing</h2>
           <p className="section-desc" style={{ marginBottom: '16px', fontSize: '13px' }}>
-            Select a device above, then attempt a direct BLE connection. Most phones only act as BLE <em>scanners</em>, not connectable peripherals — a connect attempt against a phone will time out, which is expected. Dedicated BLE peripherals (bands, tags, sensors) accept connections. Phone pairing itself is done in Windows Settings; use "Refresh Windows Paired List" to confirm.
+            Select a device above, then attempt a direct BLE connection. Most phones only act as BLE <em>scanners</em>, not connectable peripherals — a connect attempt against a phone will time out, which is expected. Dedicated BLE peripherals (bands, tags, sensors) accept connections. Phone pairing itself is done in {IS_ANDROID ? <>Android Settings → Connected devices</> : <>Windows Settings</>}; use &quot;Refresh Paired Devices&quot; to confirm.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
@@ -353,7 +355,7 @@ export default function Practical6() {
               Connect &amp; Pair
             </button>
             <button className="btn btn-outline" disabled={!connStatus.connected} onClick={handleDisconnect}>Disconnect</button>
-            <button className="btn btn-outline" onClick={fetchPairedDevices}>Refresh Windows Paired List</button>
+            <button className="btn btn-outline" onClick={fetchPairedDevices}>Refresh Paired Devices</button>
           </div>
 
           {connErr && <div className="alert alert-warning" style={{ marginBottom: '16px' }}>⚠️ {connErr}</div>}

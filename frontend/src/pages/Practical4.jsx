@@ -277,7 +277,9 @@ export default function Practical4() {
 
           {liveErr && (
             <div className="alert alert-warning">
-              ⚠️ Could not connect to backend. Make sure the FastAPI server is running on port 8000.
+              ⚠️ {IS_ANDROID
+                ? 'Could not read the Wi-Fi adapter. Make sure Wi-Fi and Location are turned on.'
+                : 'Could not connect to backend. Make sure the FastAPI server is running on port 8000.'}
             </div>
           )}
 
@@ -616,7 +618,9 @@ export default function Practical4() {
           faqs={[
             { q: 'What is a good Wi-Fi signal strength in dBm?', a: '-30 to -50 dBm is excellent, -50 to -60 dBm is good, -60 to -70 dBm is fair and still usable for browsing, and below -80 dBm the connection becomes unreliable or drops entirely.' },
             { q: 'Why is Wi-Fi RSSI always negative?', a: 'dBm is a logarithmic ratio against 1 milliwatt. Received Wi-Fi power is far less than 1 mW, so the logarithm is negative. A smaller absolute number (-45) means more power than a larger one (-80).' },
-            { q: 'How do I check Wi-Fi signal strength on Windows?', a: 'Run netsh wlan show interfaces in Command Prompt. It reports Signal as a percentage, and on newer Windows builds an Rssi value in dBm. This lab reads the real dBm value whenever your driver exposes it.' },
+            IS_ANDROID
+              ? { q: 'How does the app read Wi-Fi signal strength?', a: 'It queries Android\'s WifiManager for the live connection, which reports RSSI directly in dBm along with the frequency and link speed. Location must be switched on — Android requires it before an app may read Wi-Fi details.' }
+              : { q: 'How do I check Wi-Fi signal strength on Windows?', a: 'Run netsh wlan show interfaces in Command Prompt. It reports Signal as a percentage, and on newer Windows builds an Rssi value in dBm. This lab reads the real dBm value whenever your driver exposes it.' },
           ]}
           related={[
             { to: '/practical7', title: 'Indoor Path Loss vs Obstacles', blurb: 'Add walls between the devices and measure how many dB each one costs.' },
@@ -639,7 +643,9 @@ export default function Practical4() {
               every time, not the same number of metres.
             </p>
             <p>
-              This page reads your adapter directly with <code>netsh wlan show interfaces</code>, so every
+              This page reads your radio directly — {IS_ANDROID
+                ? <>through Android&apos;s <code>WifiManager</code></>
+                : <>with <code>netsh wlan show interfaces</code></>} — so every
               point on the chart is a genuine measurement from your own hardware. Record readings at
               several distances (1 m, 3 m, 6 m, 10 m) with a clear line of sight, then compare your curve
               against the theoretical decay line.

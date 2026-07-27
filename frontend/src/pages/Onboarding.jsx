@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 import { ElegantShape } from "../components/ui/ElegantShape";
+import { IS_ANDROID } from "../config";
 
 import "./Onboarding.css";
 
@@ -27,12 +28,22 @@ const slides = [
         title2: "Experiments",
         description: "Signal strength, throughput and latency, Bluetooth, path loss, multipath fading and interference."
     },
-    {
-        badge: "Setup",
-        title1: "Run the Local",
-        title2: "Backend First",
-        description: "Your radios can only be read on your own machine, so a small Windows helper does the measuring."
-    }
+    // Final slide differs by platform: the Android app reads the phone's own
+    // radios natively, so there is no helper to install — it just needs
+    // permissions. The web build still needs the local Windows backend.
+    IS_ANDROID
+        ? {
+            badge: "Setup",
+            title1: "Allow Wi-Fi &",
+            title2: "Bluetooth Access",
+            description: "The app reads your phone's own radios. Grant the Nearby devices and Location permissions, and keep Wi-Fi and Bluetooth switched on."
+        }
+        : {
+            badge: "Setup",
+            title1: "Run the Local",
+            title2: "Backend First",
+            description: "Your radios can only be read on your own machine, so a small Windows helper does the measuring."
+        }
 ];
 
 function Onboarding() {
