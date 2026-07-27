@@ -232,6 +232,15 @@ body::before {
   font-weight: 600;
 }
 
+/* Home icon in the nav — inherits the link colour, so it picks up the active
+   state exactly like the P4–P9 badges do. */
+.nav-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: block;
+}
+
 .nav-badge {
   font-size: 10.5px;
   font-weight: 700;
