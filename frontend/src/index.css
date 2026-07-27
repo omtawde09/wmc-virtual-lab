@@ -2028,20 +2028,38 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
    * opportunity, and nowrap headers — so the table's min-content width far
    * exceeded the card. Allowing breaks lets auto table layout shrink to fit.
    */
-  .data-table { font-size: 11.5px; }
-  .data-table th, .data-table td { padding: 9px 7px; }
+  /*
+   * Every row reads as a single clean line. The previous `overflow-wrap:
+   * anywhere` was what made this feel congested: a MAC address has no natural
+   * break point, so it was split mid-value ("0F:56:E4:1E:" / "D7:E6") and the
+   * quality badge broke across lines ("Excelle" / "nt"), giving ragged 55px
+   * rows. Letting values stay intact and trimming the type instead keeps the
+   * widest table (the 7-column ping result) inside the screen with no
+   * horizontal scrolling — verified at 375px.
+   */
+  .data-table { font-size: 10px; }
+  .data-table th, .data-table td {
+    padding: 11px 4px;
+    vertical-align: middle;
+  }
   .data-table th {
-    font-size: 9.5px;
-    letter-spacing: 0.3px;
-    white-space: normal;      /* headers may wrap onto two lines */
+    font-size: 8.5px;
+    letter-spacing: 0.2px;
+    white-space: normal;      /* headers may still wrap onto two lines */
   }
   .data-table td {
-    overflow-wrap: anywhere;  /* long MACs/names break rather than overflow */
-    word-break: break-word;
+    font-size: 10px;
+    line-height: 1.45;
+    overflow-wrap: normal;    /* never break inside a value */
+    word-break: normal;
+  }
+  .data-table .badge {
+    white-space: nowrap;      /* "Excellent" stays on one line */
+    font-size: 9px;
+    padding: 3px 7px;
   }
   /* Keep the scroll container as a safety net for extreme cases. */
   .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .data-table .badge { font-size: 9.5px; padding: 3px 6px; }
 }
 
 /* Fine-tune the smallest screens */
