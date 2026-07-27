@@ -15,8 +15,8 @@
          brand colour until the WebView has loaded, then hands off to Theme.WmcLab
          — so there is no black flash on launch. -->
     <style name="Theme.WmcLab.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/brand_cyan</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenBackground">@color/brand_logo_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="postSplashScreenTheme">@style/Theme.WmcLab</item>
     </style>
 </resources>

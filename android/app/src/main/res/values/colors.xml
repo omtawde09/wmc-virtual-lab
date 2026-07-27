@@ -2,6 +2,8 @@
 <resources>
     <!-- Mirrors the web app's design tokens so native chrome matches the UI. -->
     <color name="brand_cyan">#2563EB</color>
+    <!-- Background of the app logo artwork (launcher icon + splash). -->
+    <color name="brand_logo_bg">#0378E2</color>
     <color name="brand_violet">#4F46E5</color>
     <color name="brand_surface">#F5F9FF</color>
     <color name="white">#FFFFFF</color>

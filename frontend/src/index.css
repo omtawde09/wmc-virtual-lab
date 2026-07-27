@@ -169,12 +169,10 @@ body::before {
 .navbar-logo-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--cyan), var(--violet));
   border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
+  object-fit: cover;      /* the mark image carries its own brand background */
+  display: block;
+  flex-shrink: 0;
 }
 
 .navbar-logo-text {

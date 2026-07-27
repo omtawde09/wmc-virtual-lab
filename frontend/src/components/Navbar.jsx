@@ -16,7 +16,7 @@ export default function Navbar() {
     <nav className={`navbar${scrolled ? ' scrolled' : ''}`}>
       <div className="navbar-inner">
         <NavLink to="/" className="navbar-logo">
-          <div className="navbar-logo-icon">📡</div>
+          <img className="navbar-logo-icon" src="/logo.png" alt="" width="36" height="36" />
           <span className="navbar-logo-text">
             <span className="brand-l1">Wireless &amp; Mobile</span>
             <span className="brand-l2">Communication</span>
