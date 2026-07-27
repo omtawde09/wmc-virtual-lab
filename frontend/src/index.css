@@ -1847,18 +1847,15 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     overflow: hidden;
   }
 
-  /* The marketing hero is desktop-only; on a phone the app opens straight on
-     the title + experiment tiles. */
-  .hero { display: none; }
-
-  /* Page title, the way a native app heads its main screen. */
+  /* Section heading above the experiment tiles. The hero above already carries
+     the full lab name, so this stays short. */
   .mobile-section-label {
     display: block;
-    margin: 20px 0 16px;
-    font-size: 24px;
+    margin: 18px 0 14px;
+    font-size: 21px;
     font-weight: 800;
     line-height: 1.22;
-    letter-spacing: -0.6px;
+    letter-spacing: -0.5px;
     text-transform: none;
     color: var(--text-primary);
   }
