@@ -1889,13 +1889,14 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
   .practical-cards .practical-card::before,
   .practical-cards .practical-card::after { display: none; }
 
-  /* A distinct, light colour per experiment (dark text on a soft tint). */
-  .practical-cards .practical-card:nth-child(1) { --tile-a: #DCEBFF; --tile-b: #C3DBFF; --tile-ink: #103C87; --tile-accent: #2563EB; }
-  .practical-cards .practical-card:nth-child(2) { --tile-a: #FFE1EF; --tile-b: #FFCFE4; --tile-ink: #8E1751; --tile-accent: #DB2777; }
-  .practical-cards .practical-card:nth-child(3) { --tile-a: #E3F2FE; --tile-b: #CDE7FC; --tile-ink: #0F4C75; --tile-accent: #0284C7; }
-  .practical-cards .practical-card:nth-child(4) { --tile-a: #FFEAD5; --tile-b: #FFD9B4; --tile-ink: #8A4310; --tile-accent: #EA7317; }
-  .practical-cards .practical-card:nth-child(5) { --tile-a: #ECE3FF; --tile-b: #DCCDFF; --tile-ink: #4A1D96; --tile-accent: #7C3AED; }
-  .practical-cards .practical-card:nth-child(6) { --tile-a: #D8F7EC; --tile-b: #BFEFDD; --tile-ink: #0A5A43; --tile-accent: #059669; }
+  /* A distinct mid-tone colour per experiment — richer than a pastel, but
+     still light enough to carry dark text. */
+  .practical-cards .practical-card:nth-child(1) { --tile-a: #B7D4FF; --tile-b: #8FBCFB; --tile-ink: #0B3577; --tile-accent: #1D4ED8; }
+  .practical-cards .practical-card:nth-child(2) { --tile-a: #FFC0DB; --tile-b: #FF9FC5; --tile-ink: #7E1146; --tile-accent: #BE185D; }
+  .practical-cards .practical-card:nth-child(3) { --tile-a: #B2DEFA; --tile-b: #88CAF4; --tile-ink: #0A415C; --tile-accent: #0369A1; }
+  .practical-cards .practical-card:nth-child(4) { --tile-a: #FFD1A3; --tile-b: #FFBA78; --tile-ink: #73360A; --tile-accent: #C2610C; }
+  .practical-cards .practical-card:nth-child(5) { --tile-a: #D3C1FF; --tile-b: #BCA1FF; --tile-ink: #3D1287; --tile-accent: #6D28D9; }
+  .practical-cards .practical-card:nth-child(6) { --tile-a: #A6E9D0; --tile-b: #80D9BB; --tile-ink: #074C37; --tile-accent: #047857; }
 
   /* The emoji becomes oversized artwork on the right, like the reference's
      photography — decorative only, so it never intercepts taps. */
@@ -1911,7 +1912,7 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     box-shadow: none;
     font-size: 76px;
     line-height: 1;
-    opacity: 0.38;
+    opacity: 0.34;
     pointer-events: none;
   }
 
