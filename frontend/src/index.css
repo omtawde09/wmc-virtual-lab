@@ -169,8 +169,8 @@ body::before {
 .navbar-logo-icon {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-sm);
-  object-fit: cover;      /* the mark image carries its own brand background */
+  border-radius: 50%;     /* circular mark, matching the app/launcher icon */
+  object-fit: cover;      /* the image carries its own brand background */
   display: block;
   flex-shrink: 0;
 }
