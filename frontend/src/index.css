@@ -617,6 +617,19 @@ body::before {
 .btn-lg { padding: 16px 36px; font-size: 16px; }
 
 /* --- Input --- */
+/*
+ * Form row: input(s) + action button side by side, bottom-aligned so the button
+ * lines up with the input (not the label). Declared here rather than inline on
+ * the pages so the mobile media query below can override it — inline styles beat
+ * stylesheet rules, which previously left the label/input right-inset when the
+ * row stacked on phones.
+ */
+.input-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
 .input-group {
   display: flex;
   flex-direction: column;

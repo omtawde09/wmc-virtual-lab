@@ -508,7 +508,7 @@ export default function Practical5() {
             Runs the actual Windows <code>ping</code> command (4 packets, like <code>ping 8.8.8.8</code>) and reports packets sent/received, packet loss and RTT — exactly the columns in Experiment Table 1.
           </div>
 
-          <div className="input-row" style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          <div className="input-row" style={{ marginBottom: '16px', flexWrap: 'wrap' }}>
             <div className="input-group" style={{ flex: 1 }}>
               <label className="input-label">Target Host</label>
               <input className="input-field" placeholder="e.g. 8.8.8.8"

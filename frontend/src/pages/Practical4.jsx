@@ -359,7 +359,7 @@ export default function Practical4() {
             <div style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px', color: 'var(--cyan)' }}>
               ➕ Record New Reading
             </div>
-            <div className="input-row" style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
+            <div className="input-row">
               <div className="input-group" style={{ flex: 1 }}>
                 <label className="input-label">Distance from Router (meters)</label>
                 <input
