@@ -1847,13 +1847,18 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     overflow: hidden;
   }
 
-  /* Big page title, the way a native app heads a section. */
+  /* The marketing hero is desktop-only; on a phone the app opens straight on
+     the title + experiment tiles. */
+  .hero { display: none; }
+
+  /* Page title, the way a native app heads its main screen. */
   .mobile-section-label {
     display: block;
-    margin: 18px 0 12px;
-    font-size: 21px;
+    margin: 20px 0 16px;
+    font-size: 24px;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    line-height: 1.22;
+    letter-spacing: -0.6px;
     text-transform: none;
     color: var(--text-primary);
   }
@@ -1875,28 +1880,22 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     justify-content: flex-end;   /* text sits at the bottom of the tile */
     min-height: 132px;
     padding: 16px 18px;
-    border: none;
+    border: 1px solid rgba(15, 36, 68, 0.06);
     border-radius: 20px;
     overflow: hidden;
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(15, 36, 68, 0.16);
+    background: linear-gradient(135deg, var(--tile-a), var(--tile-b));
+    box-shadow: 0 4px 14px rgba(15, 36, 68, 0.08);
   }
-  /* Scrim: keeps the white text crisp where it passes over the artwork. */
-  .practical-cards .practical-card::before {
-    display: block;
-    opacity: 1;
-    border-radius: inherit;
-    background: linear-gradient(90deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0) 62%);
-  }
+  .practical-cards .practical-card::before,
   .practical-cards .practical-card::after { display: none; }
 
-  /* A distinct, vivid colour per experiment. */
-  .practical-cards .practical-card:nth-child(1) { background: linear-gradient(135deg, #0B63CE, #2E8BEA); }
-  .practical-cards .practical-card:nth-child(2) { background: linear-gradient(135deg, #E5177F, #FF5CA8); }
-  .practical-cards .practical-card:nth-child(3) { background: linear-gradient(135deg, #12151C, #2E3646); }
-  .practical-cards .practical-card:nth-child(4) { background: linear-gradient(135deg, #E2620F, #FF9838); }
-  .practical-cards .practical-card:nth-child(5) { background: linear-gradient(135deg, #5B21B6, #8B5CF6); }
-  .practical-cards .practical-card:nth-child(6) { background: linear-gradient(135deg, #0B7A57, #10B981); }
+  /* A distinct, light colour per experiment (dark text on a soft tint). */
+  .practical-cards .practical-card:nth-child(1) { --tile-a: #DCEBFF; --tile-b: #C3DBFF; --tile-ink: #103C87; --tile-accent: #2563EB; }
+  .practical-cards .practical-card:nth-child(2) { --tile-a: #FFE1EF; --tile-b: #FFCFE4; --tile-ink: #8E1751; --tile-accent: #DB2777; }
+  .practical-cards .practical-card:nth-child(3) { --tile-a: #E3F2FE; --tile-b: #CDE7FC; --tile-ink: #0F4C75; --tile-accent: #0284C7; }
+  .practical-cards .practical-card:nth-child(4) { --tile-a: #FFEAD5; --tile-b: #FFD9B4; --tile-ink: #8A4310; --tile-accent: #EA7317; }
+  .practical-cards .practical-card:nth-child(5) { --tile-a: #ECE3FF; --tile-b: #DCCDFF; --tile-ink: #4A1D96; --tile-accent: #7C3AED; }
+  .practical-cards .practical-card:nth-child(6) { --tile-a: #D8F7EC; --tile-b: #BFEFDD; --tile-ink: #0A5A43; --tile-accent: #059669; }
 
   /* The emoji becomes oversized artwork on the right, like the reference's
      photography — decorative only, so it never intercepts taps. */
@@ -1912,7 +1911,7 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     box-shadow: none;
     font-size: 76px;
     line-height: 1;
-    opacity: 0.26;
+    opacity: 0.38;
     pointer-events: none;
   }
 
@@ -1920,9 +1919,9 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.6px;
-    color: rgba(255, 255, 255, 0.82);
+    color: var(--tile-accent);
     margin-bottom: 4px;
-    position: relative;          /* sits above the scrim */
+    position: relative;          /* sits above the artwork */
   }
 
   .practical-cards .card-title {
@@ -1930,17 +1929,17 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     font-weight: 800;
     line-height: 1.2;
     letter-spacing: -0.4px;
-    color: #fff;
+    color: var(--tile-ink);
     margin-bottom: 0;
     max-width: 62%;              /* keeps the title clear of the artwork */
-    position: relative;          /* sits above the scrim */
+    position: relative;          /* sits above the artwork */
   }
 
   /* Detail lives on the experiment screen itself. */
   .card-desc, .card-tags, .card-cta { display: none; }
 
   /* Touch feedback instead of the desktop hover-lift. */
-  .practical-cards .practical-card:hover { transform: none; box-shadow: 0 6px 18px rgba(15, 36, 68, 0.16); }
+  .practical-cards .practical-card:hover { transform: none; box-shadow: 0 4px 14px rgba(15, 36, 68, 0.08); }
   .practical-cards .practical-card:hover .card-icon-wrap { transform: translateY(-50%); }
   .practical-cards .practical-card:active { transform: scale(0.985); }
 

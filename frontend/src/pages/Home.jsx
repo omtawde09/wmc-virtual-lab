@@ -35,9 +35,11 @@ export default function Home() {
       {/* ── PRACTICAL CARDS ── */}
       <section style={{ paddingBottom: '40px' }}>
         <div className="container">
-          {/* Section label — shown only on phones, where the cards read as a
-              grouped list rather than a marketing grid. */}
-          <h2 className="mobile-section-label">Experiments</h2>
+          {/* Phones show this as the page title (the marketing hero above is
+              hidden there), so it carries the full lab name. */}
+          <h2 className="mobile-section-label">
+            Wireless &amp; Mobile Communication Virtual Lab
+          </h2>
           <div className="practical-cards">
 
             {/* Practical 4 */}
