@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  White background + an inset blue disc in the foreground, so the launcher's
+  mask leaves a white ring around the mark (the Telegram treatment). Only the
+  app icon uses this — the splash and web favicons stay full-bleed blue.
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/brand_logo_bg" />
+    <background android:drawable="@color/white" />
     <foreground android:drawable="@drawable/ic_launcher_foreground" />
-    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_mono" />
 </adaptive-icon>
