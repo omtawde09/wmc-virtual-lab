@@ -1847,88 +1847,102 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     overflow: hidden;
   }
 
+  /* Big page title, the way a native app heads a section. */
   .mobile-section-label {
     display: block;
-    margin: 18px 0 9px;
+    margin: 18px 0 12px;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-transform: none;
+    color: var(--text-primary);
+  }
+
+  /* ── Experiments: bold full-width colour tiles ── */
+  .practical-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+
+  .practical-cards .practical-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;   /* text sits at the bottom of the tile */
+    min-height: 132px;
+    padding: 16px 18px;
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(15, 36, 68, 0.16);
+  }
+  /* Scrim: keeps the white text crisp where it passes over the artwork. */
+  .practical-cards .practical-card::before {
+    display: block;
+    opacity: 1;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0) 62%);
+  }
+  .practical-cards .practical-card::after { display: none; }
+
+  /* A distinct, vivid colour per experiment. */
+  .practical-cards .practical-card:nth-child(1) { background: linear-gradient(135deg, #0B63CE, #2E8BEA); }
+  .practical-cards .practical-card:nth-child(2) { background: linear-gradient(135deg, #E5177F, #FF5CA8); }
+  .practical-cards .practical-card:nth-child(3) { background: linear-gradient(135deg, #12151C, #2E3646); }
+  .practical-cards .practical-card:nth-child(4) { background: linear-gradient(135deg, #E2620F, #FF9838); }
+  .practical-cards .practical-card:nth-child(5) { background: linear-gradient(135deg, #5B21B6, #8B5CF6); }
+  .practical-cards .practical-card:nth-child(6) { background: linear-gradient(135deg, #0B7A57, #10B981); }
+
+  /* The emoji becomes oversized artwork on the right, like the reference's
+     photography — decorative only, so it never intercepts taps. */
+  .practical-cards .card-icon-wrap {
+    position: absolute;
+    right: -6px;                 /* bleeds off the edge, like the reference art */
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto; height: auto;
+    margin: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    font-size: 76px;
+    line-height: 1;
+    opacity: 0.26;
+    pointer-events: none;
+  }
+
+  .practical-cards .card-label {
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--text-muted);
+    letter-spacing: 0.6px;
+    color: rgba(255, 255, 255, 0.82);
+    margin-bottom: 4px;
+    position: relative;          /* sits above the scrim */
   }
 
-  /* ── Experiments: one grouped list, not six cards ── */
-  .practical-cards {
-    display: block;
-    padding: 0;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  .practical-card {
-    display: grid;
-    grid-template-columns: 42px 1fr 14px;
-    grid-template-areas:
-      "icon title chev"
-      "icon label chev";
-    column-gap: 12px;
-    row-gap: 1px;
-    align-items: center;
-    padding: 11px 14px;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    border-radius: 0;
-    background: transparent;
-  }
-  .practical-cards .practical-card:last-child { border-bottom: none; }
-
-  /* Row hierarchy: title leads, the course code is the muted sub-line. */
-  .card-icon-wrap {
-    grid-area: icon;
-    width: 42px; height: 42px;
-    font-size: 19px;
+  .practical-cards .card-title {
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.4px;
+    color: #fff;
     margin-bottom: 0;
-    box-shadow: none;
-  }
-  .card-title {
-    grid-area: title;
-    font-size: 15.5px;
-    line-height: 1.3;
-    letter-spacing: -0.2px;
-    margin-bottom: 0;
-  }
-  .card-label {
-    grid-area: label;
-    font-size: 11px;
-    letter-spacing: 0.2px;
-    text-transform: none;
-    margin-bottom: 0;
+    max-width: 62%;              /* keeps the title clear of the artwork */
+    position: relative;          /* sits above the scrim */
   }
 
-  /* Detail lives on the experiment screen. */
-  .card-desc, .card-tags { display: none; }
+  /* Detail lives on the experiment screen itself. */
+  .card-desc, .card-tags, .card-cta { display: none; }
 
-  /* Repurpose the CTA as a chevron affordance. */
-  .card-cta {
-    grid-area: chev;
-    justify-self: end;
-    font-size: 0;
-  }
-  .card-cta::after {
-    content: '\203A';
-    font-size: 22px;
-    font-weight: 400;
-    line-height: 1;
-    opacity: 0.55;
-  }
-
-  /* Touch feedback instead of desktop hover-lift. */
-  .practical-card:hover,
-  .practical-card:hover::before { transform: none; box-shadow: none; }
-  .practical-card:hover .card-icon-wrap { transform: none; }
-  .practical-card:active { background: #eef4fc; }
+  /* Touch feedback instead of the desktop hover-lift. */
+  .practical-cards .practical-card:hover { transform: none; box-shadow: 0 6px 18px rgba(15, 36, 68, 0.16); }
+  .practical-cards .practical-card:hover .card-icon-wrap { transform: translateY(-50%); }
+  .practical-cards .practical-card:active { transform: scale(0.985); }
 
   .section-header { margin-bottom: 24px; padding-bottom: 18px; }
   .section-title { font-size: 22px; letter-spacing: -0.5px; }
