@@ -35,6 +35,9 @@ export default function Home() {
       {/* ── PRACTICAL CARDS ── */}
       <section style={{ paddingBottom: '40px' }}>
         <div className="container">
+          {/* Section label — shown only on phones, where the cards read as a
+              grouped list rather than a marketing grid. */}
+          <h2 className="mobile-section-label">Experiments</h2>
           <div className="practical-cards">
 
             {/* Practical 4 */}

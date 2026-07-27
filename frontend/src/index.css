@@ -344,6 +344,9 @@ body::before {
   line-height: 1.7;
 }
 
+/* Phones-only section label above the experiment list (see the ≤600px block). */
+.mobile-section-label { display: none; }
+
 /* Practical Cards */
 .practical-cards {
   display: grid;
@@ -1801,92 +1804,131 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     justify-content: center;
   }
 
-  /* ── Home page: compact, app-like layout ──
-     On desktop the hero is a full-bleed statement piece. On a phone that same
-     spacing pushed the first experiment below the fold (hero alone was 54% of
-     the viewport, followed by a 70px gap), so the page opened on empty space.
-     Tighten the hero and turn each card into a compact row. */
-  .hero { padding: 24px 0 16px; }
+  /* ══ Home page: native app layout ══
+     The desktop home is a marketing page — centred hero, six large content
+     cards each with a paragraph, chip row and its own call-to-action. On a phone
+     that reads as a shrunken website. Here it becomes an app screen: a compact
+     left-aligned header, a section label, and one grouped list of tappable rows
+     (icon · title · code · chevron). The prose and chips are dropped because
+     that detail belongs on the experiment screen itself. */
 
+  /* ── Header ── */
+  .hero { padding: 18px 0 14px; }
+  .hero-content { text-align: left; }
+
+  /* Plain overline instead of a website "badge" pill. */
   .hero-eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.4px;
-    padding: 5px 12px;
-    margin-bottom: 14px;
+    display: block;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 7px;
+    font-size: 10.5px;
+    letter-spacing: 0.9px;
+    color: var(--text-muted);
   }
 
   .hero-title {
-    font-size: 30px;
-    letter-spacing: -1px;
-    margin-bottom: 10px;
+    font-size: 26px;
+    letter-spacing: -0.8px;
+    line-height: 1.15;
+    margin-bottom: 8px;
   }
 
   .hero-subtitle {
-    font-size: 14.5px;
-    line-height: 1.6;
-    margin-bottom: 0;
-  }
-
-  .practical-cards { padding: 20px 0 0; gap: 14px; }
-
-  /* Icon sits beside the label + title (like a native list row), with the
-     description, tags and CTA spanning the full width beneath. */
-  .practical-card {
-    display: grid;
-    grid-template-columns: 44px 1fr;
-    column-gap: 12px;
-    row-gap: 2px;
-    padding: 16px;
-    border-radius: var(--radius-lg);
-  }
-
-  .card-icon-wrap {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    align-self: center;
-    width: 44px; height: 44px;
-    font-size: 20px;
-    margin-bottom: 0;
-  }
-
-  .card-label {
-    grid-column: 2; grid-row: 1;
-    font-size: 10px;
-    letter-spacing: 0.6px;
-    margin-bottom: 0;
-  }
-
-  .card-title {
-    grid-column: 2; grid-row: 2;
-    font-size: 17px;
-    letter-spacing: -0.3px;
-    margin-bottom: 0;
-  }
-
-  .card-desc {
-    grid-column: 1 / -1;
-    font-size: 13px;
-    line-height: 1.6;
-    margin: 10px 0 0;
-    /* Keep every card the same height regardless of copy length. */
+    font-size: 13.5px;
+    line-height: 1.55;
+    max-width: none;
+    margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .card-tags {
-    grid-column: 1 / -1;
-    gap: 6px;
-    margin: 10px 0 0;
+  .mobile-section-label {
+    display: block;
+    margin: 18px 0 9px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
   }
-  .card-tags .tag { font-size: 10px; padding: 3px 8px; }
 
-  .card-cta {
-    grid-column: 1 / -1;
-    margin-top: 12px;
-    font-size: 13px;
+  /* ── Experiments: one grouped list, not six cards ── */
+  .practical-cards {
+    display: block;
+    padding: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
   }
+
+  .practical-card {
+    display: grid;
+    grid-template-columns: 42px 1fr 14px;
+    grid-template-areas:
+      "icon title chev"
+      "icon label chev";
+    column-gap: 12px;
+    row-gap: 1px;
+    align-items: center;
+    padding: 11px 14px;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+  }
+  .practical-cards .practical-card:last-child { border-bottom: none; }
+
+  /* Row hierarchy: title leads, the course code is the muted sub-line. */
+  .card-icon-wrap {
+    grid-area: icon;
+    width: 42px; height: 42px;
+    font-size: 19px;
+    margin-bottom: 0;
+    box-shadow: none;
+  }
+  .card-title {
+    grid-area: title;
+    font-size: 15.5px;
+    line-height: 1.3;
+    letter-spacing: -0.2px;
+    margin-bottom: 0;
+  }
+  .card-label {
+    grid-area: label;
+    font-size: 11px;
+    letter-spacing: 0.2px;
+    text-transform: none;
+    margin-bottom: 0;
+  }
+
+  /* Detail lives on the experiment screen. */
+  .card-desc, .card-tags { display: none; }
+
+  /* Repurpose the CTA as a chevron affordance. */
+  .card-cta {
+    grid-area: chev;
+    justify-self: end;
+    font-size: 0;
+  }
+  .card-cta::after {
+    content: '\203A';
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+    opacity: 0.55;
+  }
+
+  /* Touch feedback instead of desktop hover-lift. */
+  .practical-card:hover,
+  .practical-card:hover::before { transform: none; box-shadow: none; }
+  .practical-card:hover .card-icon-wrap { transform: none; }
+  .practical-card:active { background: #eef4fc; }
 
   .section-header { margin-bottom: 24px; padding-bottom: 18px; }
   .section-title { font-size: 22px; letter-spacing: -0.5px; }
