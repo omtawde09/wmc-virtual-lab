@@ -802,6 +802,15 @@ body::before {
   margin-bottom: 16px;
 }
 
+/* The alert is a flex row (icon + message). Keeping the message in ONE element
+   stops long values such as a file path from becoming separate flex items and
+   overflowing the card sideways. */
+.alert-body {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .alert-info { background: var(--cyan-dim); border: 1px solid var(--border-glow); color: var(--cyan); }
 .alert-success { background: var(--green-dim); border: 1px solid rgba(16,185,129,0.3); color: var(--green); }
 .alert-warning { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }

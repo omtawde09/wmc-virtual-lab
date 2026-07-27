@@ -24,4 +24,7 @@ export const fastApiAdapter = {
     axios.post('/api/network/ping', { host, count }).then((r) => r.data),
   dnsLookup: () =>
     Promise.reject(new Error('DNS lookup is only available in the Android app.')),
+  /** On the web the browser handles downloads, so this is never used. */
+  saveFile: () =>
+    Promise.reject(new Error('Native file saving is only available in the Android app.')),
 }

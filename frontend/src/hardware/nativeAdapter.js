@@ -14,4 +14,7 @@ export const nativeAdapter = {
   disconnect: (address) => callNative('disconnect', { address }),
   ping: (host, count = 4) => callNative('ping', { host, count }),
   dnsLookup: (host) => callNative('dnsLookup', { host }),
+  /** Writes a generated file into the phone's Downloads folder. */
+  saveFile: (fileName, base64, mimeType) =>
+    callNative('saveFile', { fileName, base64, mimeType }),
 }

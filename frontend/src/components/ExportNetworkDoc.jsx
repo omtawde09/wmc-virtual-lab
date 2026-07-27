@@ -6,7 +6,7 @@ import { IS_ANDROID } from '../config'
  * Experiment 5 export card. Writes the student's measured Result tables — the
  * command-line ping (Table 1) and the live speed test (Table 2) — into the
  * experiment document, below the Observation Tables. The document is bundled
- * with the backend, so there is no upload step.
+ * with the app, so there is no upload step.
  *
  * Unlocks as soon as either measurement exists; it exports whichever results are
  * present (both, ping-only, or speed-only). `getChartSvg` is a callback so the
@@ -16,9 +16,6 @@ export default function ExportNetworkDoc({ ping = null, speedtest = null, getCha
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [done, setDone] = useState(null)
-
-  // Word export relies on the Windows backend (python-docx); not available on Android.
-  if (IS_ANDROID) return null
 
   const hasPing = !!(ping && ping.success)
   const hasSpeed = !!speedtest
@@ -63,7 +60,7 @@ export default function ExportNetworkDoc({ ping = null, speedtest = null, getCha
         speedtest: hasSpeed ? speedtest : null,
         chartBlob,
       })
-      setDone({ name: res.name, hadChart: !!chartBlob })
+      setDone({ name: res.name, path: res.path, hadChart: !!chartBlob })
     } catch (err) {
       setError(err.message)
     }
@@ -82,7 +79,7 @@ export default function ExportNetworkDoc({ ping = null, speedtest = null, getCha
             Your measured {parts.join(' and ')} {parts.length > 1 ? 'results are' : 'result is'} inserted
             as a <strong>“Result”</strong> section directly below the Observation Tables of the
             experiment document. The document is built into the app — just click below and a
-            ready-to-submit copy downloads to your computer.
+            ready-to-submit copy is saved {IS_ANDROID ? 'to your Downloads folder' : 'to your computer'}.
           </div>
         </div>
       </div>
@@ -99,7 +96,12 @@ export default function ExportNetworkDoc({ ping = null, speedtest = null, getCha
 
       {done && (
         <div className="alert alert-success" style={{ marginTop: 12 }}>
-          ✅ Downloaded <strong>{done.name}</strong> — open it and look under the Observation Tables.
+          <span>✅</span>
+          <span className="alert-body">
+            Saved <strong>{done.name}</strong>
+            {done.path ? <> to <strong>{done.path}</strong></> : null} — open it and
+            look under the Observation Tables.
+          </span>
         </div>
       )}
     </div>

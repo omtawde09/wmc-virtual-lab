@@ -24,9 +24,6 @@ export default function ExportToDocument({
   const [error, setError] = useState(null)
   const [done, setDone] = useState(null)
 
-  // Word export relies on the Windows backend (python-docx); not available on Android.
-  if (IS_ANDROID) return null
-
   const enough = readings.length >= minReadings
   const remaining = minReadings - readings.length
 
@@ -61,7 +58,7 @@ export default function ExportToDocument({
         chartBlob = null
       }
       const res = await exportToExperimentDoc({ readings, chartBlob, experiment, template })
-      setDone({ name: res.name, hadChart: !!chartBlob })
+      setDone({ name: res.name, path: res.path, hadChart: !!chartBlob })
     } catch (err) {
       setError(err.message)
     }
@@ -78,7 +75,7 @@ export default function ExportToDocument({
             Your {readings.length} readings and the graph are inserted as a{' '}
             <strong>“Result &amp; Graph”</strong> section directly below the Observation Table of the
             experiment document. The document is built into the app — just click below and a
-            ready-to-submit copy downloads to your computer.
+            ready-to-submit copy is saved {IS_ANDROID ? 'to your Downloads folder' : 'to your computer'}.
           </div>
         </div>
       </div>
@@ -95,8 +92,13 @@ export default function ExportToDocument({
 
       {done && (
         <div className="alert alert-success" style={{ marginTop: 12 }}>
-          ✅ Downloaded <strong>{done.name}</strong> — open it and look under the Observation Table.
-          {!done.hadChart && ' (The graph could not be captured, so only the table was added.)'}
+          <span>✅</span>
+          <span className="alert-body">
+            Saved <strong>{done.name}</strong>
+            {done.path ? <> to <strong>{done.path}</strong></> : null} — open it and
+            look under the Observation Table.
+            {!done.hadChart && ' (The graph could not be captured, so only the table was added.)'}
+          </span>
         </div>
       )}
     </div>

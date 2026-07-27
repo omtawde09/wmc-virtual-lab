@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { IS_ANDROID } from './config'
 
 /** Minimum readings before the export option is offered. */
 export const MIN_READINGS_FOR_EXPORT = 5
@@ -94,6 +95,8 @@ function downloadBlobResponse(res, fallbackName) {
  * the bundled Exp-5 document and returns the finished file to download.
  */
 export async function exportExp5Doc({ ping, speedtest, chartBlob, template = 'exp5' }) {
+  if (IS_ANDROID) return exportExp5Native({ ping, speedtest, chartBlob })
+
   const form = new FormData()
   if (ping) form.append('ping', JSON.stringify(ping))
   if (speedtest) form.append('speedtest', JSON.stringify(speedtest))
@@ -110,6 +113,60 @@ export async function exportExp5Doc({ ping, speedtest, chartBlob, template = 'ex
   } catch (err) {
     throw new Error(await blobErrorMessage(err, 'Export failed. Is the local backend running?'))
   }
+}
+
+/* ── Android: build the document in the browser, save it via the native bridge ── */
+
+/** Fetch the bundled syllabus template that ships with the web build. */
+async function loadTemplate(name) {
+  const res = await fetch(`/templates/${name}.docx`)
+  if (!res.ok) throw new Error('Could not load the bundled experiment document.')
+  return new Uint8Array(await res.arrayBuffer())
+}
+
+function bytesToBase64(bytes) {
+  // Chunked so a multi-MB document doesn't blow the argument limit.
+  let binary = ''
+  const CHUNK = 0x8000
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK))
+  }
+  return btoa(binary)
+}
+
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+
+/** Hand the finished document to Android, which writes it to Downloads. */
+async function saveNatively(bytes, fileName) {
+  const { saveFile } = await import('./hardware')
+    .then(m => m.default ?? m.Hardware)
+  const res = await saveFile(fileName, bytesToBase64(bytes), DOCX_MIME)
+  return { ok: true, name: fileName, path: res?.path || 'Downloads' }
+}
+
+/** Experiment 4 export, generated entirely on-device. */
+async function exportExp4Native({ readings, chartBlob }) {
+  const { buildExp4Docx } = await import('./docx/buildDocx')
+  const template = await loadTemplate('exp4')
+  const chart = chartBlob
+    ? { bytes: new Uint8Array(await chartBlob.arrayBuffer()) }
+    : null
+  const out = await buildExp4Docx(template, { readings, chart })
+  return saveNatively(out, 'Expt. No. 4 - with Results.docx')
+}
+
+/** Experiment 5 export, generated entirely on-device. */
+async function exportExp5Native({ ping, speedtest, chartBlob }) {
+  const { buildExp5Docx } = await import('./docx/buildDocx')
+  const template = await loadTemplate('exp5')
+  const chart = chartBlob
+    ? { bytes: new Uint8Array(await chartBlob.arrayBuffer()) }
+    : null
+  const out = await buildExp5Docx(template, {
+    ping, speedtest, chart, platform: 'Mobile (Android)',
+  })
+  return saveNatively(out, 'Expt No. 5 - with Results.docx')
 }
 
 /** Reads an error message out of a Blob response (errors arrive as blobs too). */
@@ -131,6 +188,9 @@ async function blobErrorMessage(err, fallback) {
  * needed — `template` selects which built-in document to use.
  */
 export async function exportToExperimentDoc({ readings, chartBlob, experiment, template = 'exp4' }) {
+  // Android has no backend: build the .docx in the WebView and save it natively.
+  if (IS_ANDROID) return exportExp4Native({ readings, chartBlob })
+
   const form = new FormData()
   form.append('readings', JSON.stringify(readings))
   form.append('template', template)

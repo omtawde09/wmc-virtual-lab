@@ -2,6 +2,7 @@ package com.wmclab.android.di
 
 import android.content.Context
 import com.wmclab.android.data.bluetooth.BluetoothRepositoryImpl
+import com.wmclab.android.data.files.FileSaver
 import com.wmclab.android.data.network.NetworkRepositoryImpl
 import com.wmclab.android.data.wifi.WifiRepositoryImpl
 import com.wmclab.android.domain.repository.BluetoothRepository
@@ -23,8 +24,9 @@ class AppContainer(context: Context) {
     val wifiRepository: WifiRepository by lazy { WifiRepositoryImpl(app) }
     val bluetoothRepository: BluetoothRepository by lazy { BluetoothRepositoryImpl(app) }
     val networkRepository: NetworkRepository by lazy { NetworkRepositoryImpl() }
+    val fileSaver: FileSaver by lazy { FileSaver(app) }
 
     val bridgeDispatcher: BridgeDispatcher by lazy {
-        BridgeDispatcher(wifiRepository, bluetoothRepository, networkRepository)
+        BridgeDispatcher(wifiRepository, bluetoothRepository, networkRepository, fileSaver)
     }
 }

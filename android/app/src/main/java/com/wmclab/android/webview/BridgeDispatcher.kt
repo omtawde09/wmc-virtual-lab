@@ -2,6 +2,7 @@ package com.wmclab.android.webview
 
 import com.wmclab.android.domain.repository.BluetoothRepository
 import com.wmclab.android.domain.repository.NetworkRepository
+import com.wmclab.android.data.files.FileSaver
 import com.wmclab.android.domain.repository.WifiRepository
 import org.json.JSONObject
 
@@ -17,6 +18,7 @@ class BridgeDispatcher(
     private val wifi: WifiRepository,
     private val bluetooth: BluetoothRepository,
     private val network: NetworkRepository,
+    private val fileSaver: FileSaver,
 ) {
 
     /** @return JSON string result. Throws on unknown method / bad args. */
@@ -46,6 +48,17 @@ class BridgeDispatcher(
             }
 
             "dnsLookup" -> Mappers.dns(network.dns(args.requireString("host"))).toString()
+
+            // The WebView builds the .docx itself and passes the bytes here,
+            // because a page cannot write to shared storage on its own.
+            "saveFile" -> {
+                val path = fileSaver.saveToDownloads(
+                    fileName = args.requireString("fileName"),
+                    base64 = args.requireString("base64"),
+                    mimeType = args.optString("mimeType", "application/octet-stream"),
+                )
+                JSONObject().put("success", true).put("path", path).toString()
+            }
 
             else -> throw IllegalArgumentException("Unknown hardware method: $method")
         }
