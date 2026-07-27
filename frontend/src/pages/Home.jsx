@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useSEO } from '../useSEO'
+import CardArt from '../components/CardArt'
 
 export default function Home() {
   useSEO({
@@ -43,6 +44,7 @@ export default function Home() {
             {/* Practical 4 */}
             <Link to="/practical4" className="practical-card cyan">
               <div className="card-icon-wrap cyan">📶</div>
+              <CardArt kind="signal" />
               <div className="card-label cyan">Practical 4 · MDL501.3</div>
               <h2 className="card-title">Signal Strength vs Distance</h2>
               <p className="card-desc">
@@ -63,6 +65,7 @@ export default function Home() {
             {/* Practical 5 */}
             <Link to="/practical5" className="practical-card violet">
               <div className="card-icon-wrap violet">⚡</div>
+              <CardArt kind="speed" />
               <div className="card-label violet">Practical 5 · MDL501.4</div>
               <h2 className="card-title">Throughput &amp; Latency Analysis</h2>
               <p className="card-desc">
@@ -82,6 +85,7 @@ export default function Home() {
             {/* Practical 6 */}
             <Link to="/practical6" className="practical-card cyan">
               <div className="card-icon-wrap cyan">🔵</div>
+              <CardArt kind="radiate" />
               <div className="card-label cyan">Practical 6 · MDL501.4</div>
               <h2 className="card-title">Bluetooth Communication</h2>
               <p className="card-desc">
@@ -101,6 +105,7 @@ export default function Home() {
             {/* Practical 7 */}
             <Link to="/practical7" className="practical-card violet">
               <div className="card-icon-wrap violet">🧱</div>
+              <CardArt kind="wall" />
               <div className="card-label violet">Practical 7 · MDL501.5</div>
               <h2 className="card-title">Path Loss vs Obstacles</h2>
               <p className="card-desc">
@@ -120,6 +125,7 @@ export default function Home() {
             {/* Practical 8 */}
             <Link to="/practical8" className="practical-card cyan">
               <div className="card-icon-wrap cyan" style={{ background: 'var(--cyan-dim)', boxShadow: '0 0 20px var(--cyan-glow)' }}>🌊</div>
+              <CardArt kind="waves" />
               <div className="card-label cyan" style={{ color: 'var(--cyan)' }}>Practical 8 · MDL501.5</div>
               <h2 className="card-title">Analysis of Multipath Effects</h2>
               <p className="card-desc">
@@ -138,6 +144,7 @@ export default function Home() {
             {/* Practical 9 */}
             <Link to="/practical9" className="practical-card cyan">
               <div className="card-icon-wrap cyan" style={{ background: 'var(--cyan-dim)', boxShadow: '0 0 20px var(--cyan-glow)' }}>📻</div>
+              <CardArt kind="noise" />
               <div className="card-label cyan" style={{ color: 'var(--cyan)' }}>Practical 9 · MDL501.6</div>
               <h2 className="card-title">Noise &amp; Interference Analysis</h2>
               <p className="card-desc">

@@ -347,6 +347,90 @@ body::before {
 /* Phones-only section label above the experiment list (see the ≤600px block). */
 .mobile-section-label { display: none; }
 
+/* ── Animated tile artwork (phones only; see the ≤600px block) ── */
+.card-art { display: none; }
+
+.card-art svg { width: 100%; height: 100%; display: block; }
+.card-art svg rect,
+.card-art svg circle:not([fill='none']) { fill: currentColor; }
+.card-art svg circle[fill='none'],
+.card-art svg path { stroke: currentColor; }
+/* Scale from each shape's own box so bars grow from their base. */
+.card-art svg rect,
+.card-art svg circle,
+.card-art svg path { transform-box: fill-box; }
+
+/* Signal bars rise and fall in sequence. */
+.ca-bar { transform-origin: 50% 100%; animation: caBar 1.5s ease-in-out infinite; }
+.ca-b2 { animation-delay: 0.15s; }
+.ca-b3 { animation-delay: 0.3s; }
+.ca-b4 { animation-delay: 0.45s; }
+@keyframes caBar {
+  0%, 100% { transform: scaleY(0.42); opacity: 0.55; }
+  50%      { transform: scaleY(1);    opacity: 1; }
+}
+
+/* Packets stream to the right. */
+.ca-dash { transform-origin: 0% 50%; animation: caDash 1.6s ease-in-out infinite; }
+.ca-d2 { animation-delay: 0.2s; }
+.ca-d3 { animation-delay: 0.4s; }
+@keyframes caDash {
+  0%       { transform: translateX(-14%) scaleX(0.7); opacity: 0.35; }
+  50%      { transform: translateX(6%)   scaleX(1);   opacity: 1; }
+  100%     { transform: translateX(-14%) scaleX(0.7); opacity: 0.35; }
+}
+
+/* Rings radiate outward from the core. */
+.ca-ring { transform-origin: 50% 50%; animation: caRing 2s ease-out infinite; }
+.ca-r2 { animation-delay: 0.5s; }
+.ca-core { animation: caCore 2s ease-in-out infinite; }
+@keyframes caRing {
+  0%   { transform: scale(0.55); opacity: 0.9; }
+  100% { transform: scale(1.25); opacity: 0; }
+}
+@keyframes caCore {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1; }
+}
+
+/* Waves weaken as they reach the wall. */
+.ca-arc { animation: caArc 2.1s ease-in-out infinite; }
+.ca-a2 { animation-delay: 0.25s; }
+.ca-a3 { animation-delay: 0.5s; }
+.ca-wall { opacity: 0.75; }
+@keyframes caArc {
+  0%, 100% { opacity: 0.25; }
+  45%      { opacity: 1; }
+}
+
+/* Two waves drift out of phase — constructive/destructive interference. */
+.ca-wave { animation: caWaveA 2.4s ease-in-out infinite; }
+.ca-w2   { animation-name: caWaveB; opacity: 0.65; }
+@keyframes caWaveA {
+  0%, 100% { transform: translateX(0)  translateY(0); }
+  50%      { transform: translateX(-6px) translateY(-4px); }
+}
+@keyframes caWaveB {
+  0%, 100% { transform: translateX(0)  translateY(0); }
+  50%      { transform: translateX(6px) translateY(4px); }
+}
+
+/* Noise floor jitters irregularly. */
+.ca-noise { transform-origin: 50% 100%; animation: caNoise 1.1s ease-in-out infinite; }
+.ca-n2 { animation-delay: 0.35s; animation-duration: 0.9s; }
+.ca-n3 { animation-delay: 0.15s; animation-duration: 1.35s; }
+.ca-n4 { animation-delay: 0.5s;  animation-duration: 0.8s; }
+.ca-n5 { animation-delay: 0.25s; animation-duration: 1.2s; }
+@keyframes caNoise {
+  0%, 100% { transform: scaleY(0.3); }
+  35%      { transform: scaleY(0.9); }
+  70%      { transform: scaleY(0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-art * { animation: none !important; }
+}
+
 /* Practical Cards */
 .practical-cards {
   display: grid;
@@ -1876,20 +1960,20 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
 
   /* The emoji becomes oversized artwork on the right, like the reference's
      photography — decorative only, so it never intercepts taps. */
-  .practical-cards .card-icon-wrap {
+  /* The static emoji is replaced by the animated artwork on phones. */
+  .practical-cards .card-icon-wrap { display: none; }
+
+  .card-art {
+    display: block;
     position: absolute;
-    right: -6px;                 /* bleeds off the edge, like the reference art */
+    right: 14px;
     top: 50%;
     transform: translateY(-50%);
-    width: auto; height: auto;
-    margin: 0;
-    padding: 0;
-    background: none;
-    box-shadow: none;
-    font-size: 76px;
-    line-height: 1;
-    opacity: 0.34;
-    pointer-events: none;
+    width: 84px;
+    height: 84px;
+    color: var(--tile-accent);
+    opacity: 0.55;
+    pointer-events: none;        /* decorative — never intercepts the tap */
   }
 
   .practical-cards .card-label {
