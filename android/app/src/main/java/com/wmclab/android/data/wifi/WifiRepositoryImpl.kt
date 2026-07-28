@@ -14,6 +14,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
+import kotlin.math.roundToInt
 
 /**
  * Wi-Fi via [WifiManager] — the Android equivalent of the Windows `netsh wlan`
@@ -131,12 +132,17 @@ class WifiRepositoryImpl(
     private companion object {
         const val SCAN_TIMEOUT_MS = 8_000L
 
-        /** RSSI (dBm) → rough signal percentage, matching the web app's badges. */
-        fun rssiToPercent(rssi: Int): Int = when {
-            rssi <= -100 -> 0
-            rssi >= -50 -> 100
-            else -> 2 * (rssi + 100)
-        }
+        /**
+         * RSSI (dBm) → percentage over the −100…−30 dBm span, matching the scale
+         * the rest of the lab uses.
+         *
+         * The obvious `2*(rssi+100)` (the Windows "signal quality" scale) tops out
+         * at 100% for anything stronger than −50 dBm, so indoor readings all
+         * reported 100% and the Signal-% chart drew as a flat line. It also
+         * disagreed with the Windows build for the same measurement.
+         */
+        fun rssiToPercent(rssi: Int): Int =
+            (((rssi + 100) / 70.0) * 100).roundToInt().coerceIn(0, 100)
 
         /** Convert a centre frequency (MHz) to a Wi-Fi channel number. */
         fun frequencyToChannel(freq: Int): Int = when {

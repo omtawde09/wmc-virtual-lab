@@ -544,10 +544,11 @@ export default function Practical4() {
                 <Tooltip
                   contentStyle={{ background: 'rgba(255,255,255,0.97)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '10px', fontSize: '13px' }}
                   formatter={(v, name) => [`${v}%`, name]} labelFormatter={(l) => `Distance: ${l} m`} />
-                <Legend verticalAlign="top" align="center" height={26} wrapperStyle={{ fontSize: 12 }} />
-                <Line data={theoretical} dataKey="theo" name="Theoretical 1/√d decay"
+                <Legend verticalAlign="top" align="center" height={34}
+                  wrapperStyle={{ fontSize: 11, lineHeight: "16px" }} />
+                <Line data={theoretical} dataKey="theo" name="Theory (1/√d)"
                   stroke="#d97706" strokeDasharray="5 4" strokeWidth={1.5} dot={false} />
-                <Line data={chartData} dataKey="signal_pct" name="Measured (your Wi-Fi)"
+                <Line data={chartData} dataKey="signal_pct" name="Measured"
                   stroke="#2563eb" strokeWidth={2.5}
                   dot={{ fill: '#2563eb', r: 5, strokeWidth: 2, stroke: '#ffffff' }}
                   activeDot={{ r: 7, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }} />

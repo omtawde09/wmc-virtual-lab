@@ -97,10 +97,20 @@ function imageRun(relId, widthInches, aspect, name = 'chart') {
   )
 }
 
-/** Read PNG width/height from the IHDR chunk (bytes 16..24). */
+/**
+ * Read PNG pixel dimensions from the IHDR chunk.
+ *
+ * Layout: 8-byte signature, 4-byte chunk length, 4-byte type ("IHDR"), then the
+ * data — width at offset 16 and height at offset **20**. (Reading height at 24
+ * lands on the bit-depth/colour-type bytes and yields a nonsense value, which
+ * previously produced an image over a million inches tall.)
+ */
 function pngSize(bytes) {
-  const dv = new DataView(bytes.buffer ?? bytes, bytes.byteOffset ?? 0)
-  return { width: dv.getUint32(16), height: dv.getUint32(24) }
+  const dv = new DataView(bytes.buffer ?? bytes, bytes.byteOffset ?? 0, bytes.byteLength)
+  const width = dv.getUint32(16)
+  const height = dv.getUint32(20)
+  if (!width || !height) throw new Error('Chart image is not a readable PNG.')
+  return { width, height }
 }
 
 /**
@@ -128,11 +138,44 @@ function findAnchorTableEnd(xml, markers, { last = false } = {}) {
   return (last ? tables[tables.length - 1] : tables[0]).end
 }
 
+/** All `<w:p>` elements in document order, with their span in the XML string. */
+function paragraphSpans(xml) {
+  const spans = []
+  const re = /<w:p(?:\s[^>]*)?\/>|<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g
+  let m
+  while ((m = re.exec(xml)) !== null) {
+    const text = [...m[0].matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)]
+      .map(t => t[1]).join('')
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    spans.push({ start: m.index, end: m.index + m[0].length, text: text.trim() })
+  }
+  return spans
+}
+
+/**
+ * Delete the template's "Paste the Graph" placeholder, plus one blank paragraph
+ * either side of it — the real graph is inserted, so the hand-pasting prompt
+ * would otherwise be left behind. Mirrors _remove_graph_placeholder() in
+ * backend/doc_export.py.
+ */
+function removeGraphPlaceholder(xml) {
+  const spans = paragraphSpans(xml)
+  const i = spans.findIndex(p => p.text.toLowerCase() === 'paste the graph')
+  if (i < 0) return xml
+
+  let from = spans[i].start
+  let to = spans[i].end
+  if (i > 0 && spans[i - 1].text === '') from = spans[i - 1].start
+  if (i + 1 < spans.length && spans[i + 1].text === '') to = spans[i + 1].end
+
+  return xml.slice(0, from) + xml.slice(to)
+}
+
 /**
  * Splice `insertXml` into document.xml immediately after the anchor table, add
  * `image` (if any) as a real image part, and return the new .docx bytes.
  */
-async function spliceIntoTemplate(templateBytes, { markers, anchorLast, buildXml, image }) {
+async function spliceIntoTemplate(templateBytes, { markers, anchorLast, buildXml, image, removePlaceholder = false }) {
   const zip = await JSZip.loadAsync(templateBytes)
   const docPath = 'word/document.xml'
   let xml = await zip.file(docPath).async('string')
@@ -171,6 +214,7 @@ async function spliceIntoTemplate(templateBytes, { markers, anchorLast, buildXml
 
   const insertXml = buildXml({ imageRelId, image })
   xml = xml.slice(0, at) + insertXml + xml.slice(at)
+  if (removePlaceholder) xml = removeGraphPlaceholder(xml)
   zip.file(docPath, xml)
 
   return zip.generateAsync({
@@ -208,6 +252,7 @@ export async function buildExp4Docx(templateBytes, { readings, chart }) {
     markers: ['reading no', 'distance', 'signal strength'],
     anchorLast: false,
     image: chart,
+    removePlaceholder: true,
     buildXml: ({ imageRelId, image }) => {
       const rows = readings.map((r, i) => [
         String(i + 1), num(r.distance), num(r.rssi), num(r.signal_pct),
