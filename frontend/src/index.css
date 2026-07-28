@@ -356,6 +356,11 @@ body::before {
 /* Phones-only section label above the experiment list (see the ≤600px block). */
 .mobile-section-label { display: none; }
 
+/* Phones-only hero banner pieces — see the ≤600px block for the full treatment. */
+.hero-waves,
+.hero-badge,
+.hero-tagline { display: none; }
+
 /* ── Animated tile artwork (phones only; see the ≤600px block) ── */
 .card-art { display: none; }
 
@@ -1914,18 +1919,77 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
      (icon · title · code · chevron). The prose and chips are dropped because
      that detail belongs on the experiment screen itself. */
 
-  /* ── Header ── */
-  /* Just the lab title on phones — the overline and the marketing subtitle are
-     desktop-only, so the experiments start right below the heading. */
-  .hero { padding: 20px 0 4px; }
-  .hero-content { text-align: left; }
+  /* ── Header: dark brand banner ── */
+  .hero {
+    position: relative;
+    padding: 22px 0 24px;
+    background: linear-gradient(115deg, #0A0E3D 0%, #141A5C 48%, #2A1D72 100%);
+    overflow: hidden;
+  }
+  .hero-content { text-align: left; position: relative; z-index: 2; }
+  /* The overline and long marketing paragraph are desktop-only. */
   .hero-eyebrow, .hero-subtitle { display: none; }
+  /* The light-mode orbs would wash out the dark banner. */
+  .hero-bg { display: none; }
+
+  /* Flowing contour lines sweeping up the right-hand side. */
+  .hero-waves {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .hero-waves path {
+    fill: none;
+    stroke: #7C8CF8;
+    stroke-width: 1.1;
+    opacity: 0.34;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* White rounded-square app badge, top right. */
+  .hero-badge {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    z-index: 3;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+  }
+  .hero-badge img { display: block; width: 30px; height: 30px; }
 
   .hero-title {
-    font-size: 26px;
-    letter-spacing: -0.8px;
-    line-height: 1.15;
-    margin-bottom: 0;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.7px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+    color: #ffffff;                     /* "Wireless & Mobile" */
+    padding-right: 58px;                /* clears the badge */
+  }
+  /* "Communication Lab" — blue → light blue, as in the banner artwork. */
+  .hero-title .gradient-text {
+    background: linear-gradient(90deg, #3B6FF5 0%, #4F8BFF 55%, #63B4FF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-tagline {
+    display: block;
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+    color: rgba(226, 232, 255, 0.82);
   }
 
   /* Section heading above the experiment tiles. The hero above already carries

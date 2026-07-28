@@ -18,6 +18,21 @@ export default function Home() {
           <div className="hero-orb hero-orb-1" />
           <div className="hero-orb hero-orb-2" />
         </div>
+
+        {/* Phone-only banner treatment: flowing contour lines + logo badge.
+            Both are hidden on desktop, which keeps its lighter hero. */}
+        <svg className="hero-waves" viewBox="0 0 420 200" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M170 210 C 250 170, 300 120, 330 -10" />
+          <path d="M195 210 C 275 168, 326 116, 356 -10" />
+          <path d="M220 210 C 300 166, 352 112, 382 -10" />
+          <path d="M245 210 C 325 164, 378 108, 408 -10" />
+          <path d="M270 210 C 350 162, 404 104, 434 -10" />
+          <path d="M300 210 C 380 160, 432 100, 462 -10" />
+        </svg>
+        <span className="hero-badge" aria-hidden="true">
+          <img src="/tower-mark.png" alt="" width="30" height="30" />
+        </span>
+
         <div className="container hero-content">
           <div className="hero-eyebrow">
             📡 Wireless &amp; Mobile Communication &nbsp;·&nbsp; Virtual Lab · 2026–27
@@ -26,6 +41,7 @@ export default function Home() {
             Wireless &amp; Mobile<br />
             <span className="gradient-text">Communication Lab</span>
           </h1>
+          <p className="hero-tagline">Learn. Experiment. Innovate.</p>
           <p className="hero-subtitle">
             Real-time Wi-Fi signal, throughput, multipath and interference experiments.
             Live data captured from your system — no simulation needed.
