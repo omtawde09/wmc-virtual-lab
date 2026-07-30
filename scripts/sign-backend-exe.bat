@@ -1,7 +1,7 @@
 @echo off
 setlocal
 title WMC Virtual Lab - Sign Backend EXE
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 REM ===================================================================
 REM  Signs WMC-Lab-Backend.exe with a code-signing certificate.

@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 title Wireless ^& Mobile Communication - Dev Launcher
-cd /d "%~dp0"
+cd /d "%~dp0.."
 
 echo ==================================================
 echo    Wireless ^& Mobile Communication - Virtual Lab
@@ -101,8 +101,8 @@ echo          Practicals 4, 8 and 9 need an active Wi-Fi connection.
 echo.
 
 REM Launch each server in its own window (/d sets the working directory).
-start "WMC Backend"  /d "%~dp0backend"  cmd /k python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
-start "WMC Frontend" /d "%~dp0frontend" cmd /k npm run dev -- --host
+start "WMC Backend"  /d "%~dp0..\backend"  cmd /k python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+start "WMC Frontend" /d "%~dp0..\frontend" cmd /k npm run dev -- --host
 
 REM Wait for the Vite dev server to come up, then open the app in the browser.
 echo Waiting for the frontend to start, then opening your browser...

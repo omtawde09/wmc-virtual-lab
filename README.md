@@ -430,17 +430,23 @@ wmc-virtual-lab/
 │   ├── interference_analyzer.py
 │   └── requirements.txt
 │
-├── frontend/
+├── frontend/                # Vite + React web app (also bundled into the Android app)
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
-│   │   ├── assets/
+│   │   ├── calc/            # JS ports of the Python analyzers (used on Android)
+│   │   ├── docx/            # client-side experiment-document export
+│   │   ├── hardware/        # platform abstraction (FastAPI vs native bridge)
 │   │   └── App.jsx
 │   │
+│   ├── public/templates/   # syllabus .docx templates bundled with the build
 │   ├── package.json
 │   └── vite.config.js
 │
-└── run-dev.bat
+├── android/                 # native Android WebView app + hardware bridge
+├── docs/                    # setup and platform notes (see docs/ANDROID.md)
+├── brand/                   # master logo artwork
+└── scripts/                 # run-dev.bat, build-backend-exe.bat, sign-backend-exe.bat
 ```
 
 ---

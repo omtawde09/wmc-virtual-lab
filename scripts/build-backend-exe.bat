@@ -1,7 +1,7 @@
 @echo off
 setlocal
 title WMC Virtual Lab - Build Backend EXE
-cd /d "%~dp0backend"
+cd /d "%~dp0..\backend"
 
 echo ==================================================
 echo   Building WMC-Lab-Backend.exe  (one-file Windows)

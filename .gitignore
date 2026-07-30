@@ -17,6 +17,19 @@ frontend/dist/
 frontend/dist-ssr/
 *.local
 
+# ---- Release artifacts ----
+# Binaries are attached to GitHub Releases, never committed to the repo.
+*.apk
+*.aab
+release-v*/
+
+# ---- Signing keys ----
+# Anyone holding these can publish updates Android accepts as genuine.
+# Keep backups outside the repository.
+*.jks
+*.keystore
+keystore.properties
+
 # ---- Editor / OS ----
 .vscode/
 .idea/

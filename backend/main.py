@@ -31,7 +31,7 @@ app = FastAPI(
         "Practical 7 (Path Loss vs Obstacles), Practical 8 (Multipath Effects), "
         "and Practical 9 (Noise & Interference)."
     ),
-    version="1.1.0",
+    version="1.2.0",
 )
 
 # CORS + Chrome/Edge Private Network Access.
