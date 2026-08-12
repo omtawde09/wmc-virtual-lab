@@ -8,8 +8,11 @@ import { resetAllOnce } from '../resetOnLoad'
 import { wsUrl, IS_ANDROID } from '../config'
 import Hardware from '../hardware'
 import { buildPathLossFit } from '../calc/pathloss'
+import { btLinkState, btStateBadge, btCategory } from '../calc/bluetooth'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import ExportBluetoothDoc from '../components/ExportBluetoothDoc'
+import { findChartSvg } from '../exportDocx'
 import BackendBanner from '../components/BackendBanner'
 
 const API = '/api/bluetooth'
@@ -78,6 +81,7 @@ export default function Practical6() {
   const [pairedDevices, setPairedDevices] = useState([])
 
   const wsRef = useRef(null)
+  const chartRef = useRef(null)   // grabs the RSSI-vs-distance <svg> at export time
 
   /* ── Live BLE advertisement stream ── */
   useEffect(() => {
@@ -260,6 +264,17 @@ export default function Practical6() {
   const chartData = [...readings].sort((a, b) => a.distance - b.distance)
   const selected = selectedAddress ? devices[selectedAddress] : null
 
+  // Export payload: annotate the connected device with its GATT service count so
+  // Table 1 can report real profile info for the one device we actually bonded to.
+  const exportDevices = deviceList.map(d => ({
+    name: d.name || null,
+    address: d.address,
+    vendor: d.vendor || null,
+    rssi: d.rssi ?? null,
+    connected: connStatus?.connected && connStatus.address === d.address,
+    services_count: connStatus?.address === d.address ? connStatus.services_count : undefined,
+  }))
+
   const fittedCurve = fit && chartData.length
     ? Array.from({ length: 30 }, (_, i) => {
         const maxD = Math.max(...chartData.map(r => r.distance))
@@ -313,7 +328,7 @@ export default function Practical6() {
             <div className="data-table-wrap">
               <table className="data-table">
                 <thead>
-                  <tr><th></th><th>Address</th><th>Name</th><th>RSSI</th><th>Quality</th></tr>
+                  <tr><th></th><th>Address</th><th>Name</th><th>Category</th><th>RSSI</th><th>Quality</th></tr>
                 </thead>
                 <tbody>
                   {deviceList.map(d => {
@@ -326,6 +341,7 @@ export default function Practical6() {
                         <td>{d.name || (d.vendor
                           ? <span style={{ color: 'var(--text-secondary)' }}>~ {d.vendor} device</span>
                           : <span style={{ color: 'var(--text-muted)' }}>(no name)</span>)}</td>
+                        <td style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{btCategory(d)}</td>
                         <td style={{ color: signalColor(d.rssi), fontFamily: 'var(--font-mono)' }}>{d.rssi ?? '—'}</td>
                         <td><span className={`badge ${q.cls}`}>{q.text}</span></td>
                       </tr>
@@ -426,7 +442,7 @@ export default function Practical6() {
           {chartData.length === 0 ? (
             <div className="empty-state"><div className="empty-state-icon">🔵</div><div className="empty-state-text">No range readings yet. Log a few at different distances above.</div></div>
           ) : (
-            <div style={{ width: '100%', height: 340, marginBottom: '20px' }}>
+            <div ref={chartRef} style={{ width: '100%', height: 340, marginBottom: '20px' }}>
               <ResponsiveContainer>
                 <ComposedChart data={[...chartData, ...fittedCurve]} margin={{ top: 10, right: 30, left: 0, bottom: 16 }}>
                   <CartesianGrid stroke="rgba(15,36,68,0.08)" strokeDasharray="4 4" />
@@ -453,6 +469,46 @@ export default function Practical6() {
               {fit.interpretation && <div className="alert alert-info" style={{ marginTop: '16px' }}>💡 {fit.interpretation}</div>}
             </>
           )}
+        </div>
+
+        {/* ── FIELD-TEST RESULTS (Observation Table 2 from the syllabus) ── */}
+        {chartData.length > 0 && (
+          <div className="glass-card" style={{ marginTop: '24px' }}>
+            <h2 className="card-section-title accent">📋 Signal Quality vs. Distance — Field Test</h2>
+            <p className="section-desc" style={{ marginBottom: '16px', fontSize: '13px' }}>
+              Each logged reading, classified into a link-connectivity state from the measured RSSI —
+              this is the observation table your experiment document requires.
+            </p>
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr><th>Paced Distance (m)</th><th>Measured RSSI (dBm)</th><th>Link Connectivity State</th><th>Data / Stream Performance</th></tr>
+                </thead>
+                <tbody>
+                  {chartData.map((r, i) => {
+                    const [state, perf] = btLinkState(r.rssi)
+                    return (
+                      <tr key={i}>
+                        <td>{r.distance}</td>
+                        <td style={{ color: signalColor(r.rssi), fontFamily: 'var(--font-mono)' }}>{r.rssi}</td>
+                        <td><span className={`badge ${btStateBadge(state)}`}>{state}</span></td>
+                        <td style={{ fontSize: '12px' }}>{perf}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── EXPORT TO EXPERIMENT DOCUMENT ── */}
+        <div style={{ marginTop: '24px' }}>
+          <ExportBluetoothDoc
+            devices={exportDevices}
+            readings={readings}
+            getChartSvg={() => findChartSvg(chartRef.current)}
+          />
         </div>
 
 

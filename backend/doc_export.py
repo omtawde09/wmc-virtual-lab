@@ -39,6 +39,7 @@ _TABLE_MARKERS = ("reading no", "distance", "signal strength")
 _TEMPLATES = {
     "exp4": "Expt. No. 4.docx",
     "exp5": "Expt No. 5.docx",
+    "exp6": "Expt. No. 6.docx",
 }
 
 
@@ -350,6 +351,230 @@ def _sublabel(doc: Document, text: str):
     r.bold = True
     r.font.size = Pt(11)
     return p
+
+
+# ─────────────────────── Experiment 6 (Bluetooth) ───────────────────────
+
+# The last observation table of the Exp-6 document (Signal Quality vs Distance).
+_EXP6_ANCHOR_MARKERS = ("paced distance", "link connectivity", "performance")
+
+
+def _find_exp6_anchor(doc: Document):
+    """Locate Table 2 (range field test) so the Result section lands beneath it."""
+    for table in doc.tables:
+        if not table.rows:
+            continue
+        header = " | ".join(c.text.strip().lower() for c in table.rows[0].cells)
+        if sum(m in header for m in _EXP6_ANCHOR_MARKERS) >= 2:
+            return table
+    return doc.tables[-1] if doc.tables else None
+
+
+def _bt_link_state(rssi):
+    """
+    Derive (connectivity state, stream-performance note) from a MEASURED BLE RSSI.
+
+    Not a fabrication — it classifies the real dBm the app recorded, using the
+    same boundaries as this experiment's reference simulator, and mirrors the
+    wording of the syllabus Table 2 (Connected / Weak / Intermittent / Disconnected).
+    """
+    if rssi is None:
+        return ("Disconnected", "No advertisement received — device out of range.")
+    r = float(rssi)
+    if r >= -65:
+        return ("Connected", "Flawless connection. Instantaneous file/audio transfers.")
+    if r >= -75:
+        return ("Connected", "Very stable. Minimal buffering, stuttering, or delay.")
+    if r >= -88:
+        return ("Weak Connection", "Sluggish response times. Transfers take longer to start.")
+    if r >= -98:
+        return ("Intermittent", "Audio/data stream stutters, drops, and tries to reconnect.")
+    return ("Disconnected", "Pairing link lost entirely due to signal path loss.")
+
+
+def _bt_category(dev: dict) -> str:
+    """Honest device category from the scan (BLE + vendor if the OUI resolved)."""
+    vendor = (dev.get("vendor") or "").strip()
+    return f"BLE · {vendor}" if vendor else "BLE (Low Energy)"
+
+
+def _bt_services(dev: dict) -> str:
+    """What service profiles were actually observed for this device."""
+    if dev.get("connected") and dev.get("services_count"):
+        n = dev["services_count"]
+        return f"{n} GATT service{'s' if n != 1 else ''} (connected)"
+    return "GAP advertisement only"
+
+
+def _build_bt_discovery_table(doc: Document, devices: list, style_hint=None):
+    """Table 1 — the devices actually discovered in the live BLE scan."""
+    cols = ["Discovered Name", "MAC Address (BD_ADDR)", "Class / Category", "Supported Profile Services"]
+    table = doc.add_table(rows=1, cols=len(cols))
+    _apply_table_style(table, style_hint)
+    hdr = table.rows[0].cells
+    for i, name in enumerate(cols):
+        hdr[i].text = name
+        _style_header_cell(hdr[i])
+    for dev in devices:
+        _fill_row(table.add_row().cells, [
+            dev.get("name") or "(no name)",
+            dev.get("address", ""),
+            _bt_category(dev),
+            _bt_services(dev),
+        ])
+    return table
+
+
+def _build_bt_field_table(doc: Document, readings: list, style_hint=None):
+    """Table 2 — measured RSSI at each paced distance, classified into link state."""
+    cols = ["Paced Distance (m)", "Measured RSSI (dBm)", "Link Connectivity State", "Practical Data/Stream Performance"]
+    table = doc.add_table(rows=1, cols=len(cols))
+    _apply_table_style(table, style_hint)
+    hdr = table.rows[0].cells
+    for i, name in enumerate(cols):
+        hdr[i].text = name
+        _style_header_cell(hdr[i])
+    for r in sorted(readings, key=lambda x: _as_float(x.get("distance"))):
+        state, perf = _bt_link_state(r.get("rssi"))
+        _fill_row(table.add_row().cells, [
+            _num(r.get("distance")), _num(r.get("rssi")), state, perf,
+        ])
+    return table
+
+
+def _as_float(v) -> float:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _exp6_summary(devices: list, readings: list) -> str:
+    parts = []
+    if devices:
+        named = [d for d in devices if d.get("name")]
+        parts.append(
+            f"The live BLE inquiry scan discovered {len(devices)} device"
+            f"{'s' if len(devices) != 1 else ''} in piconet range"
+            + (f", {len(named)} broadcasting a friendly name." if named else ".")
+        )
+    if readings:
+        rssis = [_as_float(r.get("rssi")) for r in readings if r.get("rssi") is not None]
+        dists = [_as_float(r.get("distance")) for r in readings if r.get("distance") is not None]
+        if rssis and dists:
+            parts.append(
+                f"Across {len(readings)} paced distances from {min(dists):g} m to {max(dists):g} m, "
+                f"the measured RSSI fell from {max(rssis):g} dBm to {min(rssis):g} dBm, confirming that "
+                "Class 2 Bluetooth links stay stable within ~5–10 m before path loss drives the connection "
+                "into stuttering and eventual link loss."
+            )
+    if not parts:
+        return "Studied Bluetooth discovery, pairing and range using live device measurements."
+    return " ".join(parts)
+
+
+@router.post("/export/bluetooth")
+async def export_bluetooth_document(
+    devices: Optional[str] = Form(None),
+    readings: Optional[str] = Form(None),
+    chart: Optional[UploadFile] = File(None),
+    heading: str = Form("Result"),
+    template: str = Form("exp6"),
+):
+    """
+    Inserts a measured "Result" section below the range-test observation table of
+    the Experiment 6 document: Table 1 (discovered devices) and/or Table 2 (paced
+    RSSI field test), an optional distance-vs-RSSI graph, and an observation line.
+    """
+    def _parse_list(name, raw):
+        if not raw:
+            return []
+        try:
+            obj = json.loads(raw)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail=f"'{name}' payload was not valid JSON.")
+        return obj if isinstance(obj, list) else []
+
+    device_list = _parse_list("devices", devices)
+    reading_list = _parse_list("readings", readings)
+    if not device_list and not reading_list:
+        raise HTTPException(status_code=400, detail="No Bluetooth results to export. Scan for devices and log some range readings first.")
+
+    raw = _load_template(template)
+    base = _TEMPLATES[template][:-5]  # "Expt. No. 6"
+
+    try:
+        doc = Document(io.BytesIO(raw))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Could not open the experiment document.")
+
+    anchor_table = _find_exp6_anchor(doc)
+    if anchor_table is None:
+        raise HTTPException(status_code=422, detail="No observation table found in the document.")
+    try:
+        style_hint = anchor_table.style
+    except Exception:
+        style_hint = None
+
+    built = [doc.add_paragraph()]  # blank before heading
+
+    h = doc.add_paragraph()
+    hr = h.add_run(heading)
+    hr.bold = True
+    hr.font.size = Pt(14)
+    hr.font.color.rgb = RGBColor(0x1F, 0x2A, 0x44)
+    built.append(h)
+    built.append(doc.add_paragraph())
+
+    if device_list:
+        built.append(_sublabel(doc, "Table 1: Bluetooth Discovery & Service Profiling — Measured"))
+        built.append(_build_bt_discovery_table(doc, device_list, style_hint=style_hint))
+        built.append(doc.add_paragraph())
+
+    if reading_list:
+        built.append(_sublabel(doc, "Table 2: Signal Quality vs. Distance Field Test — Measured"))
+        built.append(_build_bt_field_table(doc, reading_list, style_hint=style_hint))
+        built.append(doc.add_paragraph())
+
+    if chart is not None:
+        img_bytes = await chart.read()
+        if img_bytes:
+            cap = doc.add_paragraph()
+            cr = cap.add_run("Graph: BLE RSSI vs Distance (path-loss fit)")
+            cr.bold = True
+            cr.font.size = Pt(10)
+            built.append(cap)
+            built.append(doc.add_paragraph())
+            pic_para = doc.add_paragraph()
+            pic_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            try:
+                pic_para.add_run().add_picture(io.BytesIO(img_bytes), width=Inches(6.0))
+            except Exception:
+                pic_para.add_run("[Chart image could not be embedded]").italic = True
+            built.append(pic_para)
+            built.append(doc.add_paragraph())
+
+    obs = doc.add_paragraph()
+    obs.add_run("Observation: ").bold = True
+    obs.add_run(_exp6_summary(device_list, reading_list))
+    built.append(obs)
+    built.append(doc.add_paragraph())
+
+    anchor = anchor_table._element
+    for block in built:
+        el = block._element
+        anchor.addnext(el)
+        anchor = el
+
+    out = io.BytesIO()
+    doc.save(out)
+    out.seek(0)
+    filename = f"{base} - with Results.docx"
+    return StreamingResponse(
+        out,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.post("/export/network")

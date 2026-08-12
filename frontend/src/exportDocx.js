@@ -115,6 +115,32 @@ export async function exportExp5Doc({ ping, speedtest, chartBlob, template = 'ex
   }
 }
 
+/**
+ * Experiment 6 export. Writes the discovered-device table (Table 1) and the
+ * paced RSSI field-test table (Table 2) — plus the optional RSSI-vs-distance
+ * graph — into the Exp-6 document below its range-test observation table.
+ */
+export async function exportExp6Doc({ devices, readings, chartBlob, template = 'exp6' }) {
+  if (IS_ANDROID) return exportExp6Native({ devices, readings, chartBlob })
+
+  const form = new FormData()
+  if (devices?.length) form.append('devices', JSON.stringify(devices))
+  if (readings?.length) form.append('readings', JSON.stringify(readings))
+  form.append('template', template)
+  if (chartBlob) form.append('chart', chartBlob, 'chart.png')
+
+  try {
+    const res = await axios.post('/api/docx/export/bluetooth', form, {
+      responseType: 'blob',
+      timeout: 60000,
+    })
+    const name = downloadBlobResponse(res, 'Experiment 6 - with Results.docx')
+    return { ok: true, name }
+  } catch (err) {
+    throw new Error(await blobErrorMessage(err, 'Export failed. Is the local backend running?'))
+  }
+}
+
 /* ── Android: build the document in the browser, save it via the native bridge ── */
 
 /** Fetch the bundled syllabus template that ships with the web build. */
@@ -167,6 +193,17 @@ async function exportExp5Native({ ping, speedtest, chartBlob }) {
     ping, speedtest, chart, platform: 'Mobile (Android)',
   })
   return saveNatively(out, 'Expt No. 5 - with Results.docx')
+}
+
+/** Experiment 6 export, generated entirely on-device. */
+async function exportExp6Native({ devices, readings, chartBlob }) {
+  const { buildExp6Docx } = await import('./docx/buildDocx')
+  const template = await loadTemplate('exp6')
+  const chart = chartBlob
+    ? { bytes: new Uint8Array(await chartBlob.arrayBuffer()) }
+    : null
+  const out = await buildExp6Docx(template, { devices, readings, chart })
+  return saveNatively(out, 'Expt. No. 6 - with Results.docx')
 }
 
 /** Reads an error message out of a Blob response (errors arrive as blobs too). */

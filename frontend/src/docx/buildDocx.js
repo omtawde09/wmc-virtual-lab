@@ -11,6 +11,7 @@
  * Pure functions over bytes: no DOM, no network. That keeps it testable in Node.
  */
 import JSZip from 'jszip'
+import { btLinkState, btCategory, btServices } from '../calc/bluetooth'
 
 const XML_NS = {
   w: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
@@ -362,6 +363,82 @@ export async function buildExp5Docx(templateBytes, { ping, speedtest, chart, pla
         ? bits.join(' ') + ' Together these confirm that throughput and latency are independent ' +
           'pillars of network quality.'
         : "Measured the network's throughput and latency using real tools."
+      parts.push(para(run('Observation: ', { bold: true }) + run(summary)))
+      parts.push(para())
+      return parts.join('')
+    },
+  })
+}
+
+/* ── Experiment 6 (Bluetooth) ── */
+
+/** Experiment 6 export, generated entirely on-device. */
+export async function buildExp6Docx(templateBytes, { devices, readings, chart }) {
+  if (!devices?.length && !readings?.length) throw new Error('No Bluetooth results to export.')
+
+  return spliceIntoTemplate(templateBytes, {
+    markers: ['paced distance', 'link connectivity', 'performance'],
+    anchorLast: true,   // sits below Table 2, before the Conclusion
+    image: chart,
+    buildXml: ({ imageRelId, image }) => {
+      const parts = [
+        para(),
+        para(run('Result', { bold: true, size: HEADING_SIZE, color: INK })),
+        para(),
+      ]
+
+      if (devices?.length) {
+        parts.push(para(run('Table 1: Bluetooth Discovery & Service Profiling — Measured',
+          { bold: true, size: LABEL_SIZE })))
+        parts.push(table(
+          ['Discovered Name', 'MAC Address (BD_ADDR)', 'Class / Category', 'Supported Profile Services'],
+          devices.map(d => [d.name || '(no name)', d.address || '', btCategory(d), btServices(d)]),
+        ))
+        parts.push(para())
+      }
+
+      if (readings?.length) {
+        const sorted = [...readings].sort((a, b) => Number(a.distance) - Number(b.distance))
+        parts.push(para(run('Table 2: Signal Quality vs. Distance Field Test — Measured',
+          { bold: true, size: LABEL_SIZE })))
+        parts.push(table(
+          ['Paced Distance (m)', 'Measured RSSI (dBm)', 'Link Connectivity State', 'Practical Data/Stream Performance'],
+          sorted.map(r => {
+            const [state, perf] = btLinkState(r.rssi)
+            return [num(r.distance), num(r.rssi), state, perf]
+          }),
+        ))
+        parts.push(para())
+      }
+
+      if (imageRelId && image) {
+        const { width, height } = pngSize(image.bytes)
+        parts.push(para(run('Graph: BLE RSSI vs Distance (path-loss fit)', { bold: true, size: 20 })))
+        parts.push(para())
+        parts.push(`<w:p><w:pPr><w:jc w:val="center"/></w:pPr>${imageRun(imageRelId, 6.0, height / width)}</w:p>`)
+        parts.push(para())
+      }
+
+      const bits = []
+      if (devices?.length) {
+        const named = devices.filter(d => d.name).length
+        bits.push(`The live BLE inquiry scan discovered ${devices.length} device` +
+          `${devices.length !== 1 ? 's' : ''} in piconet range` +
+          (named ? `, ${named} broadcasting a friendly name.` : '.'))
+      }
+      if (readings?.length) {
+        const rs = readings.map(r => Number(r.rssi)).filter(Number.isFinite)
+        const ds = readings.map(r => Number(r.distance)).filter(Number.isFinite)
+        if (rs.length && ds.length) {
+          bits.push(`Across ${readings.length} paced distances from ${Math.min(...ds)} m to ` +
+            `${Math.max(...ds)} m, the measured RSSI fell from ${Math.max(...rs)} dBm to ` +
+            `${Math.min(...rs)} dBm, confirming that Class 2 Bluetooth links stay stable within ` +
+            '~5–10 m before path loss drives the connection into stuttering and eventual link loss.')
+        }
+      }
+      const summary = bits.length
+        ? bits.join(' ')
+        : 'Studied Bluetooth discovery, pairing and range using live device measurements.'
       parts.push(para(run('Observation: ', { bold: true }) + run(summary)))
       parts.push(para())
       return parts.join('')
