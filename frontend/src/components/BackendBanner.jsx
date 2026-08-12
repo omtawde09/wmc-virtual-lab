@@ -1,6 +1,22 @@
 import { useState } from 'react'
 import { useBackendStatus, NEEDS_LOCAL_BACKEND, BACKEND_DOWNLOAD_URL, ANDROID_APP_URL } from '../useBackend'
 import { IS_MOBILE_BROWSER } from '../config'
+import StarRepoModal from './StarRepoModal'
+
+/**
+ * Kicks off a file download without navigating the page away (GitHub release
+ * assets send Content-Disposition: attachment, so the browser downloads rather
+ * than opening), then reveals the "star the repo" prompt.
+ */
+function startDownload(url, onStarted) {
+  const a = document.createElement('a')
+  a.href = url
+  a.rel = 'noopener'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  onStarted()
+}
 
 /**
  * Shows the local-backend connection state on every experiment page (deployed
@@ -15,6 +31,10 @@ export default function BackendBanner() {
   const status = useBackendStatus(NEEDS_LOCAL_BACKEND)
   // Steps start open while offline — if you're seeing this banner, you need them.
   const [showSteps, setShowSteps] = useState(true)
+  // The "star the repo" prompt, shown after a download is triggered.
+  const [showStar, setShowStar] = useState(false)
+  const download = (url) => startDownload(url, () => setShowStar(true))
+  const starModal = showStar ? <StarRepoModal onClose={() => setShowStar(false)} /> : null
 
   // In dev the backend is proxied, so there is nothing to prompt for.
   if (!NEEDS_LOCAL_BACKEND) return null
@@ -31,10 +51,10 @@ export default function BackendBanner() {
             phone&apos;s Wi-Fi &amp; Bluetooth hardware, which a mobile browser cannot do on its own.
           </div>
           <div className="backend-banner-actions">
-            <a className="btn btn-primary btn-sm backend-dl" href={ANDROID_APP_URL}
-               target="_blank" rel="noopener noreferrer">
+            <button type="button" className="btn btn-primary btn-sm backend-dl"
+                    onClick={() => download(ANDROID_APP_URL)}>
               ⬇ Download Android App
-            </a>
+            </button>
             <button type="button" className="backend-toggle"
                     onClick={() => setShowSteps(s => !s)}
                     aria-expanded={showSteps}>
@@ -42,6 +62,7 @@ export default function BackendBanner() {
             </button>
           </div>
         </div>
+        {starModal}
 
         {showSteps && (
           <div className="backend-steps">
@@ -100,10 +121,10 @@ export default function BackendBanner() {
           your own Wi-Fi &amp; Bluetooth hardware, which a website cannot do on its own.
         </div>
         <div className="backend-banner-actions">
-          <a className="btn btn-primary btn-sm backend-dl" href={BACKEND_DOWNLOAD_URL}
-             target="_blank" rel="noopener noreferrer">
+          <button type="button" className="btn btn-primary btn-sm backend-dl"
+                  onClick={() => download(BACKEND_DOWNLOAD_URL)}>
             ⬇ Download backend
-          </a>
+          </button>
           <button type="button" className="backend-toggle"
                   onClick={() => setShowSteps(s => !s)}
                   aria-expanded={showSteps}>
@@ -161,6 +182,7 @@ export default function BackendBanner() {
           </div>
         </div>
       )}
+      {starModal}
     </div>
   )
 }
