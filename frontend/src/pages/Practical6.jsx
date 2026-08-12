@@ -12,7 +12,6 @@ import { btLinkState, btStateBadge, btCategory } from '../calc/bluetooth'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
 import ExportBluetoothDoc from '../components/ExportBluetoothDoc'
-import { findChartSvg } from '../exportDocx'
 import BackendBanner from '../components/BackendBanner'
 
 const API = '/api/bluetooth'
@@ -81,7 +80,6 @@ export default function Practical6() {
   const [pairedDevices, setPairedDevices] = useState([])
 
   const wsRef = useRef(null)
-  const chartRef = useRef(null)   // grabs the RSSI-vs-distance <svg> at export time
 
   /* ── Live BLE advertisement stream ── */
   useEffect(() => {
@@ -275,6 +273,17 @@ export default function Practical6() {
     services_count: connStatus?.address === d.address ? connStatus.services_count : undefined,
   }))
 
+  // The single device the student actually connected/paired to (its own table).
+  const connectedDevice = connStatus?.connected && connStatus.address
+    ? {
+        name: devices[connStatus.address]?.name || null,
+        address: connStatus.address,
+        paired: connStatus.paired,
+        services_count: connStatus.services_count,
+        connected: true,
+      }
+    : null
+
   const fittedCurve = fit && chartData.length
     ? Array.from({ length: 30 }, (_, i) => {
         const maxD = Math.max(...chartData.map(r => r.distance))
@@ -442,7 +451,7 @@ export default function Practical6() {
           {chartData.length === 0 ? (
             <div className="empty-state"><div className="empty-state-icon">🔵</div><div className="empty-state-text">No range readings yet. Log a few at different distances above.</div></div>
           ) : (
-            <div ref={chartRef} style={{ width: '100%', height: 340, marginBottom: '20px' }}>
+            <div style={{ width: '100%', height: 340, marginBottom: '20px' }}>
               <ResponsiveContainer>
                 <ComposedChart data={[...chartData, ...fittedCurve]} margin={{ top: 10, right: 30, left: 0, bottom: 16 }}>
                   <CartesianGrid stroke="rgba(15,36,68,0.08)" strokeDasharray="4 4" />
@@ -506,8 +515,8 @@ export default function Practical6() {
         <div style={{ marginTop: '24px' }}>
           <ExportBluetoothDoc
             devices={exportDevices}
+            connected={connectedDevice}
             readings={readings}
-            getChartSvg={() => findChartSvg(chartRef.current)}
           />
         </div>
 

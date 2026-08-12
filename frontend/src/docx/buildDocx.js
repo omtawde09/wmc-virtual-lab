@@ -11,7 +11,7 @@
  * Pure functions over bytes: no DOM, no network. That keeps it testable in Node.
  */
 import JSZip from 'jszip'
-import { btLinkState, btCategory, btServices } from '../calc/bluetooth'
+import { btLinkState, btCategory, btServices } from '../calc/bluetooth.js'
 
 const XML_NS = {
   w: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
@@ -170,6 +170,45 @@ function removeGraphPlaceholder(xml) {
   if (i + 1 < spans.length && spans[i + 1].text === '') to = spans[i + 1].end
 
   return xml.slice(0, from) + xml.slice(to)
+}
+
+/**
+ * Replace the template section running from the `fromText` heading up to (but not
+ * including) the `beforeText` heading with `buildXml()`, and return new .docx
+ * bytes. Because tables live in the gaps between paragraph spans, cutting the XML
+ * substring between the two headings removes the placeholder tables too.
+ *
+ * Used by Exp 6 to drop the blank "Observations" section (heading + two example
+ * tables) and put the measured "Result" section in its place, right before
+ * "Conclusion". Falls back to appending after the last anchor table if either
+ * heading is missing, so the export still produces a usable document. Mirrors
+ * _strip_section() in backend/doc_export.py.
+ */
+async function spliceReplacingSection(templateBytes, { fromText, beforeText, fallbackMarkers, buildXml }) {
+  const zip = await JSZip.loadAsync(templateBytes)
+  const docPath = 'word/document.xml'
+  let xml = await zip.file(docPath).async('string')
+  const insertXml = buildXml()
+
+  const spans = paragraphSpans(xml)
+  const lc = (s) => s.trim().toLowerCase()
+  const fromIdx = spans.findIndex(p => lc(p.text) === fromText.toLowerCase())
+  const beforeIdx = spans.findIndex(p => lc(p.text) === beforeText.toLowerCase())
+
+  if (fromIdx >= 0 && beforeIdx > fromIdx) {
+    xml = xml.slice(0, spans[fromIdx].start) + insertXml + xml.slice(spans[beforeIdx].start)
+  } else {
+    const at = findAnchorTableEnd(xml, fallbackMarkers, { last: true })
+    if (at < 0) throw new Error('Could not locate where to insert the results.')
+    xml = xml.slice(0, at) + insertXml + xml.slice(at)
+  }
+
+  zip.file(docPath, xml)
+  return zip.generateAsync({
+    type: 'uint8array',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 },
+  })
 }
 
 /**
@@ -372,15 +411,20 @@ export async function buildExp5Docx(templateBytes, { ping, speedtest, chart, pla
 
 /* ── Experiment 6 (Bluetooth) ── */
 
+/** A single-row Word table (header + one data row). */
+function oneRowTable(headers, values) {
+  return table(headers, [values])
+}
+
 /** Experiment 6 export, generated entirely on-device. */
-export async function buildExp6Docx(templateBytes, { devices, readings, chart }) {
+export async function buildExp6Docx(templateBytes, { devices, connected, readings }) {
   if (!devices?.length && !readings?.length) throw new Error('No Bluetooth results to export.')
 
-  return spliceIntoTemplate(templateBytes, {
-    markers: ['paced distance', 'link connectivity', 'performance'],
-    anchorLast: true,   // sits below Table 2, before the Conclusion
-    image: chart,
-    buildXml: ({ imageRelId, image }) => {
+  return spliceReplacingSection(templateBytes, {
+    fromText: 'Observations',
+    beforeText: 'Conclusion',
+    fallbackMarkers: ['paced distance', 'link connectivity', 'performance'],
+    buildXml: () => {
       const parts = [
         para(),
         para(run('Result', { bold: true, size: HEADING_SIZE, color: INK })),
@@ -397,9 +441,25 @@ export async function buildExp6Docx(templateBytes, { devices, readings, chart })
         parts.push(para())
       }
 
+      if (connected) {
+        const paired = connected.paired
+        const bond = paired ? 'Bonded (paired)'
+          : (connected.connected ? 'Connected (link only)' : 'Not connected')
+        const sc = connected.services_count
+        const services = sc ? `${sc} GATT service${sc !== 1 ? 's' : ''}` : '—'
+        parts.push(para(run('Table 2: Connected / Paired Device — Service Mapping',
+          { bold: true, size: LABEL_SIZE })))
+        parts.push(oneRowTable(
+          ['Connected Device', 'MAC Address (BD_ADDR)', 'Bond / Pairing State', 'GATT Services Exposed'],
+          [connected.name || '(no name)', connected.address || '', bond, services],
+        ))
+        parts.push(para())
+      }
+
       if (readings?.length) {
         const sorted = [...readings].sort((a, b) => Number(a.distance) - Number(b.distance))
-        parts.push(para(run('Table 2: Signal Quality vs. Distance Field Test — Measured',
+        const n = connected ? 3 : 2
+        parts.push(para(run(`Table ${n}: Signal Quality vs. Distance Field Test — Measured`,
           { bold: true, size: LABEL_SIZE })))
         parts.push(table(
           ['Paced Distance (m)', 'Measured RSSI (dBm)', 'Link Connectivity State', 'Practical Data/Stream Performance'],
@@ -408,14 +468,6 @@ export async function buildExp6Docx(templateBytes, { devices, readings, chart })
             return [num(r.distance), num(r.rssi), state, perf]
           }),
         ))
-        parts.push(para())
-      }
-
-      if (imageRelId && image) {
-        const { width, height } = pngSize(image.bytes)
-        parts.push(para(run('Graph: BLE RSSI vs Distance (path-loss fit)', { bold: true, size: 20 })))
-        parts.push(para())
-        parts.push(`<w:p><w:pPr><w:jc w:val="center"/></w:pPr>${imageRun(imageRelId, 6.0, height / width)}</w:p>`)
         parts.push(para())
       }
 

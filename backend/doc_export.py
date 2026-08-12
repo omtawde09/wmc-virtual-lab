@@ -425,6 +425,28 @@ def _build_bt_discovery_table(doc: Document, devices: list, style_hint=None):
     return table
 
 
+def _build_bt_connected_table(doc: Document, conn: dict, style_hint=None):
+    """The single device the student actually paired/connected to (Part B)."""
+    cols = ["Connected Device", "MAC Address (BD_ADDR)", "Bond / Pairing State", "GATT Services Exposed"]
+    table = doc.add_table(rows=1, cols=len(cols))
+    _apply_table_style(table, style_hint)
+    hdr = table.rows[0].cells
+    for i, name in enumerate(cols):
+        hdr[i].text = name
+        _style_header_cell(hdr[i])
+    paired = conn.get("paired")
+    bond = "Bonded (paired)" if paired else ("Connected (link only)" if conn.get("connected") else "Not connected")
+    sc = conn.get("services_count")
+    services = f"{sc} GATT service{'s' if sc != 1 else ''}" if sc else "—"
+    _fill_row(table.add_row().cells, [
+        conn.get("name") or "(no name)",
+        conn.get("address", ""),
+        bond,
+        services,
+    ])
+    return table
+
+
 def _build_bt_field_table(doc: Document, readings: list, style_hint=None):
     """Table 2 — measured RSSI at each paced distance, classified into link state."""
     cols = ["Paced Distance (m)", "Measured RSSI (dBm)", "Link Connectivity State", "Practical Data/Stream Performance"]
@@ -473,18 +495,55 @@ def _exp6_summary(devices: list, readings: list) -> str:
     return " ".join(parts)
 
 
+def _para_text(el) -> Optional[str]:
+    """Plain text of a <w:p> body element, or None if it is not a paragraph."""
+    if not el.tag.endswith("}p"):
+        return None
+    return "".join(t.text or "" for t in el.iter(qn("w:t"))).strip()
+
+
+def _strip_section(doc: Document, start_text: str, end_text: str):
+    """
+    Remove the template's placeholder section running from the heading whose text
+    is `start_text` up to (but not including) the heading `end_text`, and return
+    the `end_text` element so the caller can insert real content in its place.
+
+    For Exp 6 this deletes the blank "Observations" heading and its two example
+    tables, so only the measured "Result" section is left — otherwise the empty
+    sample tables sit right above the real ones. Returns None if either heading is
+    missing (caller then falls back to appending after the last table).
+    """
+    body = doc.element.body
+    children = list(body.iterchildren())
+    start = end = None
+    for i, el in enumerate(children):
+        txt = _para_text(el)
+        if txt == start_text and start is None:
+            start = i
+        elif txt == end_text:
+            end = i
+            break
+    if start is None or end is None or end <= start:
+        return None
+    end_el = children[end]
+    for el in children[start:end]:
+        body.remove(el)
+    return end_el
+
+
 @router.post("/export/bluetooth")
 async def export_bluetooth_document(
     devices: Optional[str] = Form(None),
+    connected: Optional[str] = Form(None),
     readings: Optional[str] = Form(None),
-    chart: Optional[UploadFile] = File(None),
     heading: str = Form("Result"),
     template: str = Form("exp6"),
 ):
     """
     Inserts a measured "Result" section below the range-test observation table of
-    the Experiment 6 document: Table 1 (discovered devices) and/or Table 2 (paced
-    RSSI field test), an optional distance-vs-RSSI graph, and an observation line.
+    the Experiment 6 document: Table 1 (discovered devices), an optional
+    connected-device table, and Table 2 (paced RSSI field test), plus an
+    observation line. No graph — the syllabus records observations as tables only.
     """
     def _parse_list(name, raw):
         if not raw:
@@ -497,6 +556,13 @@ async def export_bluetooth_document(
 
     device_list = _parse_list("devices", devices)
     reading_list = _parse_list("readings", readings)
+    conn_data = None
+    if connected:
+        try:
+            obj = json.loads(connected)
+            conn_data = obj if isinstance(obj, dict) and obj else None
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="'connected' payload was not valid JSON.")
     if not device_list and not reading_list:
         raise HTTPException(status_code=400, detail="No Bluetooth results to export. Scan for devices and log some range readings first.")
 
@@ -516,6 +582,10 @@ async def export_bluetooth_document(
     except Exception:
         style_hint = None
 
+    # Delete the template's blank "Observations" section (heading + the two example
+    # tables); the measured Result section replaces it, right before Conclusion.
+    insert_before = _strip_section(doc, "Observations", "Conclusion")
+
     built = [doc.add_paragraph()]  # blank before heading
 
     h = doc.add_paragraph()
@@ -531,28 +601,16 @@ async def export_bluetooth_document(
         built.append(_build_bt_discovery_table(doc, device_list, style_hint=style_hint))
         built.append(doc.add_paragraph())
 
-    if reading_list:
-        built.append(_sublabel(doc, "Table 2: Signal Quality vs. Distance Field Test — Measured"))
-        built.append(_build_bt_field_table(doc, reading_list, style_hint=style_hint))
+    if conn_data:
+        built.append(_sublabel(doc, "Table 2: Connected / Paired Device — Service Mapping"))
+        built.append(_build_bt_connected_table(doc, conn_data, style_hint=style_hint))
         built.append(doc.add_paragraph())
 
-    if chart is not None:
-        img_bytes = await chart.read()
-        if img_bytes:
-            cap = doc.add_paragraph()
-            cr = cap.add_run("Graph: BLE RSSI vs Distance (path-loss fit)")
-            cr.bold = True
-            cr.font.size = Pt(10)
-            built.append(cap)
-            built.append(doc.add_paragraph())
-            pic_para = doc.add_paragraph()
-            pic_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            try:
-                pic_para.add_run().add_picture(io.BytesIO(img_bytes), width=Inches(6.0))
-            except Exception:
-                pic_para.add_run("[Chart image could not be embedded]").italic = True
-            built.append(pic_para)
-            built.append(doc.add_paragraph())
+    if reading_list:
+        n = 3 if conn_data else 2
+        built.append(_sublabel(doc, f"Table {n}: Signal Quality vs. Distance Field Test — Measured"))
+        built.append(_build_bt_field_table(doc, reading_list, style_hint=style_hint))
+        built.append(doc.add_paragraph())
 
     obs = doc.add_paragraph()
     obs.add_run("Observation: ").bold = True
@@ -560,11 +618,18 @@ async def export_bluetooth_document(
     built.append(obs)
     built.append(doc.add_paragraph())
 
-    anchor = anchor_table._element
-    for block in built:
-        el = block._element
-        anchor.addnext(el)
-        anchor = el
+    if insert_before is not None:
+        # Place the Result section where the placeholder Observations section was.
+        for block in built:
+            insert_before.addprevious(block._element)
+    else:
+        # Fallback: no Observations/Conclusion headings found — append after the
+        # last observation table, as before.
+        anchor = anchor_table._element
+        for block in built:
+            el = block._element
+            anchor.addnext(el)
+            anchor = el
 
     out = io.BytesIO()
     doc.save(out)

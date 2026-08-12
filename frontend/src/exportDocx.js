@@ -120,14 +120,14 @@ export async function exportExp5Doc({ ping, speedtest, chartBlob, template = 'ex
  * paced RSSI field-test table (Table 2) — plus the optional RSSI-vs-distance
  * graph — into the Exp-6 document below its range-test observation table.
  */
-export async function exportExp6Doc({ devices, readings, chartBlob, template = 'exp6' }) {
-  if (IS_ANDROID) return exportExp6Native({ devices, readings, chartBlob })
+export async function exportExp6Doc({ devices, connected, readings, template = 'exp6' }) {
+  if (IS_ANDROID) return exportExp6Native({ devices, connected, readings })
 
   const form = new FormData()
   if (devices?.length) form.append('devices', JSON.stringify(devices))
+  if (connected) form.append('connected', JSON.stringify(connected))
   if (readings?.length) form.append('readings', JSON.stringify(readings))
   form.append('template', template)
-  if (chartBlob) form.append('chart', chartBlob, 'chart.png')
 
   try {
     const res = await axios.post('/api/docx/export/bluetooth', form, {
@@ -196,13 +196,10 @@ async function exportExp5Native({ ping, speedtest, chartBlob }) {
 }
 
 /** Experiment 6 export, generated entirely on-device. */
-async function exportExp6Native({ devices, readings, chartBlob }) {
+async function exportExp6Native({ devices, connected, readings }) {
   const { buildExp6Docx } = await import('./docx/buildDocx')
   const template = await loadTemplate('exp6')
-  const chart = chartBlob
-    ? { bytes: new Uint8Array(await chartBlob.arrayBuffer()) }
-    : null
-  const out = await buildExp6Docx(template, { devices, readings, chart })
+  const out = await buildExp6Docx(template, { devices, connected, readings })
   return saveNatively(out, 'Expt. No. 6 - with Results.docx')
 }
 
