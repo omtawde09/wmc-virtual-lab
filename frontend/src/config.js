@@ -21,6 +21,17 @@ export const API_BASE = import.meta.env.VITE_API_BASE || ''
 export const IS_ANDROID =
   typeof window !== 'undefined' && !!window.AndroidHardware
 
+/**
+ * True on a phone/tablet browser (NOT the Android app itself). A mobile browser
+ * can't run the Windows backend .exe, so these visitors are pointed at the
+ * installable Android app instead. Device type is stable for the session, so a
+ * one-time user-agent check is enough.
+ */
+export const IS_MOBILE_BROWSER =
+  !IS_ANDROID &&
+  typeof navigator !== 'undefined' &&
+  /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent)
+
 /** Build a WebSocket URL for a given API path (e.g. '/api/wifi/ws'). */
 export function wsUrl(path) {
   if (API_BASE) {

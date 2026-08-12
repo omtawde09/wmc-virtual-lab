@@ -7,6 +7,12 @@ import { API_BASE, IS_ANDROID } from './config'
 export const BACKEND_DOWNLOAD_URL =
   'https://github.com/omtawde09/wmc-virtual-lab/releases/latest/download/WMC-Lab-Backend.exe'
 
+// The installable Android app. Points at the latest release page (rather than a
+// versioned asset path) so the link keeps working across releases regardless of
+// the .apk's version suffix — the APK is listed right there to download.
+export const ANDROID_APP_URL =
+  'https://github.com/omtawde09/wmc-virtual-lab/releases/latest'
+
 // Only meaningful in the deployed Windows build, where API_BASE points at
 // localhost. In dev (API_BASE === '') the backend is proxied and always "there",
 // and on Android the native bridge replaces the backend — neither needs the .exe.

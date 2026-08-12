@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useBackendStatus, NEEDS_LOCAL_BACKEND, BACKEND_DOWNLOAD_URL } from '../useBackend'
+import { useBackendStatus, NEEDS_LOCAL_BACKEND, BACKEND_DOWNLOAD_URL, ANDROID_APP_URL } from '../useBackend'
+import { IS_MOBILE_BROWSER } from '../config'
 
 /**
  * Shows the local-backend connection state on every experiment page (deployed
@@ -17,6 +18,69 @@ export default function BackendBanner() {
 
   // In dev the backend is proxied, so there is nothing to prompt for.
   if (!NEEDS_LOCAL_BACKEND) return null
+
+  // On a phone/tablet browser the Windows .exe is useless — point visitors at the
+  // installable Android app, which runs every experiment natively (no backend).
+  if (IS_MOBILE_BROWSER) {
+    return (
+      <div className="backend-banner offline" role="status">
+        <div className="backend-banner-head">
+          <span className="backend-dot offline" />
+          <div className="backend-banner-text">
+            <strong>Get the Android app for live measurements.</strong> These experiments read your
+            phone&apos;s Wi-Fi &amp; Bluetooth hardware, which a mobile browser cannot do on its own.
+          </div>
+          <div className="backend-banner-actions">
+            <a className="btn btn-primary btn-sm backend-dl" href={ANDROID_APP_URL}
+               target="_blank" rel="noopener noreferrer">
+              ⬇ Download Android App
+            </a>
+            <button type="button" className="backend-toggle"
+                    onClick={() => setShowSteps(s => !s)}
+                    aria-expanded={showSteps}>
+              {showSteps ? '▾ Hide steps' : '▸ How to install'}
+            </button>
+          </div>
+        </div>
+
+        {showSteps && (
+          <div className="backend-steps">
+            <div className="backend-steps-title">How to install — 3 steps, nothing else needed</div>
+            <ol className="backend-steps-list">
+              <li>
+                <strong>Download</strong> the <code>.apk</code> from the latest release using the
+                button above
+                <span className="step-note">≈4 MB · Android 8.0+</span>
+              </li>
+              <li>
+                <strong>Open the downloaded file.</strong> Android may warn about installing from
+                your browser → tap <strong>Settings → Allow from this source</strong>, then
+                <strong> Install</strong>.
+                <span className="step-note">
+                  Expected for apps outside the Play Store — the full source is public on GitHub.
+                </span>
+              </li>
+              <li>
+                <strong>Open the WMC Virtual Lab app.</strong> Every experiment runs natively using
+                your phone&apos;s own hardware — no backend, no setup.
+              </li>
+            </ol>
+
+            <div className="backend-steps-foot">
+              <span className="backend-pill">✅ No backend needed</span>
+              <span className="backend-pill">✅ Runs offline</span>
+              <span className="backend-pill">✅ Real Wi-Fi &amp; Bluetooth data</span>
+              <p>
+                <strong>Before measuring:</strong> turn <strong>Bluetooth ON</strong> for Practicals 6 &amp; 7,
+                stay <strong>connected to Wi-Fi</strong> for Practicals 4, 8 &amp; 9, and grant the
+                <strong> Nearby devices</strong> and <strong>Location</strong> permissions when asked.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   if (status === 'online') {
     return (
