@@ -37,6 +37,7 @@ class ObstacleReadingInput(BaseModel):
     distance: float           # metres; keep ~constant across a run to isolate obstacles
     obstacle_count: int = 0    # number of walls/doors/bodies in the path
     obstacle_desc: str = ""    # free-text, e.g. "1 drywall partition"
+    material: str = ""         # syllabus obstacle material (Exp 7 data log)
 
 
 @router.get("/readings")
@@ -76,6 +77,7 @@ async def add_reading(data: ObstacleReadingInput):
         "distance": round(float(data.distance), 2),
         "obstacle_count": int(data.obstacle_count),
         "obstacle_desc": data.obstacle_desc.strip(),
+        "material": data.material.strip(),
         "rssi": found["rssi"],
         "tx_power": found["tx_power"],
         "timestamp": datetime.now().isoformat(),

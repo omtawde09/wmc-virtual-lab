@@ -47,6 +47,7 @@ for pkg in ("bleak", "docx"):
 datas += [("assets/Expt. No. 4.docx", "assets")]
 datas += [("assets/Expt No. 5.docx", "assets")]
 datas += [("assets/Expt. No. 6.docx", "assets")]
+datas += [("assets/Expt. No. 7.docx", "assets")]
 
 hiddenimports += winrt_modules
 hiddenimports += collect_submodules("uvicorn")

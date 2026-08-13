@@ -16,6 +16,7 @@ accepted (optional) for flexibility, but the app no longer requires one.
 
 import io
 import json
+import math
 import os
 import sys
 from typing import Optional
@@ -40,6 +41,7 @@ _TEMPLATES = {
     "exp4": "Expt. No. 4.docx",
     "exp5": "Expt No. 5.docx",
     "exp6": "Expt. No. 6.docx",
+    "exp7": "Expt. No. 7.docx",
 }
 
 
@@ -84,6 +86,17 @@ def _find_observation_table(doc: Document):
         if sum(m in header for m in _TABLE_MARKERS) >= 2:
             return table
     return doc.tables[0] if doc.tables else None
+
+
+def _find_observation_table_by_markers(doc: Document, markers):
+    """Find a table whose header row contains 2+ of `markers`; else the last table."""
+    for table in doc.tables:
+        if not table.rows:
+            continue
+        header = " | ".join(c.text.strip().lower() for c in table.rows[0].cells)
+        if sum(m in header for m in markers) >= 2:
+            return table
+    return doc.tables[-1] if doc.tables else None
 
 
 def _style_header_cell(cell) -> None:
@@ -630,6 +643,184 @@ async def export_bluetooth_document(
             el = block._element
             anchor.addnext(el)
             anchor = el
+
+    out = io.BytesIO()
+    doc.save(out)
+    out.seek(0)
+    filename = f"{base} - with Results.docx"
+    return StreamingResponse(
+        out,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ─────────────────────── Experiment 7 (Indoor Path Loss) ───────────────────────
+#
+# The app measures REAL RSSI with a real obstacle in the path; these mirror the
+# JS calc in frontend/src/calc/indoorpathloss.js so both platforms produce the
+# same theoretical loss decomposition next to the measured signal.
+
+_EXP7_TX_DBM = 15.0
+_EXP7_FREQ_MHZ = 2400.0
+_EXP7_N = 3.0
+_EXP7_FSPL_1M = 20 * math.log10(_EXP7_FREQ_MHZ) - 27.55  # ≈40.05 dB @ 2.4 GHz
+_EXP7_MATERIAL_LOSS = {
+    "Line of Sight (Free Space)": 0,
+    "Clear Glass Window": 2,
+    "Solid Wooden Door": 5,
+    "Concrete / Brick Wall": 14,
+    "Reinforced Metal Shield": 28,
+}
+
+
+def _exp7_base_path_loss(d) -> float:
+    dist = max(1.0, _as_float(d) or 1.0)
+    return round(_EXP7_FSPL_1M + 10 * _EXP7_N * math.log10(dist), 1)
+
+
+def _exp7_material_loss(material) -> int:
+    return _EXP7_MATERIAL_LOSS.get(material or "", 0)
+
+
+def _exp7_status(rssi) -> str:
+    if rssi is None:
+        return "No Signal"
+    r = _as_float(rssi)
+    if r >= -65:
+        return "Excellent"
+    if r >= -80:
+        return "Good"
+    if r >= -92:
+        return "Poor"
+    return "Out of Range"
+
+
+def _build_exp7_table(doc: Document, readings: list, style_hint=None):
+    """Table 1 — the measured indoor obstacle attenuation data log."""
+    cols = [
+        "Test No.", "Obstacle Material", "Distance (d)", "Base Path Loss (dB)",
+        "Material Loss (dB)", "Measured RSSI (dBm)", "Connection Status",
+    ]
+    table = doc.add_table(rows=1, cols=len(cols))
+    _apply_table_style(table, style_hint)
+    hdr = table.rows[0].cells
+    for i, name in enumerate(cols):
+        hdr[i].text = name
+        _style_header_cell(hdr[i])
+    for i, r in enumerate(readings):
+        material = r.get("material") or "Line of Sight (Free Space)"
+        _fill_row(table.add_row().cells, [
+            str(i + 1),
+            material,
+            f"{_num(r.get('distance'))} m",
+            _num(_exp7_base_path_loss(r.get("distance"))),
+            _num(_exp7_material_loss(material)),
+            _num(r.get("rssi")),
+            _exp7_status(r.get("rssi")),
+        ])
+    return table
+
+
+def _exp7_summary(readings: list) -> str:
+    if not readings:
+        return "Measured indoor RSSI against different obstacle materials and distances."
+    rssis = [_as_float(r.get("rssi")) for r in readings if r.get("rssi") is not None]
+    materials = [r.get("material") for r in readings if r.get("material")]
+    worst = None
+    if rssis:
+        worst_idx = min(range(len(readings)),
+                        key=lambda i: _as_float(readings[i].get("rssi")) if readings[i].get("rssi") is not None else 0)
+        worst = readings[worst_idx]
+    parts = [
+        f"Across {len(readings)} logged tests, the live RSSI was measured through "
+        f"{len(set(materials))} different obstacle scenario(s)."
+    ]
+    if rssis:
+        parts.append(
+            f"Signal ranged from {max(rssis):g} dBm (strongest) to {min(rssis):g} dBm (weakest), "
+            "confirming that denser materials add markedly more attenuation than distance alone — "
+            "glass costs a couple of dB while concrete and metal drive the link toward the "
+            "out-of-range threshold."
+        )
+    return " ".join(parts)
+
+
+@router.post("/export/pathloss")
+async def export_pathloss_document(
+    readings: Optional[str] = Form(None),
+    heading: str = Form("Result"),
+    template: str = Form("exp7"),
+):
+    """
+    Inserts the measured "Indoor Obstacle Attenuation Data Log" (Table 1) into the
+    Experiment 7 document, replacing the blank Observations placeholder section.
+    Base/material losses are the theoretical reference decomposition; the RSSI and
+    connection status come from live measurement.
+    """
+    try:
+        reading_list = json.loads(readings) if readings else []
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="'readings' payload was not valid JSON.")
+    if not isinstance(reading_list, list) or not reading_list:
+        raise HTTPException(status_code=400, detail="No path-loss readings to export. Log a few obstacle readings first.")
+
+    raw = _load_template(template)
+    base = _TEMPLATES[template][:-5]  # "Expt. No. 7"
+
+    try:
+        doc = Document(io.BytesIO(raw))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Could not open the experiment document.")
+
+    anchor_table = _find_observation_table_by_markers(
+        doc, ("obstacle material", "material loss", "connection status"))
+    try:
+        style_hint = anchor_table.style if anchor_table is not None else None
+    except Exception:
+        style_hint = None
+
+    # Replace the placeholder "Observations" section (heading + empty Table 1) with
+    # the measured Result, keeping the "Results & Discussion" prose that follows.
+    insert_before = _strip_section(doc, "Observations", "Results & Discussion")
+
+    built = [doc.add_paragraph()]
+    h = doc.add_paragraph()
+    hr = h.add_run(heading)
+    hr.bold = True
+    hr.font.size = Pt(14)
+    hr.font.color.rgb = RGBColor(0x1F, 0x2A, 0x44)
+    built.append(h)
+    built.append(doc.add_paragraph())
+
+    built.append(_sublabel(doc, "Table 1: Indoor Obstacle Attenuation Data Log — Measured"))
+    built.append(_build_exp7_table(doc, reading_list, style_hint=style_hint))
+    built.append(doc.add_paragraph())
+
+    note = doc.add_paragraph()
+    nr = note.add_run("Base Path Loss and Material Loss are the theoretical log-distance model "
+                      "reference values; Measured RSSI and Connection Status are captured live.")
+    nr.font.size = Pt(9)
+    nr.italic = True
+    built.append(note)
+    built.append(doc.add_paragraph())
+
+    obs = doc.add_paragraph()
+    obs.add_run("Observation: ").bold = True
+    obs.add_run(_exp7_summary(reading_list))
+    built.append(obs)
+    built.append(doc.add_paragraph())
+
+    if insert_before is not None:
+        for block in built:
+            insert_before.addprevious(block._element)
+    elif anchor_table is not None:
+        anchor = anchor_table._element
+        for block in built:
+            anchor.addnext(block._element)
+            anchor = block._element
+    else:
+        raise HTTPException(status_code=422, detail="No observation section found in the document.")
 
     out = io.BytesIO()
     doc.save(out)

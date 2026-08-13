@@ -12,6 +12,7 @@
  */
 import JSZip from 'jszip'
 import { btLinkState, btCategory, btServices } from '../calc/bluetooth.js'
+import { basePathLoss, materialLoss, connectionStatus, DEFAULT_MATERIAL } from '../calc/indoorpathloss.js'
 
 const XML_NS = {
   w: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
@@ -491,6 +492,63 @@ export async function buildExp6Docx(templateBytes, { devices, connected, reading
       const summary = bits.length
         ? bits.join(' ')
         : 'Studied Bluetooth discovery, pairing and range using live device measurements.'
+      parts.push(para(run('Observation: ', { bold: true }) + run(summary)))
+      parts.push(para())
+      return parts.join('')
+    },
+  })
+}
+
+/* ── Experiment 7 (Indoor Path Loss) ── */
+
+/** Experiment 7 export, generated entirely on-device. */
+export async function buildExp7Docx(templateBytes, { readings }) {
+  if (!readings?.length) throw new Error('No path-loss readings to export.')
+
+  return spliceReplacingSection(templateBytes, {
+    fromText: 'Observations',
+    beforeText: 'Results & Discussion',
+    fallbackMarkers: ['obstacle material', 'material loss', 'connection status'],
+    buildXml: () => {
+      const parts = [
+        para(),
+        para(run('Result', { bold: true, size: HEADING_SIZE, color: INK })),
+        para(),
+        para(run('Table 1: Indoor Obstacle Attenuation Data Log — Measured',
+          { bold: true, size: LABEL_SIZE })),
+        table(
+          ['Test No.', 'Obstacle Material', 'Distance (d)', 'Base Path Loss (dB)',
+            'Material Loss (dB)', 'Measured RSSI (dBm)', 'Connection Status'],
+          readings.map((r, i) => {
+            const material = r.material || DEFAULT_MATERIAL
+            return [
+              String(i + 1),
+              material,
+              `${num(r.distance)} m`,
+              num(basePathLoss(r.distance)),
+              num(materialLoss(material)),
+              num(r.rssi),
+              connectionStatus(r.rssi),
+            ]
+          }),
+        ),
+        para(),
+        para(run('Base Path Loss and Material Loss are the theoretical log-distance model reference ' +
+          'values; Measured RSSI and Connection Status are captured live.',
+          { size: NOTE_SIZE, italic: true })),
+        para(),
+      ]
+
+      const rs = readings.map(r => Number(r.rssi)).filter(Number.isFinite)
+      const materials = new Set(readings.map(r => r.material).filter(Boolean))
+      let summary = `Across ${readings.length} logged tests, the live RSSI was measured through ` +
+        `${materials.size} different obstacle scenario${materials.size !== 1 ? 's' : ''}.`
+      if (rs.length) {
+        summary += ` Signal ranged from ${Math.max(...rs)} dBm (strongest) to ${Math.min(...rs)} dBm ` +
+          '(weakest), confirming that denser materials add markedly more attenuation than distance ' +
+          'alone — glass costs a couple of dB while concrete and metal drive the link toward the ' +
+          'out-of-range threshold.'
+      }
       parts.push(para(run('Observation: ', { bold: true }) + run(summary)))
       parts.push(para())
       return parts.join('')

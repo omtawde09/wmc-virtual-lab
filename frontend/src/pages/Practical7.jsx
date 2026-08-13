@@ -7,8 +7,13 @@ import { resetAllOnce } from '../resetOnLoad'
 import { wsUrl, IS_ANDROID } from '../config'
 import Hardware from '../hardware'
 import { buildPathLossFit, analyzeObstacles } from '../calc/pathloss'
+import {
+  OBSTACLE_MATERIALS, DEFAULT_MATERIAL, basePathLoss, materialLoss,
+  connectionStatus, statusBadge,
+} from '../calc/indoorpathloss'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import ExportPathLossDoc from '../components/ExportPathLossDoc'
 import BackendBanner from '../components/BackendBanner'
 
 const BT_API = '/api/bluetooth'          // shared BLE discovery
@@ -49,8 +54,7 @@ export default function Practical7() {
   /* ── Obstacle logging ── */
   const [readings, setReadings] = useState([])
   const [distance, setDistance] = useState('3')
-  const [obstacleCount, setObstacleCount] = useState('0')
-  const [obstacleDesc, setObstacleDesc] = useState('')
+  const [material, setMaterial] = useState(DEFAULT_MATERIAL)
   const [recording, setRecording] = useState(false)
   const [lastAdded, setLastAdded] = useState(null)
   const [logErr, setLogErr] = useState(null)
@@ -140,7 +144,9 @@ export default function Practical7() {
   /* ── Actions ── */
   async function handleAddReading() {
     const dist = parseFloat(distance)
-    const oc = parseInt(obstacleCount, 10) || 0
+    // Derive the obstacle count from the material so the existing attenuation
+    // analysis (which groups by count) keeps working: 0 for free space, else 1.
+    const oc = material === DEFAULT_MATERIAL ? 0 : 1
     if (!selectedAddress) { setLogErr('Select a device from the list first.'); return }
     if (!dist || dist <= 0) { setLogErr('Enter a distance in metres.'); return }
     setRecording(true); setLogErr(null)
@@ -151,7 +157,8 @@ export default function Practical7() {
       } else {
         const reading = {
           id: Date.now(), address: selectedAddress, name: dev.name,
-          rssi: dev.rssi, distance: dist, obstacle_count: oc, obstacle_desc: obstacleDesc.trim(),
+          rssi: dev.rssi, distance: dist, obstacle_count: oc,
+          obstacle_desc: material, material,
         }
         setReadings(r => [...r, reading])
         setLastAdded(reading)
@@ -160,7 +167,10 @@ export default function Practical7() {
       return
     }
     try {
-      const res = await axios.post(`${API}/reading`, { address: selectedAddress, distance: dist, obstacle_count: oc, obstacle_desc: obstacleDesc.trim() })
+      const res = await axios.post(`${API}/reading`, {
+        address: selectedAddress, distance: dist, obstacle_count: oc,
+        obstacle_desc: material, material,
+      })
       setLastAdded(res.data)
       await fetchReadings()
     } catch (err) {
@@ -240,26 +250,28 @@ export default function Practical7() {
 
         {/* ── OBSTACLE LOGGING ── */}
         <div className="glass-card" style={{ marginBottom: '24px' }}>
-          <h2 className="card-section-title accent tight">🧱 Log Reading at an Obstacle Level</h2>
+          <h2 className="card-section-title accent tight">🧱 Log Reading Through an Obstacle Material</h2>
           <p className="section-desc" style={{ marginBottom: '14px', fontSize: '13px' }}>
-            Keep <strong>distance roughly constant</strong> and vary the obstacle count (e.g. same 3 m spot: 0 walls, then 1 wall, then 2 walls) so the attenuation reflects obstacles, not distance.
+            Place the selected material (glass, wooden door, concrete wall…) between the device and
+            the laptop, then log the live RSSI. Try each material — the data log below records the
+            measured signal against the theoretical loss breakdown, ready for your experiment document.
           </p>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
             Selected device: <strong style={{ fontFamily: 'var(--font-mono)' }}>{selectedAddress || 'none — pick one above'}</strong>
             {selected && <> &nbsp;({selected.rssi} dBm)</>}
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div className="input-group" style={{ flex: '1 1 130px' }}>
+            <div className="input-group" style={{ flex: '2 1 220px' }}>
+              <label className="input-label">Obstacle material</label>
+              <select className="input-field" value={material} onChange={e => setMaterial(e.target.value)}>
+                {OBSTACLE_MATERIALS.map(m => (
+                  <option key={m.name} value={m.name}>{m.name}{m.loss ? ` (−${m.loss} dB)` : ''}</option>
+                ))}
+              </select>
+            </div>
+            <div className="input-group" style={{ flex: '1 1 120px' }}>
               <label className="input-label">Distance (m)</label>
               <input type="number" step="0.1" min="0.1" placeholder="3" value={distance} onChange={e => setDistance(e.target.value)} className="input-field" />
-            </div>
-            <div className="input-group" style={{ flex: '1 1 130px' }}>
-              <label className="input-label"># Obstacles</label>
-              <input type="number" step="1" min="0" placeholder="0" value={obstacleCount} onChange={e => setObstacleCount(e.target.value)} className="input-field" />
-            </div>
-            <div className="input-group" style={{ flex: '2 1 200px' }}>
-              <label className="input-label">Obstacle note (optional)</label>
-              <input type="text" placeholder="e.g. 1 drywall partition, human body" value={obstacleDesc} onChange={e => setObstacleDesc(e.target.value)} className="input-field" />
             </div>
             <button className="btn btn-primary" disabled={recording || !selectedAddress} onClick={handleAddReading} style={{ height: '46px' }}>
               {recording ? 'Logging…' : '🧱 Log Reading'}
@@ -269,7 +281,7 @@ export default function Practical7() {
           {logErr && <div className="alert alert-warning" style={{ marginTop: '12px' }}>⚠️ {logErr}</div>}
           {lastAdded && (
             <div className="alert alert-success" style={{ marginTop: '12px' }}>
-              ✅ Logged {lastAdded.distance} m, {lastAdded.obstacle_count} obstacle(s) → {lastAdded.rssi} dBm
+              ✅ Logged {lastAdded.material || lastAdded.obstacle_desc || 'obstacle'} at {lastAdded.distance} m → {lastAdded.rssi} dBm
             </div>
           )}
         </div>
@@ -353,6 +365,51 @@ export default function Practical7() {
             </div>
           </div>
         )}
+
+        {/* ── INDOOR OBSTACLE ATTENUATION DATA LOG (syllabus Table 1) ── */}
+        {readings.length > 0 && (
+          <div className="glass-card" style={{ marginTop: '24px' }}>
+            <h2 className="card-section-title accent">📋 Indoor Obstacle Attenuation Data Log</h2>
+            <p className="section-desc" style={{ marginBottom: '16px', fontSize: '13px' }}>
+              Every logged reading with its measured RSSI and the theoretical loss breakdown — this is
+              the observation table your experiment document requires. Base and material losses are
+              model references; RSSI and status are measured live.
+            </p>
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Test No.</th><th>Obstacle Material</th><th>Distance (d)</th>
+                    <th>Base Path Loss (dB)</th><th>Material Loss (dB)</th>
+                    <th>Measured RSSI (dBm)</th><th>Connection Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {readings.map((r, i) => {
+                    const mat = r.material || r.obstacle_desc || DEFAULT_MATERIAL
+                    const status = connectionStatus(r.rssi)
+                    return (
+                      <tr key={r.id ?? i}>
+                        <td>{i + 1}</td>
+                        <td style={{ fontSize: '12px' }}>{mat}</td>
+                        <td>{r.distance} m</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>{basePathLoss(r.distance)}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>{materialLoss(mat)}</td>
+                        <td style={{ color: signalColor(r.rssi), fontFamily: 'var(--font-mono)' }}>{r.rssi}</td>
+                        <td><span className={`badge ${statusBadge(status)}`}>{status}</span></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── EXPORT TO EXPERIMENT DOCUMENT ── */}
+        <div style={{ marginTop: '24px' }}>
+          <ExportPathLossDoc readings={readings} />
+        </div>
 
 
         <ExperimentInfo

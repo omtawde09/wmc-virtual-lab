@@ -116,6 +116,29 @@ export async function exportExp5Doc({ ping, speedtest, chartBlob, template = 'ex
 }
 
 /**
+ * Experiment 7 export. Writes the measured indoor obstacle-attenuation data log
+ * into the Exp-7 document, replacing its blank Observations placeholder.
+ */
+export async function exportExp7Doc({ readings, template = 'exp7' }) {
+  if (IS_ANDROID) return exportExp7Native({ readings })
+
+  const form = new FormData()
+  if (readings?.length) form.append('readings', JSON.stringify(readings))
+  form.append('template', template)
+
+  try {
+    const res = await axios.post('/api/docx/export/pathloss', form, {
+      responseType: 'blob',
+      timeout: 60000,
+    })
+    const name = downloadBlobResponse(res, 'Experiment 7 - with Results.docx')
+    return { ok: true, name }
+  } catch (err) {
+    throw new Error(await blobErrorMessage(err, 'Export failed. Is the local backend running?'))
+  }
+}
+
+/**
  * Experiment 6 export. Writes the discovered-device table (Table 1) and the
  * paced RSSI field-test table (Table 2) — plus the optional RSSI-vs-distance
  * graph — into the Exp-6 document below its range-test observation table.
@@ -193,6 +216,14 @@ async function exportExp5Native({ ping, speedtest, chartBlob }) {
     ping, speedtest, chart, platform: 'Mobile (Android)',
   })
   return saveNatively(out, 'Expt No. 5 - with Results.docx')
+}
+
+/** Experiment 7 export, generated entirely on-device. */
+async function exportExp7Native({ readings }) {
+  const { buildExp7Docx } = await import('./docx/buildDocx')
+  const template = await loadTemplate('exp7')
+  const out = await buildExp7Docx(template, { readings })
+  return saveNatively(out, 'Expt. No. 7 - with Results.docx')
 }
 
 /** Experiment 6 export, generated entirely on-device. */
