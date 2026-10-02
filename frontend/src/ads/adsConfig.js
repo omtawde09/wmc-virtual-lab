@@ -31,11 +31,18 @@ export const GLOBAL_AD_SCRIPTS = [
   'https://abscloud.org/1/fef5eeda683700adf66cec8a95a567bc',  // Popunder
 ]
 
-/** Native Banner — rendered in-page (it sizes itself), so at most ONE per page. */
-export const NATIVE_UNIT = {
-  src: 'https://bauval.org/21/672f3a387ac4d8d89e4cc00042cab9f1',
-  containerId: 'container-672f3a387ac4d8d89e4cc00042cab9f1',
-}
+/**
+ * Native Banner units — rendered in-page (they size themselves). A unit's
+ * container id must be unique on a page, so each unit can be used ONCE per page.
+ * To add more native placements: create another Native Banner unit in the
+ * Adsterra dashboard and append its { src, containerId } here.
+ */
+export const NATIVE_UNITS = [
+  {
+    src: 'https://bauval.org/21/672f3a387ac4d8d89e4cc00042cab9f1',
+    containerId: 'container-672f3a387ac4d8d89e4cc00042cab9f1',
+  },
+]
 
 /** Fixed-size iframe banners. */
 export const BANNER_UNITS = {

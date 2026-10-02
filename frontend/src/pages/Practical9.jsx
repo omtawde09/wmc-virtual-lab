@@ -1,3 +1,4 @@
+import AdFlow from '../ads/AdFlow'
 import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 import {
@@ -116,7 +117,7 @@ export default function Practical9() {
 
   return (
     <main className="practical-page">
-      <div className="container">
+      <AdFlow>
 
         {/* ── Header ── */}
         <div className="section-header">
@@ -303,7 +304,7 @@ export default function Practical9() {
             </p>
         </ExperimentInfo>
 
-      </div>
+      </AdFlow>
     </main>
   )
 }
