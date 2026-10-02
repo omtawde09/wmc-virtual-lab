@@ -10,8 +10,13 @@ import { wsUrl, IS_ANDROID } from '../config'
 import Hardware from '../hardware'
 import { analyzeMultipath } from '../calc/multipath'
 import { fitDomain } from '../calc/chartScale'
+import {
+  MULTIPATH_ENVIRONMENTS, DEFAULT_ENVIRONMENT, referencePaths,
+  multipathVerdict, verdictBadge,
+} from '../calc/multipathEnv'
 import { useSEO, experimentSchema } from '../useSEO'
 import ExperimentInfo from '../components/ExperimentInfo'
+import ExportMultipathDoc from '../components/ExportMultipathDoc'
 import BackendBanner from '../components/BackendBanner'
 
 const WSWIFI_URL = '/api/wifi/ws'
@@ -47,7 +52,7 @@ export default function Practical8() {
   const [rolling, setRolling]   = useState([])
   const [recording, setRecording] = useState(false)
   const [countdown, setCountdown] = useState(RECORD_SECONDS)
-  const [scenario, setScenario]   = useState('Stationary')
+  const [scenario, setScenario]   = useState(DEFAULT_ENVIRONMENT)
 
   const [sessions, setSessions]       = useState([])
   const [latest, setLatest]           = useState(null)
@@ -280,18 +285,18 @@ export default function Practical8() {
             <div>
               <h2 className="card-section-title accent">🧪 Multipath Experiment Setup</h2>
               <div className="input-group" style={{ marginBottom: '18px' }}>
-                <label className="input-label">Select Environmental Scenario</label>
+                <label className="input-label">Select Environment Type</label>
                 <select className="input-field" value={scenario} onChange={e => setScenario(e.target.value)} disabled={recording}
                   style={{ background: 'var(--bg-secondary)', cursor: 'pointer' }}>
-                  <option value="Stationary">Stationary (Minimal fading / line of sight)</option>
-                  <option value="Slow Walk">Slow Walk (Walking slowly with device)</option>
-                  <option value="Fast Walk">Fast Walk (Moving rapidly)</option>
-                  <option value="Obstructed">Obstructed (Behind walls / people moving)</option>
+                  {MULTIPATH_ENVIRONMENTS.map(env => (
+                    <option key={env.name} value={env.name}>{env.name}</option>
+                  ))}
                 </select>
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '16px' }}>
-                Records the live RSSI for {RECORD_SECONDS}s. For "walk" scenarios, move the device around
-                during the capture — multipath causes constructive/destructive fading that widens the swing.
+                Records the live RSSI for {RECORD_SECONDS}s. Physically set up the matching condition —
+                open outdoor line-of-sight, a furnished room, or a dense obstructed corridor — and move
+                around during the capture so the reflected paths change and the fading shows up.
               </div>
             </div>
             {!recording ? (
@@ -433,11 +438,56 @@ export default function Practical8() {
             <div className="divider" />
             <div className="alert alert-info">
               💡 <strong>Observation:</strong> A larger σ (fading depth) and higher crossing rate mean more severe multipath fading —
-              typically seen in the "walk"/obstructed scenarios where the reflected paths change rapidly. Stationary line-of-sight
+              typically seen in Dense Urban Corridor recordings where more reflected paths are active. Open Field, strong-line-of-sight
               readings stay closer to the mean (lower σ) and their amplitude distribution deviates from Rayleigh (which assumes no dominant path).
             </div>
           </div>
         )}
+
+        {/* ── MULTIPATH SIGNAL FLUCTUATION DATA LOG (syllabus Table 1) ── */}
+        {sessions.length > 0 && (
+          <div className="glass-card" style={{ marginTop: '24px' }}>
+            <h2 className="card-section-title accent">📋 Multipath Signal Fluctuation Data Log</h2>
+            <p className="section-desc" style={{ marginBottom: '16px', fontSize: '13px' }}>
+              Every recorded setup with its measured peak/deep-fade/fluctuation span — this is the
+              observation table your experiment document requires. Active Reflection Paths is the model
+              reference for the selected environment; Peak RSSI, Deep Fade RSSI and Fluctuation Span are
+              measured live.
+            </p>
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Setup No.</th><th>Environment Type</th><th>Active Reflection Paths</th>
+                    <th>Peak RSSI (dBm)</th><th>Deep Fade RSSI (dBm)</th><th>Total Fluctuation Span (dB)</th>
+                    <th>Observed Multipath Effect</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sessions.map((s, i) => {
+                    const verdict = multipathVerdict(s.peak_to_peak)
+                    return (
+                      <tr key={s.id}>
+                        <td>{i + 1}</td>
+                        <td style={{ fontSize: '12px' }}>{s.scenario}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>{referencePaths(s.scenario)}</td>
+                        <td style={{ color: rssiColor(s.max_rssi), fontFamily: 'var(--font-mono)' }}>{s.max_rssi}</td>
+                        <td style={{ color: rssiColor(s.min_rssi), fontFamily: 'var(--font-mono)' }}>{s.min_rssi}</td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>{s.peak_to_peak}</td>
+                        <td><span className={`badge ${verdictBadge(verdict)}`}>{verdict}</span></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── EXPORT TO EXPERIMENT DOCUMENT ── */}
+        <div style={{ marginTop: '24px' }}>
+          <ExportMultipathDoc sessions={sessions} />
+        </div>
 
         <ExperimentInfo
           heading="About this experiment: multipath fading"

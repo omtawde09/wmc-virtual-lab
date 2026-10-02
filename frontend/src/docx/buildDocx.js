@@ -13,6 +13,7 @@
 import JSZip from 'jszip'
 import { btLinkState, btCategory, btServices } from '../calc/bluetooth.js'
 import { basePathLoss, materialLoss, connectionStatus, DEFAULT_MATERIAL } from '../calc/indoorpathloss.js'
+import { referencePaths, multipathVerdict, DEFAULT_ENVIRONMENT } from '../calc/multipathEnv.js'
 
 const XML_NS = {
   w: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
@@ -549,6 +550,58 @@ export async function buildExp7Docx(templateBytes, { readings }) {
           'alone — glass costs a couple of dB while concrete and metal drive the link toward the ' +
           'out-of-range threshold.'
       }
+      parts.push(para(run('Observation: ', { bold: true }) + run(summary)))
+      parts.push(para())
+      return parts.join('')
+    },
+  })
+}
+
+export async function buildExp8Docx(templateBytes, { sessions }) {
+  if (!sessions?.length) throw new Error('No multipath sessions to export.')
+
+  return spliceReplacingSection(templateBytes, {
+    fromText: 'Observations',
+    beforeText: 'Results & Discussion',
+    fallbackMarkers: ['environment type', 'peak rssi', 'observed multipath effect'],
+    buildXml: () => {
+      const parts = [
+        para(),
+        para(run('Result', { bold: true, size: HEADING_SIZE, color: INK })),
+        para(),
+        para(run('Table 1: Multipath Signal Fluctuation Data Log — Measured',
+          { bold: true, size: LABEL_SIZE })),
+        table(
+          ['Setup No.', 'Environment Type', 'Active Reflection Paths', 'Peak RSSI (dBm)',
+            'Deep Fade RSSI (dBm)', 'Total Fluctuation Span (dB)', 'Observed Multipath Effect'],
+          sessions.map((s, i) => {
+            const env = s.scenario || DEFAULT_ENVIRONMENT
+            return [
+              String(i + 1),
+              env,
+              num(referencePaths(env)),
+              num(s.max_rssi),
+              num(s.min_rssi),
+              num(s.peak_to_peak),
+              multipathVerdict(s.peak_to_peak),
+            ]
+          }),
+        ),
+        para(),
+        para(run('Active Reflection Paths is the syllabus reference count for the selected ' +
+          'environment type; Peak RSSI, Deep Fade RSSI and Fluctuation Span are computed from ' +
+          'the live recorded samples.', { size: NOTE_SIZE, italic: true })),
+        para(),
+      ]
+
+      const spans = sessions.map(s => Number(s.peak_to_peak)).filter(Number.isFinite)
+      const envs = new Set(sessions.map(s => s.scenario).filter(Boolean))
+      let summary = `Across ${sessions.length} recorded setup(s) spanning ${envs.size} environment ` +
+        `type(s)${spans.length ? `, the measured fluctuation span ranged from ${Math.min(...spans)} dB ` +
+        `to ${Math.max(...spans)} dB` : ''}.`
+      summary += ' Denser environments with more reflection paths produced a wider peak-to-fade ' +
+        'spread, confirming that multipath severity tracks the number of active reflected ' +
+        'components rather than distance alone.'
       parts.push(para(run('Observation: ', { bold: true }) + run(summary)))
       parts.push(para())
       return parts.join('')

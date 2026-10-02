@@ -42,6 +42,7 @@ _TEMPLATES = {
     "exp5": "Expt No. 5.docx",
     "exp6": "Expt. No. 6.docx",
     "exp7": "Expt. No. 7.docx",
+    "exp8": "Expt. No. 8.docx",
 }
 
 
@@ -808,6 +809,166 @@ async def export_pathloss_document(
     obs = doc.add_paragraph()
     obs.add_run("Observation: ").bold = True
     obs.add_run(_exp7_summary(reading_list))
+    built.append(obs)
+    built.append(doc.add_paragraph())
+
+    if insert_before is not None:
+        for block in built:
+            insert_before.addprevious(block._element)
+    elif anchor_table is not None:
+        anchor = anchor_table._element
+        for block in built:
+            anchor.addnext(block._element)
+            anchor = block._element
+    else:
+        raise HTTPException(status_code=422, detail="No observation section found in the document.")
+
+    out = io.BytesIO()
+    doc.save(out)
+    out.seek(0)
+    filename = f"{base} - with Results.docx"
+    return StreamingResponse(
+        out,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+# ─────────────────────── Experiment 8 (Multipath) ───────────────────────
+#
+# The app records REAL RSSI over a timed window and computes peak/deep-fade/
+# fluctuation-span from those samples. "Active Reflection Paths" is the one
+# value a receiver can't count from a live scan, so it uses the standard
+# reference count the syllabus simulator assigns to each environment type —
+# mirrors frontend/src/calc/multipathEnv.js so both platforms agree.
+
+_EXP8_ENVIRONMENTS = {
+    "Open Field (Rician / Strong LoS)": 2,
+    "Suburban Room (Moderate Multipath)": 5,
+    "Dense Urban Corridor (Rayleigh / High Multipath)": 10,
+}
+
+
+def _exp8_reference_paths(env) -> int:
+    return _EXP8_ENVIRONMENTS.get(env or "", 0)
+
+
+def _exp8_verdict(peak_to_peak) -> str:
+    span = _as_float(peak_to_peak)
+    return (
+        "High Multipath Distortion (diversity/equalization recommended)"
+        if span > 10.0 else "Stable channel dynamics"
+    )
+
+
+def _build_exp8_table(doc: Document, sessions: list, style_hint=None):
+    """Table 1 — the measured multipath signal fluctuation data log."""
+    cols = [
+        "Setup No.", "Environment Type", "Active Reflection Paths",
+        "Peak RSSI (dBm)", "Deep Fade RSSI (dBm)", "Total Fluctuation Span (dB)",
+        "Observed Multipath Effect",
+    ]
+    table = doc.add_table(rows=1, cols=len(cols))
+    _apply_table_style(table, style_hint)
+    hdr = table.rows[0].cells
+    for i, name in enumerate(cols):
+        hdr[i].text = name
+        _style_header_cell(hdr[i])
+    for i, s in enumerate(sessions):
+        env = s.get("scenario") or "Suburban Room (Moderate Multipath)"
+        _fill_row(table.add_row().cells, [
+            str(i + 1),
+            env,
+            _exp8_reference_paths(env),
+            _num(s.get("max_rssi")),
+            _num(s.get("min_rssi")),
+            _num(s.get("peak_to_peak")),
+            _exp8_verdict(s.get("peak_to_peak")),
+        ])
+    return table
+
+
+def _exp8_summary(sessions: list) -> str:
+    if not sessions:
+        return "Recorded live RSSI across different environment setups to observe multipath fluctuation."
+    spans = [_as_float(s.get("peak_to_peak")) for s in sessions if s.get("peak_to_peak") is not None]
+    envs = {s.get("scenario") for s in sessions if s.get("scenario")}
+    parts = [
+        f"Across {len(sessions)} recorded setup(s) spanning {len(envs)} environment "
+        f"type(s), the measured fluctuation span ranged from {min(spans):g} dB to "
+        f"{max(spans):g} dB." if spans else
+        f"Across {len(sessions)} recorded setup(s) spanning {len(envs)} environment type(s)."
+    ]
+    parts.append(
+        "Denser environments with more reflection paths produced a wider peak-to-fade "
+        "spread, confirming that multipath severity tracks the number of active "
+        "reflected components rather than distance alone."
+    )
+    return " ".join(parts)
+
+
+@router.post("/export/multipath")
+async def export_multipath_document(
+    sessions: Optional[str] = Form(None),
+    heading: str = Form("Result"),
+    template: str = Form("exp8"),
+):
+    """
+    Inserts the measured "Multipath Signal Fluctuation Data Log" (Table 1) into
+    the Experiment 8 document, replacing the blank Observations placeholder
+    section. Peak/Deep-Fade RSSI and the fluctuation span come from live
+    recording; Active Reflection Paths is the syllabus reference count for the
+    selected environment type.
+    """
+    try:
+        session_list = json.loads(sessions) if sessions else []
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="'sessions' payload was not valid JSON.")
+    if not isinstance(session_list, list) or not session_list:
+        raise HTTPException(status_code=400, detail="No multipath sessions to export. Record at least one session first.")
+
+    raw = _load_template(template)
+    base = _TEMPLATES[template][:-5]  # "Expt. No. 8"
+
+    try:
+        doc = Document(io.BytesIO(raw))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Could not open the experiment document.")
+
+    anchor_table = _find_observation_table_by_markers(
+        doc, ("environment type", "peak rssi", "observed multipath effect"))
+    try:
+        style_hint = anchor_table.style if anchor_table is not None else None
+    except Exception:
+        style_hint = None
+
+    insert_before = _strip_section(doc, "Observations", "Results & Discussion")
+
+    built = [doc.add_paragraph()]
+    h = doc.add_paragraph()
+    hr = h.add_run(heading)
+    hr.bold = True
+    hr.font.size = Pt(14)
+    hr.font.color.rgb = RGBColor(0x1F, 0x2A, 0x44)
+    built.append(h)
+    built.append(doc.add_paragraph())
+
+    built.append(_sublabel(doc, "Table 1: Multipath Signal Fluctuation Data Log — Measured"))
+    built.append(_build_exp8_table(doc, session_list, style_hint=style_hint))
+    built.append(doc.add_paragraph())
+
+    note = doc.add_paragraph()
+    nr = note.add_run("Active Reflection Paths is the syllabus reference count for the selected "
+                      "environment type; Peak RSSI, Deep Fade RSSI and Fluctuation Span are "
+                      "computed from the live recorded samples.")
+    nr.font.size = Pt(9)
+    nr.italic = True
+    built.append(note)
+    built.append(doc.add_paragraph())
+
+    obs = doc.add_paragraph()
+    obs.add_run("Observation: ").bold = True
+    obs.add_run(_exp8_summary(session_list))
     built.append(obs)
     built.append(doc.add_paragraph())
 

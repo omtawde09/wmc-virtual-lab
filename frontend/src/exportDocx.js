@@ -139,6 +139,29 @@ export async function exportExp7Doc({ readings, template = 'exp7' }) {
 }
 
 /**
+ * Experiment 8 export. Writes the measured multipath signal-fluctuation data log
+ * into the Exp-8 document, replacing its blank Observations placeholder.
+ */
+export async function exportExp8Doc({ sessions, template = 'exp8' }) {
+  if (IS_ANDROID) return exportExp8Native({ sessions })
+
+  const form = new FormData()
+  if (sessions?.length) form.append('sessions', JSON.stringify(sessions))
+  form.append('template', template)
+
+  try {
+    const res = await axios.post('/api/docx/export/multipath', form, {
+      responseType: 'blob',
+      timeout: 60000,
+    })
+    const name = downloadBlobResponse(res, 'Experiment 8 - with Results.docx')
+    return { ok: true, name }
+  } catch (err) {
+    throw new Error(await blobErrorMessage(err, 'Export failed. Is the local backend running?'))
+  }
+}
+
+/**
  * Experiment 6 export. Writes the discovered-device table (Table 1) and the
  * paced RSSI field-test table (Table 2) — plus the optional RSSI-vs-distance
  * graph — into the Exp-6 document below its range-test observation table.
@@ -232,6 +255,14 @@ async function exportExp6Native({ devices, connected, readings }) {
   const template = await loadTemplate('exp6')
   const out = await buildExp6Docx(template, { devices, connected, readings })
   return saveNatively(out, 'Expt. No. 6 - with Results.docx')
+}
+
+/** Experiment 8 export, generated entirely on-device. */
+async function exportExp8Native({ sessions }) {
+  const { buildExp8Docx } = await import('./docx/buildDocx')
+  const template = await loadTemplate('exp8')
+  const out = await buildExp8Docx(template, { sessions })
+  return saveNatively(out, 'Expt. No. 8 - with Results.docx')
 }
 
 /** Reads an error message out of a Blob response (errors arrive as blobs too). */
