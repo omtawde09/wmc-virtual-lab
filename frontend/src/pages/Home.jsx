@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useSEO } from '../useSEO'
 import CardArt from '../components/CardArt'
+import AdSlot from '../ads/AdSlot'
 
 export default function Home() {
   useSEO({
@@ -176,6 +177,15 @@ export default function Home() {
               <span className="card-cta cyan" style={{ color: 'var(--cyan)' }}>Launch Experiment →</span>
             </Link>
           </div>
+
+          {/* First-time visitors are redirected to onboarding straight away; don't
+              fire ad requests for the single frame Home is mounted before that. */}
+          {localStorage.getItem('onboardingCompleted') && (
+            <>
+              <AdSlot variant="banner" />
+              <AdSlot variant="native" />
+            </>
+          )}
         </div>
       </section>
     </main>

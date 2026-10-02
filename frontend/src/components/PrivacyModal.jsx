@@ -74,8 +74,9 @@ export default function PrivacyModal({ open, onClose }) {
           <Section n="2" title="Information We Collect">
             <p>
               <strong>We do not collect, transmit, sell, or share any personal information.</strong>{' '}
-              The Application has no user accounts, no sign-up, no tracking cookies, no analytics, and
-              no advertising. We operate no server that receives your data.
+              The Application has no user accounts, no sign-up, and no analytics of its own. We operate
+              no server that receives your data. The hosted website (but not the Android app or the
+              local backend) displays third-party advertising, which is described in Section 4.
             </p>
             <p>To perform its experiments the Application reads the following <em>locally</em>:</p>
             <ul className="policy-list">
@@ -101,6 +102,16 @@ export default function PrivacyModal({ open, onClose }) {
               Speedtest service. These requests are initiated only when you press “GO”, and are subject
               to those providers’ own privacy policies. No identifying information is added by us. All
               other experiments run entirely against your own hardware.
+            </p>
+            <p>
+              <strong>Advertising.</strong> The hosted website displays advertisements served by{' '}
+              <strong>Adsterra</strong> (adsterra.com) and its advertising partners. To serve and
+              measure ads, they may set cookies or use similar technologies and may collect
+              information such as your IP address, browser and device details, and how you interact
+              with an ad, under their own privacy policies. We do not control or receive that data,
+              and we never send your experiment readings to advertisers. The Android app and the
+              local backend show no ads. You can limit ad tracking through your browser’s cookie
+              settings or an ad blocker.
             </p>
           </Section>
 

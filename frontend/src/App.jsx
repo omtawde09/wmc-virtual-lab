@@ -12,6 +12,7 @@ import Practical8 from './pages/Practical8'
 import Practical9 from './pages/Practical9'
 import NotFound from './pages/NotFound'
 import { resetAllOnce } from './resetOnLoad'
+import GlobalAds from './ads/GlobalAds'
 
 export default function App() {
   const [showPrivacy, setShowPrivacy] = useState(false)
@@ -19,6 +20,11 @@ export default function App() {
   const navigate = useNavigate()
 
   const isOnboarding = location.pathname === '/onboarding'
+  // First-time visitors hitting "/" are redirected to onboarding by the effect
+  // below. Treat them as already on onboarding so no ad script is injected in the
+  // brief window before that redirect happens.
+  const headingToOnboarding =
+    location.pathname === '/' && !localStorage.getItem('onboardingCompleted')
 
   // On every full page load (refresh), wipe all practicals' stored results.
   useEffect(() => { resetAllOnce() }, [])
@@ -37,6 +43,7 @@ export default function App() {
   return (
     <div className={isOnboarding ? undefined : 'page-wrapper'}>
       {!isOnboarding && <Navbar />}
+      {!isOnboarding && !headingToOnboarding && <GlobalAds />}
       <div className={isOnboarding ? undefined : 'route-fade'} key={location.pathname}>
         <Routes>
           <Route path="/" element={<Home />} />

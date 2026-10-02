@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import AdSlot from '../ads/AdSlot'
 
 /**
  * Adds crawlable, human-useful content to the bottom of an experiment page:
@@ -30,6 +31,8 @@ export default function ExperimentInfo({ heading, children, faqs = [], related =
 
   return (
     <>
+      <AdSlot variant="banner" />
+
       <section className="glass-card content-block" style={{ marginTop: '24px' }}>
         <h2 className="content-h2">{heading}</h2>
         <div className="prose">{children}</div>
@@ -49,6 +52,8 @@ export default function ExperimentInfo({ heading, children, faqs = [], related =
         )}
       </section>
 
+      <AdSlot variant="native" />
+
       {related.length > 0 && (
         <section className="glass-card content-block" style={{ marginTop: '24px' }}>
           <h2 className="content-h2">Related experiments</h2>
@@ -63,6 +68,8 @@ export default function ExperimentInfo({ heading, children, faqs = [], related =
           </div>
         </section>
       )}
+
+      <AdSlot variant="rectangle" />
     </>
   )
 }

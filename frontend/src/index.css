@@ -2236,3 +2236,25 @@ div[style*="flex"] > .card-section-title { margin-bottom: 0; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Advertising slots (see src/ads/) ── */
+.ad-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 24px auto 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.ad-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+/* Native banners size themselves; just keep them inside the content column. */
+.ad-slot-native { align-items: stretch; width: 100%; }
+@media (max-width: 600px) {
+  .ad-slot { margin-top: 18px; }
+}
